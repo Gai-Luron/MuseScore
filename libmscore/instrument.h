@@ -22,7 +22,7 @@
 namespace Ms {
 
 class InstrumentTemplate;
-class Xml;
+class XmlWriter;
 class XmlReader;
 class Drumset;
 class StringData;
@@ -31,15 +31,29 @@ class StringData;
 //   StaffName
 //---------------------------------------------------------
 
-struct StaffName {
-      QString name;
-      int pos;          // even number -> between staves
+class StaffName {
+      QString _name;    // html string
+      int _pos;         // even number -> between staves
 
+   public:
       StaffName() {}
-      StaffName(const QString& s, int p=0) : name(s), pos(p) {}
+      StaffName(const QString& s, int p=0) : _name(s), _pos(p) {}
+
       bool operator==(const StaffName&) const;
       void read(XmlReader&);
-      void write(Xml& xml, const char* name) const;
+      void write(XmlWriter& xml, const char* name) const;
+      int pos() const { return _pos; }
+      QString name() const { return _name; }
+      };
+
+//---------------------------------------------------------
+//   StaffNameList
+//---------------------------------------------------------
+
+class StaffNameList : public QList<StaffName> {
+
+   public:
+      void write(XmlWriter& xml, const char* name) const;
       };
 
 //---------------------------------------------------------
@@ -51,7 +65,7 @@ struct NamedEventList {
       QString descr;
       std::vector<MidiCoreEvent> events;
 
-      void write(Xml&, const QString& name) const;
+      void write(XmlWriter&, const QString& name) const;
       void read(XmlReader&);
       bool operator==(const NamedEventList& i) const { return i.name == name && i.events == events; }
       };
@@ -65,7 +79,7 @@ struct MidiArticulation {
       QString descr;
       int velocity;           // velocity change: -100% - +100%
       int gateTime;           // gate time change: -100% - +100%
-      void write(Xml&) const;
+      void write(XmlWriter&) const;
       void read(XmlReader&);
 
       MidiArticulation() {}
@@ -106,8 +120,8 @@ struct Channel {
       QList<MidiArticulation> articulation;
 
       Channel();
-      void write(Xml&) const;
-      void read(XmlReader&);
+      void write(XmlWriter&, Part *part) const;
+      void read(XmlReader&, Part *part);
       void updateInitList() const;
       bool operator==(const Channel& c) { return (name == c.name) && (channel == c.channel); }
       };
@@ -117,8 +131,8 @@ struct Channel {
 //---------------------------------------------------------
 
 class Instrument {
-      QList<StaffName> _longNames;
-      QList<StaffName> _shortNames;
+      StaffNameList _longNames;
+      StaffNameList _shortNames;
       QString _trackName;
 
       char _minPitchA, _maxPitchA, _minPitchP, _maxPitchP;
@@ -126,7 +140,7 @@ class Instrument {
       QString _instrumentId;
 
       bool _useDrumset;
-      const Drumset* _drumset;
+      Drumset* _drumset;
       StringData  _stringData;
 
       QList<NamedEventList>   _midiActions;
@@ -140,8 +154,9 @@ class Instrument {
       void operator=(const Instrument&);
       ~Instrument();
 
-      void read(XmlReader&);
-      void write(Xml& xml) const;
+      void read(XmlReader&, Part *part);
+      bool readProperties(XmlReader&, Part* , bool* customDrumset);
+      void write(XmlWriter& xml, Part *part) const;
       NamedEventList* midiAction(const QString& s, int channel) const;
       int channelIdx(const QString& s) const;
       void updateVelocity(int* velocity, int channel, const QString& name);
@@ -160,6 +175,7 @@ class Instrument {
 
       void setDrumset(const Drumset* ds);
       const Drumset* drumset() const                         { return _drumset;    }
+      Drumset* drumset()                                     { return _drumset;    }
       bool useDrumset() const                                { return _useDrumset; }
       void setUseDrumset(bool val);
       void setAmateurPitchRange(int a, int b)                { _minPitchA = a; _maxPitchA = b; }
@@ -173,6 +189,8 @@ class Instrument {
       const QList<MidiArticulation>& articulation() const    { return _articulation; }
 
       const QList<Channel*>& channel() const                 { return _channel; }
+      void appendChannel(Channel* c)                         { _channel.append(c); }
+      void clearChannels()                                   { _channel.clear(); }
 
       void setMidiActions(const QList<NamedEventList>& l)    { _midiActions = l;  }
       void setArticulation(const QList<MidiArticulation>& l) { _articulation = l; }

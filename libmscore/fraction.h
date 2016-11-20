@@ -26,7 +26,7 @@ class Fraction {
       int _denominator;
 
    public:
-      Fraction(int z = 0, int n = 1);
+      constexpr Fraction(int z = 0, int n = 1) : _numerator(z), _denominator(n) {}
       int numerator() const      { return _numerator;           }
       int denominator() const    { return _denominator;         }
       int& rnumerator()          { return _numerator;           }
@@ -75,10 +75,47 @@ class Fraction {
       bool operator!=(const Fraction&) const;
 
       QString print() const { return QString("%1/%2").arg(_numerator).arg(_denominator); }
+      operator QVariant() const { return QVariant::fromValue(*this); }
       };
+
+#ifdef SCRIPT_INTERFACE
+
+//---------------------------------------------------------
+//   FractionWrapper
+//---------------------------------------------------------
+
+class FractionWrapper : public QObject {
+      Q_OBJECT
+      Q_PROPERTY(int numerator READ numerator)
+      Q_PROPERTY(int denominator READ denominator)
+      Q_PROPERTY(int ticks READ ticks)
+
+      Fraction f;
+
+   public slots:
+      void setFraction(Fraction _f) { f = _f; }
+
+   public:
+      FractionWrapper(const FractionWrapper& w) : QObject() { f = w.f; }
+      FractionWrapper() {}
+      FractionWrapper(const Fraction& _f) : f(_f) {}
+
+      Fraction fraction() const { return f; }
+      int numerator() const   { return f.numerator(); }
+      int denominator() const { return f.denominator(); }
+      int ticks() const       { return f.ticks(); }
+      };
+
+
+#endif // SCRIPT_INTERFACE
 
 }     // namespace Ms
 
 Q_DECLARE_METATYPE(Ms::Fraction);
+
+#ifdef SCRIPT_INTERFACE
+Q_DECLARE_METATYPE(Ms::FractionWrapper);
+#endif
+
 #endif
 

@@ -54,6 +54,7 @@
 #include "libmscore/ottava.h"
 #include "libmscore/notedot.h"
 #include "libmscore/stafftext.h"
+#include "libmscore/sym.h"
 #include "preferences.h"
 
 namespace Ms {
@@ -131,7 +132,7 @@ void GuitarPro::read(void* p, qint64 len)
 
 int GuitarPro::readChar()
       {
-      char c;
+      signed char c;
       read(&c, 1);
       return c;
       }
@@ -245,70 +246,70 @@ void GuitarPro::initGuitarProDrumset()
             gpDrumset->drum(i).line     = 0;
             gpDrumset->drum(i).shortcut = 0;
             gpDrumset->drum(i).voice    = 0;
-            gpDrumset->drum(i).stemDirection = MScore::Direction::UP;
+            gpDrumset->drum(i).stemDirection = Direction::UP;
             }
       // new drumset determined via guitar pro (third argument specifies position on staff, 10 = C3, 9 = D3, 8 = E3,...)
-      gpDrumset->drum(27) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "High Q"), NoteHead::Group::HEAD_NORMAL, 3, MScore::Direction::UP);
-      gpDrumset->drum(28) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Slap"), NoteHead::Group::HEAD_NORMAL, 3, MScore::Direction::UP);
-      gpDrumset->drum(29) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Scratch Push"), NoteHead::Group::HEAD_NORMAL, 3, MScore::Direction::UP);
-      gpDrumset->drum(30) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Scratch Pull"), NoteHead::Group::HEAD_NORMAL, 3, MScore::Direction::UP);
-      gpDrumset->drum(31) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Sticks"), NoteHead::Group::HEAD_CROSS, 3, MScore::Direction::UP);
-      gpDrumset->drum(32) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Square Click"), NoteHead::Group::HEAD_NORMAL, 3, MScore::Direction::UP);
-      gpDrumset->drum(33) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Metronome Click"), NoteHead::Group::HEAD_CROSS, 3, MScore::Direction::UP);
-      gpDrumset->drum(34) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Metronome Bell"), NoteHead::Group::HEAD_NORMAL, 3, MScore::Direction::UP);
-      gpDrumset->drum(35) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Acoustic Bass Drum"), NoteHead::Group::HEAD_NORMAL, 7, MScore::Direction::UP);
-      gpDrumset->drum(36) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Bass Drum 1"), NoteHead::Group::HEAD_NORMAL, 7, MScore::Direction::UP);
-      gpDrumset->drum(37) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Side Stick"), NoteHead::Group::HEAD_CROSS, 3, MScore::Direction::UP);
-      gpDrumset->drum(38) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Acoustic Snare"), NoteHead::Group::HEAD_NORMAL, 3, MScore::Direction::UP);
-      gpDrumset->drum(39) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Hand Clap"), NoteHead::Group::HEAD_NORMAL, 3, MScore::Direction::UP);
-      gpDrumset->drum(40) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Electric Snare"), NoteHead::Group::HEAD_NORMAL, 3, MScore::Direction::UP);
-      gpDrumset->drum(41) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Low Floor Tom"), NoteHead::Group::HEAD_NORMAL, 6, MScore::Direction::UP);
-      gpDrumset->drum(42) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Closed Hi-Hat"), NoteHead::Group::HEAD_CROSS, -1, MScore::Direction::UP);
-      gpDrumset->drum(43) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "High Floor Tom"), NoteHead::Group::HEAD_NORMAL, 5, MScore::Direction::UP);
-      gpDrumset->drum(44) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Pedal Hi-Hat"), NoteHead::Group::HEAD_CROSS, 7, MScore::Direction::UP);
-      gpDrumset->drum(45) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Low Tom"), NoteHead::Group::HEAD_NORMAL, 4, MScore::Direction::UP);
-      gpDrumset->drum(46) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Open Hi-Hat"), NoteHead::Group::HEAD_CROSS, -1, MScore::Direction::UP);
-      gpDrumset->drum(47) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Low-Mid Tom"), NoteHead::Group::HEAD_NORMAL, 2, MScore::Direction::UP);
-      gpDrumset->drum(48) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Hi-Mid Tom"), NoteHead::Group::HEAD_NORMAL, 1, MScore::Direction::UP);
-      gpDrumset->drum(49) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Crash Cymbal 1"), NoteHead::Group::HEAD_DIAMOND, -1, MScore::Direction::UP);
-      gpDrumset->drum(50) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "High Tom"), NoteHead::Group::HEAD_NORMAL, 0, MScore::Direction::UP);
-      gpDrumset->drum(51) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Ride Cymbal 1"), NoteHead::Group::HEAD_DIAMOND, -1, MScore::Direction::UP);
-      gpDrumset->drum(52) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Chinese Cymbal"), NoteHead::Group::HEAD_CROSS, -1, MScore::Direction::UP);
-      gpDrumset->drum(53) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Ride Bell"), NoteHead::Group::HEAD_DIAMOND, -1, MScore::Direction::UP);
-      gpDrumset->drum(54) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Tambourine"), NoteHead::Group::HEAD_CROSS, 2, MScore::Direction::UP);
-      gpDrumset->drum(55) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Splash Cymbal"), NoteHead::Group::HEAD_NORMAL, 3, MScore::Direction::UP);
-      gpDrumset->drum(56) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Cowbell"), NoteHead::Group::HEAD_NORMAL, 1, MScore::Direction::UP);
-      gpDrumset->drum(57) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Crash Cymbal 2"), NoteHead::Group::HEAD_DIAMOND, -1, MScore::Direction::UP);
-      gpDrumset->drum(58) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Vibraslap"), NoteHead::Group::HEAD_NORMAL, 3, MScore::Direction::UP);
-      gpDrumset->drum(59) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Ride Cymbal 2"), NoteHead::Group::HEAD_DIAMOND, -1, MScore::Direction::UP);
-      gpDrumset->drum(60) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Hi Bongo"), NoteHead::Group::HEAD_NORMAL, 8, MScore::Direction::UP);
-      gpDrumset->drum(61) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Low Bongo"), NoteHead::Group::HEAD_NORMAL, 9, MScore::Direction::UP);
-      gpDrumset->drum(62) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Mute Hi Conga"), NoteHead::Group::HEAD_CROSS, 5, MScore::Direction::UP);
-      gpDrumset->drum(63) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Open Hi Conga"), NoteHead::Group::HEAD_CROSS, 4, MScore::Direction::UP);
-      gpDrumset->drum(64) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Low Conga"), NoteHead::Group::HEAD_CROSS, 6, MScore::Direction::UP);
-      gpDrumset->drum(65) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "High Timbale"), NoteHead::Group::HEAD_CROSS, 8, MScore::Direction::UP);
-      gpDrumset->drum(66) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Low Timbale"), NoteHead::Group::HEAD_CROSS, 9, MScore::Direction::UP);
-      gpDrumset->drum(67) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "High Agogo"), NoteHead::Group::HEAD_NORMAL, 3, MScore::Direction::UP);
-      gpDrumset->drum(68) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Low Agogo"), NoteHead::Group::HEAD_NORMAL, 3, MScore::Direction::UP);
-      gpDrumset->drum(69) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Cabasa"), NoteHead::Group::HEAD_NORMAL, 3, MScore::Direction::UP);
-      gpDrumset->drum(70) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Maracas"), NoteHead::Group::HEAD_NORMAL, 3, MScore::Direction::UP);
-      gpDrumset->drum(71) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Short Whistle"), NoteHead::Group::HEAD_NORMAL, 3, MScore::Direction::UP);
-      gpDrumset->drum(72) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Long Whistle"), NoteHead::Group::HEAD_NORMAL, 3, MScore::Direction::UP);
-      gpDrumset->drum(73) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Short Guiro"), NoteHead::Group::HEAD_NORMAL, 3, MScore::Direction::UP);
-      gpDrumset->drum(74) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Long Guiro"), NoteHead::Group::HEAD_NORMAL, 3, MScore::Direction::UP);
-      gpDrumset->drum(75) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Claves"), NoteHead::Group::HEAD_NORMAL, 3, MScore::Direction::UP);
-      gpDrumset->drum(76) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Hi Wood Block"), NoteHead::Group::HEAD_NORMAL, 3, MScore::Direction::UP);
-      gpDrumset->drum(77) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Low Wood Block"), NoteHead::Group::HEAD_NORMAL, 3, MScore::Direction::UP);
-      gpDrumset->drum(78) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Mute Cuica"), NoteHead::Group::HEAD_NORMAL, 3, MScore::Direction::UP);
-      gpDrumset->drum(79) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Open Cuica"), NoteHead::Group::HEAD_NORMAL, 3, MScore::Direction::UP);
-      gpDrumset->drum(80) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Mute Triangle"), NoteHead::Group::HEAD_NORMAL, 3, MScore::Direction::UP);
-      gpDrumset->drum(81) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Open Triangle"), NoteHead::Group::HEAD_NORMAL, 3, MScore::Direction::UP);
-      gpDrumset->drum(82) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Shaker"), NoteHead::Group::HEAD_NORMAL, 3, MScore::Direction::UP);
-      gpDrumset->drum(83) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Sleigh Bell"), NoteHead::Group::HEAD_NORMAL, 3, MScore::Direction::UP);
-      gpDrumset->drum(84) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Bell Tree"), NoteHead::Group::HEAD_NORMAL, 3, MScore::Direction::UP);
-      gpDrumset->drum(85) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Castanets"), NoteHead::Group::HEAD_NORMAL, 3, MScore::Direction::UP);
-      gpDrumset->drum(86) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Mute Surdo"), NoteHead::Group::HEAD_NORMAL, 3, MScore::Direction::UP);
-      gpDrumset->drum(87) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Open Surdo"), NoteHead::Group::HEAD_NORMAL, 3, MScore::Direction::UP);
+      gpDrumset->drum(27) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "High Q"), NoteHead::Group::HEAD_NORMAL, 3, Direction::UP);
+      gpDrumset->drum(28) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Slap"), NoteHead::Group::HEAD_NORMAL, 3, Direction::UP);
+      gpDrumset->drum(29) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Scratch Push"), NoteHead::Group::HEAD_NORMAL, 3, Direction::UP);
+      gpDrumset->drum(30) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Scratch Pull"), NoteHead::Group::HEAD_NORMAL, 3, Direction::UP);
+      gpDrumset->drum(31) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Sticks"), NoteHead::Group::HEAD_CROSS, 3, Direction::UP);
+      gpDrumset->drum(32) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Square Click"), NoteHead::Group::HEAD_NORMAL, 3, Direction::UP);
+      gpDrumset->drum(33) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Metronome Click"), NoteHead::Group::HEAD_CROSS, 3, Direction::UP);
+      gpDrumset->drum(34) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Metronome Bell"), NoteHead::Group::HEAD_NORMAL, 3, Direction::UP);
+      gpDrumset->drum(35) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Acoustic Bass Drum"), NoteHead::Group::HEAD_NORMAL, 7, Direction::UP);
+      gpDrumset->drum(36) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Bass Drum 1"), NoteHead::Group::HEAD_NORMAL, 7, Direction::UP);
+      gpDrumset->drum(37) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Side Stick"), NoteHead::Group::HEAD_CROSS, 3, Direction::UP);
+      gpDrumset->drum(38) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Acoustic Snare"), NoteHead::Group::HEAD_NORMAL, 3, Direction::UP);
+      gpDrumset->drum(39) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Hand Clap"), NoteHead::Group::HEAD_NORMAL, 3, Direction::UP);
+      gpDrumset->drum(40) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Electric Snare"), NoteHead::Group::HEAD_NORMAL, 3, Direction::UP);
+      gpDrumset->drum(41) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Low Floor Tom"), NoteHead::Group::HEAD_NORMAL, 6, Direction::UP);
+      gpDrumset->drum(42) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Closed Hi-Hat"), NoteHead::Group::HEAD_CROSS, -1, Direction::UP);
+      gpDrumset->drum(43) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "High Floor Tom"), NoteHead::Group::HEAD_NORMAL, 5, Direction::UP);
+      gpDrumset->drum(44) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Pedal Hi-Hat"), NoteHead::Group::HEAD_CROSS, 7, Direction::UP);
+      gpDrumset->drum(45) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Low Tom"), NoteHead::Group::HEAD_NORMAL, 4, Direction::UP);
+      gpDrumset->drum(46) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Open Hi-Hat"), NoteHead::Group::HEAD_CROSS, -1, Direction::UP);
+      gpDrumset->drum(47) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Low-Mid Tom"), NoteHead::Group::HEAD_NORMAL, 2, Direction::UP);
+      gpDrumset->drum(48) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Hi-Mid Tom"), NoteHead::Group::HEAD_NORMAL, 1, Direction::UP);
+      gpDrumset->drum(49) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Crash Cymbal 1"), NoteHead::Group::HEAD_DIAMOND, -1, Direction::UP);
+      gpDrumset->drum(50) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "High Tom"), NoteHead::Group::HEAD_NORMAL, 0, Direction::UP);
+      gpDrumset->drum(51) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Ride Cymbal 1"), NoteHead::Group::HEAD_DIAMOND, -1, Direction::UP);
+      gpDrumset->drum(52) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Chinese Cymbal"), NoteHead::Group::HEAD_CROSS, -1, Direction::UP);
+      gpDrumset->drum(53) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Ride Bell"), NoteHead::Group::HEAD_DIAMOND, -1, Direction::UP);
+      gpDrumset->drum(54) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Tambourine"), NoteHead::Group::HEAD_CROSS, 2, Direction::UP);
+      gpDrumset->drum(55) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Splash Cymbal"), NoteHead::Group::HEAD_NORMAL, 3, Direction::UP);
+      gpDrumset->drum(56) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Cowbell"), NoteHead::Group::HEAD_NORMAL, 1, Direction::UP);
+      gpDrumset->drum(57) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Crash Cymbal 2"), NoteHead::Group::HEAD_DIAMOND, -1, Direction::UP);
+      gpDrumset->drum(58) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Vibraslap"), NoteHead::Group::HEAD_NORMAL, 3, Direction::UP);
+      gpDrumset->drum(59) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Ride Cymbal 2"), NoteHead::Group::HEAD_DIAMOND, -1, Direction::UP);
+      gpDrumset->drum(60) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Hi Bongo"), NoteHead::Group::HEAD_NORMAL, 8, Direction::UP);
+      gpDrumset->drum(61) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Low Bongo"), NoteHead::Group::HEAD_NORMAL, 9, Direction::UP);
+      gpDrumset->drum(62) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Mute Hi Conga"), NoteHead::Group::HEAD_CROSS, 5, Direction::UP);
+      gpDrumset->drum(63) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Open Hi Conga"), NoteHead::Group::HEAD_CROSS, 4, Direction::UP);
+      gpDrumset->drum(64) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Low Conga"), NoteHead::Group::HEAD_CROSS, 6, Direction::UP);
+      gpDrumset->drum(65) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "High Timbale"), NoteHead::Group::HEAD_CROSS, 8, Direction::UP);
+      gpDrumset->drum(66) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Low Timbale"), NoteHead::Group::HEAD_CROSS, 9, Direction::UP);
+      gpDrumset->drum(67) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "High Agogo"), NoteHead::Group::HEAD_NORMAL, 3, Direction::UP);
+      gpDrumset->drum(68) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Low Agogo"), NoteHead::Group::HEAD_NORMAL, 3, Direction::UP);
+      gpDrumset->drum(69) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Cabasa"), NoteHead::Group::HEAD_NORMAL, 3, Direction::UP);
+      gpDrumset->drum(70) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Maracas"), NoteHead::Group::HEAD_NORMAL, 3, Direction::UP);
+      gpDrumset->drum(71) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Short Whistle"), NoteHead::Group::HEAD_NORMAL, 3, Direction::UP);
+      gpDrumset->drum(72) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Long Whistle"), NoteHead::Group::HEAD_NORMAL, 3, Direction::UP);
+      gpDrumset->drum(73) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Short Güiro"), NoteHead::Group::HEAD_NORMAL, 3, Direction::UP);
+      gpDrumset->drum(74) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Long Güiro"), NoteHead::Group::HEAD_NORMAL, 3, Direction::UP);
+      gpDrumset->drum(75) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Claves"), NoteHead::Group::HEAD_NORMAL, 3, Direction::UP);
+      gpDrumset->drum(76) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Hi Wood Block"), NoteHead::Group::HEAD_NORMAL, 3, Direction::UP);
+      gpDrumset->drum(77) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Low Wood Block"), NoteHead::Group::HEAD_NORMAL, 3, Direction::UP);
+      gpDrumset->drum(78) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Mute Cuica"), NoteHead::Group::HEAD_NORMAL, 3, Direction::UP);
+      gpDrumset->drum(79) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Open Cuica"), NoteHead::Group::HEAD_NORMAL, 3, Direction::UP);
+      gpDrumset->drum(80) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Mute Triangle"), NoteHead::Group::HEAD_NORMAL, 3, Direction::UP);
+      gpDrumset->drum(81) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Open Triangle"), NoteHead::Group::HEAD_NORMAL, 3, Direction::UP);
+      gpDrumset->drum(82) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Shaker"), NoteHead::Group::HEAD_NORMAL, 3, Direction::UP);
+      gpDrumset->drum(83) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Sleigh Bell"), NoteHead::Group::HEAD_NORMAL, 3, Direction::UP);
+      gpDrumset->drum(84) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Bell Tree"), NoteHead::Group::HEAD_NORMAL, 3, Direction::UP);
+      gpDrumset->drum(85) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Castanets"), NoteHead::Group::HEAD_NORMAL, 3, Direction::UP);
+      gpDrumset->drum(86) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Mute Surdo"), NoteHead::Group::HEAD_NORMAL, 3, Direction::UP);
+      gpDrumset->drum(87) = DrumInstrument(QT_TRANSLATE_NOOP("drumset", "Open Surdo"), NoteHead::Group::HEAD_NORMAL, 3, Direction::UP);
       }
 
 
@@ -382,7 +383,7 @@ void GuitarPro::addTextToNote(QString string, TextStyle textStyle, Note* note)
       {
       Text* text = new Text(score);
       text->setTextStyle(textStyle);
-      text->setText(string);
+      text->setPlainText(string);
       text->setAbove(true);
       note->add(text);
       }
@@ -501,7 +502,7 @@ void GuitarPro::readVolta(GPVolta* gpVolta, Measure* m)
                               break;
                         }
                   }
-            volta->setText(voltaTextString);
+            volta->setText(XmlWriter::xmlString(voltaTextString));
             volta->setTick(m->tick());
             volta->setTick2(m->tick() + m->ticks());
             score->addElement(volta);
@@ -563,7 +564,7 @@ void GuitarPro::createSlide(int slide, ChordRest* cr, int staffIdx)
       // shift / legato slide
       if (slide == SHIFT_SLIDE || slide == LEGATO_SLIDE) {
             Glissando* s = new Glissando(score);
-/*            s->setText("");
+/*            s->setXmlText("");
             s->setGlissandoType(Glissando::Type::STRAIGHT);
             cr->add(s); */
             s->setAnchor(Spanner::Anchor::NOTE);
@@ -687,12 +688,12 @@ Fraction GuitarPro::len2fraction(int len)
 bool GuitarPro::readMixChange(Measure* measure)
       {
       /*char patch   =*/ readChar();
-      char volume  = readChar();
-      char pan     = readChar();
-      char chorus  = readChar();
-      char reverb  = readChar();
-      char phase   = readChar();
-      char tremolo = readChar();
+      signed char volume  = readChar();
+      signed char pan     = readChar();
+      signed char chorus  = readChar();
+      signed char reverb  = readChar();
+      signed char phase   = readChar();
+      signed char tremolo = readChar();
       int tempo    = readInt();
 
       if (volume >= 0)
@@ -759,7 +760,8 @@ void GuitarPro::createMeasures()
                         }
                   }
             readVolta(&bars[i].volta, m);
-            m->setRepeatFlags(bars[i].repeatFlags);
+            m->setRepeatEnd(bars[i].repeatFlags & Repeat::END);
+            m->setRepeatStart(bars[i].repeatFlags & Repeat::START);
             m->setRepeatCount(bars[i].repeats);       // supported in gp5
 
             // reset the volta sequence if we have an opening repeat
@@ -800,18 +802,18 @@ void GuitarPro::applyBeatEffects(Chord* chord, int beatEffect)
             addPop(chord->upNote());
       else if (beatEffect == 4) {
             Articulation* a = new Articulation(chord->score());
-            a->setArticulationType(ArticulationType::FadeIn);
+            a->setSymId(SymId::guitarFadeIn);
             a->setAnchor(ArticulationAnchor::TOP_STAFF);
             chord->add(a);
             }
       else if (beatEffect == 5) {
             Articulation* a = new Articulation(chord->score());
-            a->setArticulationType(ArticulationType::Upbow);
+            a->setSymId(SymId::stringsUpBow);
             chord->add(a);
             }
       else if (beatEffect == 6) {
             Articulation* art = new Articulation(chord->score());
-            art->setArticulationType(ArticulationType::Downbow);
+            art->setSymId(SymId::stringsDownBow);
             chord->add(art);
             }
       }
@@ -870,7 +872,7 @@ void GuitarPro1::read(QFile* fp)
             int frets = 32;   // TODO
             StringData stringData(frets, strings, tuning2);
             Part* part = score->staff(i)->part();
-            Instrument* instr = part->instr();
+            Instrument* instr = part->instrument();
             instr->setStringData(stringData);
             }
 
@@ -906,7 +908,7 @@ void GuitarPro1::read(QFile* fp)
 
             if (!gpbar.marker.isEmpty()) {
                   Text* s = new RehearsalMark(score);
-                  s->setText(gpbar.marker.trimmed());
+                  s->setPlainText(gpbar.marker.trimmed());
                   s->setTrack(0);
                   Segment* segment = measure->getSegment(Segment::Type::ChordRest, measure->tick());
                   segment->add(s);
@@ -933,7 +935,7 @@ void GuitarPro1::read(QFile* fp)
                               tuple = readInt();
                         Segment* segment = measure->getSegment(Segment::Type::ChordRest, tick);
                         if (beatBits & BEAT_CHORD) {
-                              int numStrings = score->staff(staffIdx)->part()->instr()->stringData()->strings();
+                              int numStrings = score->staff(staffIdx)->part()->instrument()->stringData()->strings();
                               int header = readUChar();
                               QString name;
                               if ((header & 1) == 0) {
@@ -950,7 +952,7 @@ void GuitarPro1::read(QFile* fp)
                         Lyrics* lyrics = 0;
                         if (beatBits & BEAT_LYRICS) {
                               lyrics = new Lyrics(score);
-                              lyrics->setText(readDelphiString());
+                              lyrics->setPlainText(readDelphiString());
                               }
                         if (beatBits & BEAT_EFFECTS)
                               readBeatEffects(track, segment);
@@ -998,7 +1000,7 @@ void GuitarPro1::read(QFile* fp)
                         cr->setDurationType(d);
                         segment->add(cr);
                         Staff* staff = cr->staff();
-                        int numStrings = staff->part()->instr()->stringData()->strings();
+                        int numStrings = staff->part()->instrument()->stringData()->strings();
                         for (int i = 6; i >= 0; --i) {
                               if (strings & (1 << i) && ((6-i) < numStrings)) {
                                     Note* note = new Note(score);
@@ -1028,7 +1030,7 @@ void GuitarPro::setTempo(int tempo, Measure* measure)
       {
       TempoText* tt = new TempoText(score);
       tt->setTempo(double(tempo)/60.0);
-      tt->setText(QString("<sym>unicodeNoteQuarterUp</sym> = %1").arg(tempo));
+      tt->setXmlText(QString("<sym>metNoteQuarterUp</sym> = %1").arg(tempo));
 
       tt->setTrack(0);
       Segment* segment = measure->getSegment(Segment::Type::ChordRest, measure->tick());
@@ -1087,7 +1089,7 @@ void GuitarPro::restsForEmptyBeats(Segment* seg, Measure* measure, ChordRest* cr
        * users to create empty segments. Here, we create rests and
        * make them invisible so users get the same visual if they are
        * at a valid tick of the score. */
-      if (seg->isEmpty()) {
+      if (seg->empty()) {
             if (tick < measure->first()->tick() + measure->ticks()) {
                   cr = new Rest(score);
                   cr->setTrack(track);
@@ -1126,7 +1128,7 @@ void GuitarPro::createSlur(bool hasSlur, int staffIdx, ChordRest* cr)
       }
 
 //---------------------------------------------------------
-//   createSlur
+//   createOttava
 //---------------------------------------------------------
 
 void GuitarPro::createOttava(bool hasOttava, int track, ChordRest* cr, QString value)
@@ -1294,7 +1296,7 @@ void GuitarPro2::read(QFile* fp)
                   tuning[j] = readInt();
             for (int j = strings; j < GP_MAX_STRING_NUMBER; ++j)
                   readInt();
-            /*int midiPort     =*/ readInt(); //  - 1;
+            int midiPort     = readInt() - 1;
             int midiChannel  = readInt() - 1;
             /*int midiChannel2 =*/ readInt(); // - 1;
             int frets        = readInt();
@@ -1306,10 +1308,10 @@ void GuitarPro2::read(QFile* fp)
                   tuning2[strings-k-1] = tuning[k];
             StringData stringData(frets, strings, tuning2);
             Part* part = score->staff(i)->part();
-            Instrument* instr = part->instr();
+            Instrument* instr = part->instrument();
             instr->setStringData(stringData);
             part->setPartName(name);
-            part->setLongName(name);
+            part->setPlainLongName(name);
 
             //
             // determine clef
@@ -1324,21 +1326,21 @@ void GuitarPro2::read(QFile* fp)
                   staff->setStaffType(StaffType::preset(StaffTypes::PERC_DEFAULT));
                   }
             else if (patch >= 24 && patch < 32)
-                  clefId = ClefType::G3;
+                  clefId = ClefType::G8_VB;
             else if (patch >= 32 && patch < 40)
-                  clefId = ClefType::F8;
+                  clefId = ClefType::F8_VB;
             Measure* measure = score->firstMeasure();
             Clef* clef = new Clef(score);
             clef->setClefType(clefId);
             clef->setTrack(i * VOICES);
-            Segment* segment = measure->getSegment(Segment::Type::Clef, 0);
+            Segment* segment = measure->getSegment(Segment::Type::HeaderClef, 0);
             segment->add(clef);
 
             if (capo > 0) {
                   Segment* s = measure->getSegment(Segment::Type::ChordRest, measure->tick());
                   StaffText* st = new StaffText(score);
                   st->setTextStyleType(TextStyleType::STAFF);
-                  st->setText(QString("Capo. fret ") + QString::number(capo));
+                  st->setPlainText(QString("Capo. fret ") + QString::number(capo));
                   st->setParent(s);
                   st->setTrack(i * VOICES);
                   measure->add(st);
@@ -1357,6 +1359,7 @@ void GuitarPro2::read(QFile* fp)
             ch->pan     = channelDefaults[midiChannel].pan;
             ch->chorus  = channelDefaults[midiChannel].chorus;
             ch->reverb  = channelDefaults[midiChannel].reverb;
+            staff->part()->setMidiChannel(midiChannel, midiPort);
             // missing: phase, tremolo
             ch->updateInitList();
             }
@@ -1369,7 +1372,7 @@ void GuitarPro2::read(QFile* fp)
 
             if (!gpbar.marker.isEmpty()) {
                   Text* s = new RehearsalMark(score);
-                  s->setText(gpbar.marker.trimmed());
+                  s->setPlainText(gpbar.marker.trimmed());
                   s->setTrack(0);
                   Segment* segment = measure->getSegment(Segment::Type::ChordRest, measure->tick());
                   segment->add(s);
@@ -1396,7 +1399,7 @@ void GuitarPro2::read(QFile* fp)
                               tuple = readInt();
                         Segment* segment = measure->getSegment(Segment::Type::ChordRest, tick);
                         if (beatBits & BEAT_CHORD) {
-                              int numStrings = score->staff(staffIdx)->part()->instr()->stringData()->strings();
+                              int numStrings = score->staff(staffIdx)->part()->instrument()->stringData()->strings();
                               int header = readUChar();
                               QString name;
                               if ((header & 1) == 0) {
@@ -1414,7 +1417,7 @@ void GuitarPro2::read(QFile* fp)
                         if (beatBits & BEAT_LYRICS) {
                               QString txt = readDelphiString();
                               lyrics = new Lyrics(score);
-                              lyrics->setText(txt);
+                              lyrics->setPlainText(txt);
                               }
                         if (beatBits & BEAT_EFFECTS)
                               readBeatEffects(track, segment);
@@ -1462,7 +1465,7 @@ void GuitarPro2::read(QFile* fp)
                         cr->setDurationType(d);
                         segment->add(cr);
                         Staff* staff = cr->staff();
-                        int numStrings = staff->part()->instr()->stringData()->strings();
+                        int numStrings = staff->part()->instrument()->stringData()->strings();
                         for (int i = 6; i >= 0; --i) {
                               if (strings & (1 << i) && ((6-i) < numStrings)) {
                                     Note* note = new Note(score);
@@ -1584,7 +1587,7 @@ void GuitarPro1::readNote(int string, Note* note)
                         fret = 0;
                   gn->setFret(fret);
                   gn->setString(string);
-                  int grace_pitch = note->staff()->part()->instr()->stringData()->getPitch(string, fret, nullptr, 0);
+                  int grace_pitch = note->staff()->part()->instrument()->stringData()->getPitch(string, fret, nullptr, 0);
                   gn->setPitch(grace_pitch);
                   gn->setTpcFromPitch();
 
@@ -1670,7 +1673,7 @@ void GuitarPro1::readNote(int string, Note* note)
       // dead note represented as high numbers - fix to zero
       if (fretNumber > 99 || fretNumber == -1)
             fretNumber = 0;
-      int pitch = staff->part()->instr()->stringData()->getPitch(string, fretNumber, nullptr, 0);
+      int pitch = staff->part()->instrument()->stringData()->getPitch(string, fretNumber, nullptr, 0);
 
       /* it's possible to specifiy extraordinarily high pitches by
       specifying fret numbers that don't exist. This is an issue that
@@ -1876,7 +1879,8 @@ void GuitarPro3::read(QFile* fp)
                   }
 
             readVolta(&bars[i].volta, m);
-            m->setRepeatFlags(bars[i].repeatFlags);
+            m->setRepeatEnd(bars[i].repeatFlags & Repeat::END);
+            m->setRepeatStart(bars[i].repeatFlags & Repeat::START);
             m->setRepeatCount(bars[i].repeats);
 
             // reset the volta sequence if we have an opening repeat
@@ -1910,7 +1914,7 @@ void GuitarPro3::read(QFile* fp)
                   tuning[j] = readInt();
             for (int j = strings; j < GP_MAX_STRING_NUMBER; ++j)
                   readInt();
-            /*int midiPort     =*/ readInt(); // - 1;
+            int midiPort     = readInt() - 1;
             int midiChannel  = readInt() - 1;
             /*int midiChannel2 =*/ readInt(); // - 1;
             int frets        = readInt();
@@ -1922,10 +1926,10 @@ void GuitarPro3::read(QFile* fp)
                   tuning2[strings-k-1] = tuning[k];
             StringData stringData(frets, strings, tuning2);
             Part* part = score->staff(i)->part();
-            Instrument* instr = part->instr();
+            Instrument* instr = part->instrument();
             instr->setStringData(stringData);
             part->setPartName(name);
-            part->setLongName(name);
+            part->setPlainLongName(name);
 
             //
             // determine clef
@@ -1940,21 +1944,21 @@ void GuitarPro3::read(QFile* fp)
                   staff->setStaffType(StaffType::preset(StaffTypes::PERC_DEFAULT));
                   }
             else if (patch >= 24 && patch < 32)
-                  clefId = ClefType::G3;
+                  clefId = ClefType::G8_VB;
             else if (patch >= 32 && patch < 40)
-                  clefId = ClefType::F8;
+                  clefId = ClefType::F8_VB;
             Measure* measure = score->firstMeasure();
             Clef* clef = new Clef(score);
             clef->setClefType(clefId);
             clef->setTrack(i * VOICES);
-            Segment* segment = measure->getSegment(Segment::Type::Clef, 0);
+            Segment* segment = measure->getSegment(Segment::Type::HeaderClef, 0);
             segment->add(clef);
 
             if (capo > 0) {
                   Segment* s = measure->getSegment(Segment::Type::ChordRest, measure->tick());
                   StaffText* st = new StaffText(score);
                   st->setTextStyleType(TextStyleType::STAFF);
-                  st->setText(QString("Capo. fret ") + QString::number(capo));
+                  st->setPlainText(QString("Capo. fret ") + QString::number(capo));
                   st->setParent(s);
                   st->setTrack(i * VOICES);
                   measure->add(st);
@@ -1973,6 +1977,7 @@ void GuitarPro3::read(QFile* fp)
             ch->pan     = channelDefaults[midiChannel].pan;
             ch->chorus  = channelDefaults[midiChannel].chorus;
             ch->reverb  = channelDefaults[midiChannel].reverb;
+            staff->part()->setMidiChannel(midiChannel, midiPort);
             // missing: phase, tremolo
             ch->updateInitList();
             }
@@ -1985,7 +1990,7 @@ void GuitarPro3::read(QFile* fp)
 
             if (!gpbar.marker.isEmpty()) {
                   Text* s = new RehearsalMark(score);
-                  s->setText(gpbar.marker.trimmed());
+                  s->setPlainText(gpbar.marker.trimmed());
                   s->setTrack(0);
                   Segment* segment = measure->getSegment(Segment::Type::ChordRest, measure->tick());
                   segment->add(s);
@@ -2018,7 +2023,7 @@ void GuitarPro3::read(QFile* fp)
 
                         Segment* segment = measure->getSegment(Segment::Type::ChordRest, tick);
                         if (beatBits & BEAT_CHORD) {
-                              int numStrings = score->staff(staffIdx)->part()->instr()->stringData()->strings();
+                              int numStrings = score->staff(staffIdx)->part()->instrument()->stringData()->strings();
                               int header = readUChar();
                               QString name;
                               if ((header & 1) == 0) {
@@ -2036,7 +2041,7 @@ void GuitarPro3::read(QFile* fp)
                         if (beatBits & BEAT_LYRICS) {
                               QString txt = readDelphiString();
                               lyrics = new Lyrics(score);
-                              lyrics->setText(txt);
+                              lyrics->setPlainText(txt);
                               }
                         int beatEffects = 0;
                         if (beatBits & BEAT_EFFECTS)
@@ -2106,14 +2111,14 @@ void GuitarPro3::read(QFile* fp)
                               segment->add(cr);
 
                         Staff* staff = cr->staff();
-                        int numStrings = staff->part()->instr()->stringData()->strings();
+                        int numStrings = staff->part()->instrument()->stringData()->strings();
                         for (int i = 6; i >= 0; --i) {
                               if (strings & (1 << i) && ((6-i) < numStrings)) {
                                     Note* note = new Note(score);
                                     if (dotted) {
                                           NoteDot* dot = new NoteDot(score);
                                           // there is at most one dotted note in this guitar pro version - set 0 index
-                                          dot->setIdx(0);
+                                          // dot->setIdx(0);
                                           dot->setParent(note);
                                           dot->setTrack(track);  // needed to know the staff it belongs to (and detect tablature)
                                           dot->setVisible(true);
@@ -2142,6 +2147,10 @@ void GuitarPro3::read(QFile* fp)
                   setTempo(tempo, score->firstMeasure());
             }
       }
+
+//---------------------------------------------------------
+//   readBeatEffects
+//---------------------------------------------------------
 
 int GuitarPro3::readBeatEffects(int track, Segment* segment)
       {
@@ -2222,9 +2231,9 @@ void GuitarPro::createCrecDim(int staffIdx, int track, int tick, bool crec)
       {
       hairpins[staffIdx] = new Hairpin(score);
       if (crec)
-            hairpins[staffIdx]->setHairpinType(Hairpin::Type::CRESCENDO);
+            hairpins[staffIdx]->setHairpinType(HairpinType::CRESC_HAIRPIN);
       else
-            hairpins[staffIdx]->setHairpinType(Hairpin::Type::DECRESCENDO);
+            hairpins[staffIdx]->setHairpinType(HairpinType::DECRESC_HAIRPIN);
       hairpins[staffIdx]->setTick(tick);
       hairpins[staffIdx]->setTick2(tick);
       hairpins[staffIdx]->setTrack(track);
@@ -2236,7 +2245,7 @@ void GuitarPro::createCrecDim(int staffIdx, int track, int tick, bool crec)
 //   importGTP
 //---------------------------------------------------------
 
-Score::FileError importGTP(Score* score, const QString& name)
+Score::FileError importGTP(MasterScore* score, const QString& name)
       {
       QFile fp(name);
       if(!fp.exists())
@@ -2324,7 +2333,7 @@ Score::FileError importGTP(Score* score, const QString& name)
             Text* s = new Text(score);
             // s->setSubtype(TEXT_TITLE);
             s->setTextStyleType(TextStyleType::TITLE);
-            s->setText(gp->title);
+            s->setPlainText(gp->title);
             m->add(s);
             }
       if (!gp->subtitle.isEmpty() && !gp->artist.isEmpty() && !gp->album.isEmpty()) {
@@ -2344,36 +2353,35 @@ Score::FileError importGTP(Score* score, const QString& name)
                         str.append("\n");
                   str.append(gp->album);
                   }
-            s->setText(str);
+            s->setPlainText(str);
             m->add(s);
             }
       if (!gp->composer.isEmpty()) {
             Text* s = new Text(score);
             // s->setSubtype(TEXT_COMPOSER);
             s->setTextStyleType(TextStyleType::COMPOSER);
-            s->setText(gp->composer);
+            s->setPlainText(gp->composer);
             m->add(s);
             }
       int idx = 0;
 
       for (Measure* m = score->firstMeasure(); m; m = m->nextMeasure(), ++idx) {
             const GpBar& bar = gp->bars[idx];
-            if (bar.barLine != BarLineType::NORMAL)
-                  m->setEndBarLineType(bar.barLine, false);
+            if (bar.barLine != BarLineType::NORMAL && bar.barLine != BarLineType::END_REPEAT && bar.barLine != BarLineType::START_REPEAT && bar.barLine != BarLineType::END_START_REPEAT)
+                  m->setEndBarLineType(bar.barLine, 0);
             }
-      if (score->lastMeasure())
-            score->lastMeasure()->setEndBarLineType(BarLineType::END, false);
 
       //
       // create parts (excerpts)
       //
       foreach(Part* part, score->parts()) {
-            Score* pscore = new Score(score);
+            QMultiMap<int, int> tracks;
+            Score* pscore = new Score(static_cast<MasterScore*>(score));
             pscore->style()->set(StyleIdx::createMultiMeasureRests, true);
 
             QList<int> stavesMap;
             Part*   p = new Part(pscore);
-            p->setInstrument(*part->instr());
+            p->setInstrument(*part->instrument());
 
             Staff* staff = part->staves()->front();
 
@@ -2387,34 +2395,37 @@ Score::FileError importGTP(Score* score, const QString& name)
             s->linkTo(staff);
             p->staves()->append(s);
             pscore->staves().append(s);
-            stavesMap.append(score->staffIdx(staff));
-            cloneStaves(score, pscore, stavesMap);
+            stavesMap.append(staff->idx());
 
-            if (staff->part()->instr()->stringData()->strings() > 0 && part->staves()->front()->staffType()->group() == StaffGroup::STANDARD) {
-                  p->setStaves(2);
-                  Staff* s1 = p->staff(1);
+            for (int i = staff->idx() * VOICES, j = 0; i < staff->idx() * VOICES + VOICES; i++, j++)
+                  tracks.insert(i, j);
 
-                  StaffType st = *StaffType::preset(StaffTypes::TAB_DEFAULT);
-                  st.setSlashStyle(true);
-                  s1->setStaffType(&st);
-                  s1->setLines(staff->part()->instr()->stringData()->strings());
-                  cloneStaff(s,s1);
-                  p->staves()->front()->addBracket(BracketItem(BracketType::NORMAL, 2));
-                  }
-            pscore->appendPart(p);
-
-            pscore->setName(part->partName());
+//            pscore->setName(part->partName());
             Excerpt* excerpt = new Excerpt(score);
+            excerpt->setTracks(tracks);
             excerpt->setPartScore(pscore);
+            pscore->setExcerpt(excerpt);
             excerpt->setTitle(part->partName());
             excerpt->parts().append(part);
             score->excerpts().append(excerpt);
 
-            if (staff->part()->instr()->stringData()->strings() > 0 && part->staves()->front()->staffType()->group() == StaffGroup::STANDARD) {
-                  Staff* staff2 = pscore->staff(1);
-                  staff2->setStaffType(StaffType::preset(StaffTypes::TAB_DEFAULT));
-                  staff2->setLines(staff->part()->instr()->stringData()->strings());
-            }
+            Excerpt::cloneStaves(score, pscore, stavesMap, tracks);
+
+            if (staff->part()->instrument()->stringData()->strings() > 0 && part->staves()->front()->staffType()->group() == StaffGroup::STANDARD) {
+                  p->setStaves(2);
+                  Staff* s1 = p->staff(1);
+
+                  int lines = staff->part()->instrument()->stringData()->strings();
+                  StaffTypes sts = StaffTypes::TAB_DEFAULT;
+                  if (lines == 4)
+                        sts = StaffTypes::TAB_4COMMON;
+                  StaffType st = *StaffType::preset(sts);
+                  s1->setStaffType(&st);
+                  s1->setLines(lines);
+                  Excerpt::cloneStaff(s,s1);
+                  p->staves()->front()->addBracket(BracketItem(BracketType::NORMAL, 2));
+                  }
+            pscore->appendPart(p);
 
             //
             // create excerpt title
@@ -2428,20 +2439,20 @@ Score::FileError importGTP(Score* score, const QString& name)
                   }
             Text* txt = new Text(pscore);
             txt->setTextStyleType(TextStyleType::INSTRUMENT_EXCERPT);
-            txt->setText(part->longName());
+            txt->setPlainText(part->longName());
             measure->add(txt);
 
             //
             // layout score
             //
             pscore->setPlaylistDirty();
-            pscore->rebuildMidiMapping();
-            pscore->updateChannel();
 
-            pscore->setLayoutAll(true);
-            pscore->addLayoutFlags(LayoutFlag::FIX_TICKS | LayoutFlag::FIX_PITCH_VELO);
+            pscore->setLayoutAll();
+            pscore->addLayoutFlags(LayoutFlag::FIX_PITCH_VELO);
             pscore->doLayout();
             }
+      score->rebuildMidiMapping();
+      score->updateChannel();
 
 //      album
 //      copyright

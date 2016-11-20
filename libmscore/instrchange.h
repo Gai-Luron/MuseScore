@@ -35,7 +35,7 @@ class InstrumentChange : public Text  {
 
       virtual InstrumentChange* clone() const override { return new InstrumentChange(*this); }
       virtual Element::Type type() const override      { return Element::Type::INSTRUMENT_CHANGE; }
-      virtual void write(Xml& xml) const override;
+      virtual void write(XmlWriter& xml) const override;
       virtual void read(XmlReader&) override;
 
       Instrument* instrument() const        { return _instrument;  }
@@ -44,6 +44,8 @@ class InstrumentChange : public Text  {
       void setInstrument(const Instrument& i);
 
       Segment* segment() const                { return (Segment*)parent(); }
+
+      virtual QRectF drag(EditData*) override;
 
       virtual QVariant getProperty(P_ID propertyId) const override;
       virtual bool setProperty(P_ID propertyId, const QVariant&) override;

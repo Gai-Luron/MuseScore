@@ -49,6 +49,7 @@
 #include "libmscore/fingering.h"
 #include "libmscore/notedot.h"
 #include "libmscore/stafftext.h"
+#include "libmscore/sym.h"
 #include "preferences.h"
 
 namespace Ms {
@@ -60,12 +61,12 @@ namespace Ms {
 bool GuitarPro4::readMixChange(Measure* measure)
       {
       /*char patch   =*/ readChar();
-      char volume  = readChar();
-      char pan     = readChar();
-      char chorus  = readChar();
-      char reverb  = readChar();
-      char phase   = readChar();
-      char tremolo = readChar();
+      signed char volume  = readChar();
+      signed char pan     = readChar();
+      signed char chorus  = readChar();
+      signed char reverb  = readChar();
+      signed char phase   = readChar();
+      signed char tremolo = readChar();
       int tempo    = readInt();
 
       bool tempoEdited = false;
@@ -214,7 +215,7 @@ bool GuitarPro4::readNote(int string, int staffIdx, Note* note)
       // check if a note is supposed to be accented, and give it the sforzato type
       if (noteBits & NOTE_SFORZATO) {
             Articulation* art = new Articulation(note->score());
-            art->setArticulationType(ArticulationType::Sforzatoaccent);
+            art->setSymId(SymId::articAccentAbove);
             if (!note->score()->addArticulation(note, art))
                   delete art;
             }
@@ -249,7 +250,7 @@ bool GuitarPro4::readNote(int string, int staffIdx, Note* note)
                   else if (rightFinger == 4)
                         finger = "O";
                   }
-            f->setText(finger);
+            f->setPlainText(finger);
             note->add(f);
             f->reset();
             }
@@ -287,7 +288,7 @@ bool GuitarPro4::readNote(int string, int staffIdx, Note* note)
                         fret = 0;
                   gn->setFret(fret);
                   gn->setString(string);
-                  int grace_pitch = note->staff()->part()->instr()->stringData()->getPitch(string, fret, nullptr, 0);
+                  int grace_pitch = note->part()->instrument()->stringData()->getPitch(string, fret, nullptr, 0);
                   gn->setPitch(grace_pitch);
                   gn->setTpcFromPitch();
 
@@ -346,7 +347,7 @@ bool GuitarPro4::readNote(int string, int staffIdx, Note* note)
             if (modMask2 & EFFECT_STACATTO) {   // staccato
                   Chord* chord = note->chord();
                   Articulation* a = new Articulation(chord->score());
-                  a->setArticulationType(ArticulationType::Staccato);
+                  a->setSymId(SymId::articStaccatoAbove);
                   chord->add(a);
                   }
             if (modMask2 & EFFECT_PALM_MUTE)
@@ -388,7 +389,7 @@ bool GuitarPro4::readNote(int string, int staffIdx, Note* note)
 
                   // add the trill articulation to the note
                   Articulation* art = new Articulation(note->score());
-                  art->setArticulationType(ArticulationType::Trill);
+                  art->setSymId(SymId::ornamentTrill);
                   if (!note->score()->addArticulation(note, art))
                         delete art;
 
@@ -406,7 +407,7 @@ bool GuitarPro4::readNote(int string, int staffIdx, Note* note)
       // dead note represented as high numbers - fix to zero
       if (fretNumber > 99 || fretNumber == -1)
             fretNumber = 0;
-      int pitch = staff->part()->instr()->stringData()->getPitch(string, fretNumber, nullptr, 0);
+      int pitch = staff->part()->instrument()->stringData()->getPitch(string, fretNumber, nullptr, 0);
       note->setFret(fretNumber);
       note->setString(string);
       note->setPitch(pitch);
@@ -593,7 +594,7 @@ void GuitarPro4::read(QFile* fp)
                   tuning[j] = readInt();
             for (int j = strings; j < GP_MAX_STRING_NUMBER; ++j)
                   readInt();
-            /*int midiPort     =*/ readInt(); // - 1;
+            int midiPort     = readInt() - 1;
             int midiChannel  = readInt() - 1;
             /*int midiChannel2 =*/ readInt(); // - 1;
             int frets        = readInt();
@@ -606,10 +607,10 @@ void GuitarPro4::read(QFile* fp)
                   tuning2[strings-k-1] = tuning[k];
             StringData stringData(frets, strings, tuning2);
             Part* part = score->staff(i)->part();
-            Instrument* instr = part->instr();
+            Instrument* instr = part->instrument();
             instr->setStringData(stringData);
             part->setPartName(name);
-            part->setLongName(name);
+            part->setPlainLongName(name);
 
             //
             // determine clef
@@ -624,21 +625,21 @@ void GuitarPro4::read(QFile* fp)
                   staff->setStaffType(StaffType::preset(StaffTypes::PERC_DEFAULT));
                   }
             else if (patch >= 24 && patch < 32)
-                  clefId = ClefType::G3;
+                  clefId = ClefType::G8_VB;
             else if (patch >= 32 && patch < 40)
-                  clefId = ClefType::F8;
+                  clefId = ClefType::F8_VB;
             Measure* measure = score->firstMeasure();
             Clef* clef = new Clef(score);
             clef->setClefType(clefId);
             clef->setTrack(i * VOICES);
-            Segment* segment = measure->getSegment(Segment::Type::Clef, 0);
+            Segment* segment = measure->getSegment(Segment::Type::HeaderClef, 0);
             segment->add(clef);
 
             if (capo > 0) {
                   Segment* s = measure->getSegment(Segment::Type::ChordRest, measure->tick());
                   StaffText* st = new StaffText(score);
                   st->setTextStyleType(TextStyleType::STAFF);
-                  st->setText(QString("Capo. fret ") + QString::number(capo));
+                  st->setPlainText(QString("Capo. fret ") + QString::number(capo));
                   st->setParent(s);
                   st->setTrack(i * VOICES);
                   measure->add(st);
@@ -657,6 +658,7 @@ void GuitarPro4::read(QFile* fp)
             ch->pan     = channelDefaults[midiChannel].pan;
             ch->chorus  = channelDefaults[midiChannel].chorus;
             ch->reverb  = channelDefaults[midiChannel].reverb;
+            staff->part()->setMidiChannel(midiChannel, midiPort);
             // missing: phase, tremolo
             ch->updateInitList();
             }
@@ -671,7 +673,7 @@ void GuitarPro4::read(QFile* fp)
 
             if (!gpbar.marker.isEmpty()) {
                   Text* s = new RehearsalMark(score);
-                  s->setText(gpbar.marker.trimmed());
+                  s->setPlainText(gpbar.marker.trimmed());
                   s->setTrack(0);
                   Segment* segment = measure->getSegment(Segment::Type::ChordRest, measure->tick());
                   segment->add(s);
@@ -702,7 +704,7 @@ void GuitarPro4::read(QFile* fp)
                               tuple = readInt();
                         Segment* segment = measure->getSegment(Segment::Type::ChordRest, tick);
                         if (beatBits & BEAT_CHORD) {
-                              int numStrings = score->staff(staffIdx)->part()->instr()->stringData()->strings();
+                              int numStrings = score->staff(staffIdx)->part()->instrument()->stringData()->strings();
                               int header = readUChar();
                               QString name;
                               if ((header & 1) == 0) {
@@ -720,14 +722,14 @@ void GuitarPro4::read(QFile* fp)
                         Lyrics* lyrics = 0;
                         if (beatBits & BEAT_LYRICS) {
                               lyrics = new Lyrics(score);
-                              lyrics->setText(readDelphiString());
+                              lyrics->setPlainText(readDelphiString());
                               }
                         gpLyrics.beatCounter++;
                         if (gpLyrics.beatCounter >= gpLyrics.fromBeat && gpLyrics.lyricTrack == staffIdx + 1) {
                               int index = gpLyrics.beatCounter - gpLyrics.fromBeat;
                               if (index < gpLyrics.lyrics.size()) {
                                     lyrics = new Lyrics(score);
-                                    lyrics->setText(gpLyrics.lyrics[index]);
+                                    lyrics->setPlainText(gpLyrics.lyrics[index]);
                                     }
                               }
                         int beatEffects = 0;
@@ -798,7 +800,7 @@ void GuitarPro4::read(QFile* fp)
                         if(!segment->cr(track))
                               segment->add(cr);
                         Staff* staff = cr->staff();
-                        int numStrings = staff->part()->instr()->stringData()->strings();
+                        int numStrings = staff->part()->instrument()->stringData()->strings();
                         bool hasSlur = false;
 
                         for (int i = 6; i >= 0; --i) {
@@ -808,7 +810,7 @@ void GuitarPro4::read(QFile* fp)
                                     if (dotted) {
                                           // there is at most one dotted note in this guitar pro version
                                           NoteDot* dot = new NoteDot(score);
-                                          dot->setIdx(0);
+                                          // dot->setIdx(0);
                                           dot->setParent(note);
                                           dot->setTrack(track);  // needed to know the staff it belongs to (and detect tablature)
                                           dot->setVisible(true);

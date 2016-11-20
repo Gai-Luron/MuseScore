@@ -24,7 +24,7 @@ namespace Ms {
 
 //---------------------------------------------------------
 //   @@ FileIO
-//   @P source QString
+//   @P source string
 //---------------------------------------------------------
 
 class FileIO : public QObject {
@@ -37,11 +37,20 @@ class FileIO : public QObject {
                NOTIFY sourceChanged)
       explicit FileIO(QObject *parent = 0);
 
+      //@ reads file contents and returns a string
       Q_INVOKABLE QString read();
+      //@ return true if the file exists
       Q_INVOKABLE bool exists();
+      //@ write a string to the file
       Q_INVOKABLE bool write(const QString& data);
+      //@ removes the file
       Q_INVOKABLE bool remove();
-      Q_INVOKABLE QString tempPath() {QDir dir; return dir.tempPath();};
+      //@ returns user's home directory
+      Q_INVOKABLE QString homePath() {QDir dir; return dir.homePath();}
+      //@ returns a path suitable for a temporary file
+      Q_INVOKABLE QString tempPath() {QDir dir; return dir.tempPath();}
+      //@ returns the file modification time
+      Q_INVOKABLE int modifiedTime();
 
       QString source() { return mSource; };
 
@@ -68,8 +77,11 @@ class MsProcess : public QProcess {
       MsProcess(QObject* parent = 0) : QProcess(parent) {}
 
    public slots:
+      //@ --
       Q_INVOKABLE void start(const QString& program)      { QProcess::start(program); }
+      //@ --
       Q_INVOKABLE bool waitForFinished(int msecs = 30000) { return QProcess::waitForFinished(msecs); }
+      //@ --
       Q_INVOKABLE QByteArray readAllStandardOutput()      { return QProcess::readAllStandardOutput(); }
       };
 
@@ -77,8 +89,8 @@ class MsProcess : public QProcess {
 //   @@ ScoreView
 ///    This is an GUI element to show a score.
 //
-//   @P color  QColor  background color
-//   @P scale  qreal   scaling factor
+//   @P color  color    background color
+//   @P scale  float    scaling factor
 //---------------------------------------------------------
 
 class MsScoreView : public QQuickPaintedItem, public MuseScoreView {
@@ -105,7 +117,6 @@ class MsScoreView : public QQuickPaintedItem, public MuseScoreView {
       virtual const QTransform& matrix() const;
       virtual void setDropRectangle(const QRectF&) {}
       virtual void cmdAddSlur(Note*, Note*)     {}
-      virtual void cmdAddHairpin(bool)          {}
       virtual void startEdit()                  {}
       virtual void startEdit(Element*, Grip)    {}
       virtual Element* elementNear(QPointF)     { return 0; }
@@ -118,9 +129,13 @@ class MsScoreView : public QQuickPaintedItem, public MuseScoreView {
       virtual void drawBackground(QPainter*, const QRectF&) const {}
 
    public slots:
+      //@ --
       Q_INVOKABLE void setScore(Score*);
+      //@ --
       Q_INVOKABLE void setCurrentPage(int n);
+      //@ --
       Q_INVOKABLE void nextPage();
+      //@ --
       Q_INVOKABLE void prevPage();
 
    public:

@@ -24,7 +24,7 @@
 namespace Ms {
 
 class Score;
-class Xml;
+class XmlWriter;
 class XmlReader;
 
 //---------------------------------------------------------
@@ -34,7 +34,11 @@ class XmlReader;
 struct AlbumItem {
       QString name;
       QString path;
-      Score* score;
+      Score* score { 0 };
+
+      AlbumItem() {}
+      AlbumItem(const QString& p) : path(p) {}
+      ~AlbumItem();
       };
 
 //---------------------------------------------------------
@@ -48,15 +52,17 @@ class Album {
       QList<AlbumItem*> _scores;
 
       void load(XmlReader&);
-      void save(Xml&);
+      void save(XmlWriter&);
       void loadScores();
 
    public:
       Album();
+      ~Album();
+
       void print();
-      bool createScore(const QString& fn);
+      bool createScore(const QString& fn, bool addPageBreak = false, bool addSectionBreak = true);
       bool read(const QString& path);
-      void write(Xml& xml);
+      void write(XmlWriter& xml);
       bool dirty() const             { return _dirty; }
       QString name() const           { return _name;  }
       QString path() const           { return _path;  }

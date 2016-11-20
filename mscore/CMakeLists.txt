@@ -2,7 +2,7 @@
 #  MuseScore
 #  Linux Music Score Editor
 #
-#  Copyright (C) 2002-2013 by Werner Schweer and others
+#  Copyright (C) 2002-2016 by Werner Schweer and others
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License version 2.
@@ -25,6 +25,8 @@ include_directories(
       ${CMAKE_CURRENT_BINARY_DIR}
       ${PROJECT_SOURCE_DIR}
       ${PROJECT_SOURCE_DIR}/thirdparty
+#      ${PROJECT_SOURCE_DIR}/thirdparty/freetype/include
+      ${FREETYPE_INCLUDE_DIRS}
       ${QTSINGLEAPPLICATION_INCLUDE_DIRS}
       )
 
@@ -37,17 +39,18 @@ QT5_WRAP_UI (ui_headers
       insertmeasuresdialog.ui editinstrument.ui editstyle.ui instrdialog.ui instrwidget.ui
       measuresdialog.ui pagesettings.ui mixer.ui playpanel.ui prefsdialog.ui measureproperties.ui
       textpalette.ui  timedialog.ui symboldialog.ui  shortcutcapturedialog.ui  editdrumset.ui
-      editstaff.ui voltaproperties.ui timesigproperties.ui
+      editstaff.ui timesigproperties.ui
       instrwizard.ui timesigwizard.ui newwizard.ui aboutbox.ui aboutmusicxmlbox.ui
       transposedialog.ui lineproperties.ui excerptsdialog.ui  stafftext.ui tupletdialog.ui
-      glissandoprop.ui articulation.ui metaedit.ui palette.ui select.ui
+      articulation.ui metaedit.ui palette.ui selectdialog.ui selectnotedialog.ui
       synthcontrol.ui splitstaff.ui cellproperties.ui keyedit.ui selectinstr.ui
       fretdprops.ui editstafftype.ui sectionbreak.ui  bend.ui tremolobar.ui textproperties.ui
-      editpitch.ui editstringdata.ui editraster.ui mediadialog.ui textstyle.ui albummanager.ui layer.ui
-      omrpanel.ui startdialog.ui masterpalette.ui harmonyedit.ui pathlistdialog.ui
+      editpitch.ui editstringdata.ui editraster.ui mediadialog.ui textstyledialog.ui albummanager.ui layer.ui
+      omrpanel.ui masterpalette.ui harmonyedit.ui pathlistdialog.ui
       note_groups.ui resourceManager.ui stafftypetemplates.ui
       startcenter.ui scorePreview.ui scoreBrowser.ui
       logindialog.ui uploadscoredialog.ui breaksdialog.ui
+      toolbarEditor.ui
 
       importmidi/importmidi_panel.ui
 
@@ -87,6 +90,7 @@ QT5_WRAP_UI (ui_headers
 
       inspector/inspector_element.ui
       inspector/inspector_vbox.ui
+      inspector/inspector_tbox.ui
       inspector/inspector_articulation.ui
       inspector/inspector_spacer.ui
       inspector/inspector_hbox.ui
@@ -113,19 +117,25 @@ QT5_WRAP_UI (ui_headers
       inspector/inspector_accidental.ui
       inspector/inspector_tempotext.ui
       inspector/inspector_dynamic.ui
+      inspector/inspector_lyric.ui
       inspector/inspector_line.ui
       inspector/inspector_textline.ui
       inspector/inspector_slur.ui
       inspector/inspector_text.ui
+      inspector/inspector_stafftext.ui
       inspector/inspector_ambitus.ui
       inspector/inspector_empty.ui
       inspector/inspector_fret.ui
       inspector/inspector_break.ui
+      inspector/inspector_bend.ui
+      inspector/inspector_arpeggio.ui
+      inspector/inspector_tremolo.ui
+      inspector/inspector_caesura.ui
       ${SCRIPT_UI}
       )
 
 if (APPLE)
-      QT5_ADD_RESOURCES (qrc_files musescore.qrc)
+      QT5_ADD_RESOURCES (qrc_files musescore.qrc musescorefonts-Mac.qrc)
 else (APPLE)
       QT5_ADD_RESOURCES (qrc_files musescore.qrc
             musescorefonts-MScore.qrc
@@ -142,7 +152,7 @@ if (MINGW)
       set (resource_file ${PROJECT_BINARY_DIR}/resfile.o)
 else (MINGW)
       if (USE_ALSA)
-            set (AUDIO ${AUDIO} alsa.cpp mididriver.cpp)
+            set (AUDIO ${AUDIO} alsa.cpp)
       endif (USE_ALSA)
 endif (MINGW)
 
@@ -158,19 +168,27 @@ if (USE_PORTMIDI)
       set (AUDIO ${AUDIO} pm.cpp)
 endif (USE_PORTMIDI)
 
+if (USE_LAME)
+      set (AUDIO ${AUDIO} exportmp3.cpp)
+endif (USE_LAME)
+
 if (USE_JACK)
       set (AUDIO ${AUDIO} jackaudio.cpp jackweakapi.cpp)
 endif (USE_JACK)
 
+if (USE_ALSA OR USE_PORTMIDI)
+      set (AUDIO ${AUDIO} mididriver.cpp)
+endif (USE_ALSA OR USE_PORTMIDI)
+
 if (${CMAKE_SYSTEM} MATCHES "GNU-0.3")
-      # include some cmake support file
+      # Include some cmake support file
       INCLUDE (Platform/GNU)
       set ( USE_ALSA 0 )
       set ( USE_PORTMIDI 0 )
 endif (${CMAKE_SYSTEM} MATCHES "GNU-0.3")
 
 if (${CMAKE_SYSTEM} MATCHES "kFreeBSD")
-      # include some cmake support file
+      # Include some cmake support file
       INCLUDE (Platform/kFreeBSD)
       set ( USE_ALSA 0 )
       set ( USE_PORTMIDI 0 )
@@ -209,14 +227,16 @@ add_executable ( ${ExecutableName}
 
       recordbutton.h greendotbutton prefsdialog.h
       scoreview.cpp editinstrument.cpp editstyle.cpp
-      icons.cpp importbww.cpp instrdialog.cpp instrwidget.cpp
+      icons.cpp importbww.cpp
+      importmxml.cpp importmxmlpass1.cpp importmxmlpass2.cpp
+      instrdialog.cpp instrwidget.cpp
       debugger/debugger.cpp menus.cpp
       musescore.cpp navigator.cpp pagesettings.cpp palette.cpp
       mixer.cpp playpanel.cpp selectionwindow.cpp preferences.cpp measureproperties.cpp
       seq.cpp textpalette.cpp
       timedialog.cpp symboldialog.cpp shortcutcapturedialog.cpp
       simplebutton.cpp musedata.cpp
-      editdrumset.cpp editstaff.cpp voltaproperties.cpp
+      editdrumset.cpp editstaff.cpp
       timesigproperties.cpp newwizard.cpp transposedialog.cpp
       excerptsdialog.cpp metaedit.cpp magbox.cpp
       capella.cpp capxml.cpp exportaudio.cpp palettebox.cpp
@@ -224,17 +244,17 @@ add_executable ( ${ExecutableName}
       pianoview.cpp drumview.cpp scoretab.cpp keyedit.cpp harmonyedit.cpp
       updatechecker.cpp importove.cpp ove.cpp ruler.cpp
       importgtp.cpp importgtp-gp4.cpp importgtp-gp5.cpp importgtp-gp6.cpp fotomode.cpp drumtools.cpp
-      selinstrument.cpp texteditor.cpp editstafftype.cpp texttools.cpp
+      selinstrument.cpp editstafftype.cpp texttools.cpp
       editpitch.cpp editstringdata.cpp editraster.cpp pianotools.cpp mediadialog.cpp
-      workspace.cpp exportmp3.cpp chordview.cpp
+      workspace.cpp chordview.cpp
       album.cpp albummanager.cpp
-      textstyle.cpp
+      textstyledialog.cpp
       lineproperties.cpp stafftextproperties.cpp splitstaff.cpp
-      tupletdialog.cpp glissandoproperties.cpp
+      tupletdialog.cpp
       articulationprop.cpp textprop.cpp
       fretproperties.cpp sectionbreakprop.cpp
       bendproperties.cpp tremolobarprop.cpp file.cpp keyb.cpp osc.cpp
-      layer.cpp selectdialog.cpp propertymenu.cpp shortcut.cpp bb.cpp
+      layer.cpp selectdialog.cpp selectnotedialog.cpp propertymenu.cpp shortcut.cpp bb.cpp
       inspector/inspector.cpp dragelement.cpp svggenerator.cpp
       inspector/inspectorBase.cpp inspector/inspectorBeam.cpp masterpalette.cpp
       inspector/inspectorGroupElement.cpp dragdrop.cpp inspector/inspectorImage.cpp
@@ -247,6 +267,7 @@ add_executable ( ${ExecutableName}
       musicxmlfonthandler.cpp musicxmlsupport.cpp exportxml.cpp importxml.cpp importxmlfirstpass.cpp
       savePositions.cpp inspector/inspectorJump.cpp inspector/inspectorMarker.cpp
       inspector/inspectorGlissando.cpp inspector/inspectorNote.cpp inspector/inspectorAmbitus.cpp
+      inspector/inspectorArpeggio.cpp
       paletteBoxButton.cpp driver.cpp exportmidi.cpp noteGroups.cpp
       pathlistdialog.cpp exampleview.cpp inspector/inspectorTextLine.cpp miconengine.cpp
       importmidi/importmidi.cpp
@@ -269,6 +290,9 @@ add_executable ( ${ExecutableName}
       startcenter.cpp scoreBrowser.cpp scorePreview.cpp scoreInfo.cpp
       logindialog.cpp loginmanager.cpp uploadscoredialog.cpp breaksdialog.cpp searchComboBox.cpp
       help.cpp help.h
+      toolbarEditor.cpp toolbarEditor.h
+      abstractdialog.cpp abstractdialog.h
+      toolbuttonmenu.cpp
 
       ${OMR_FILES}
       ${AUDIO}
@@ -290,7 +314,6 @@ target_link_libraries(mscore
       effects
       vorbisfile
       libmscore
-      xmlstream
       qzip
       beatroot
       kqoauth
@@ -298,11 +321,13 @@ target_link_libraries(mscore
 
 if (MINGW)
       set(MSCORE_OUTPUT_NAME ${MUSESCORE_NAME})
+elseif (MSCORE_INSTALL_SUFFIX)
+      set(MSCORE_OUTPUT_NAME "${ExecutableName}${MSCORE_INSTALL_SUFFIX}")
 endif (MINGW)
 
-#if MSCORE_OUTPUT_NAME is set (e.g, when cmake is called by the user), the output executable will be
-#called MSCORE_OUTPUT_NAME instead of 'mscore'. This can be used to have MuseScore stable and unstable
-#both installed in the same prefix on a Linux system.
+# If MSCORE_OUTPUT_NAME is set (e.g, when cmake is called by the user), the output executable will be
+# called MSCORE_OUTPUT_NAME instead of 'mscore'. This can be used to have MuseScore stable and unstable
+# both installed in the same prefix on a Linux system.
 if (MSCORE_OUTPUT_NAME)
   set_target_properties(
       ${ExecutableName}
@@ -329,10 +354,10 @@ if (APPLE)
       set_target_properties (mscore
           PROPERTIES
           MACOSX_BUNDLE_INFO_PLIST ${PROJECT_SOURCE_DIR}/build/MacOSXBundleInfo.plist.in)
-      #enable dSym generation
+      # Enable dSym generation
       #set_target_properties (mscore
-      #   PROPERTIES
-      #      XCODE_ATTRIBUTE_DEBUG_INFORMATION_FORMAT "dwarf-with-dsym")
+      #    PROPERTIES
+      #       XCODE_ATTRIBUTE_DEBUG_INFORMATION_FORMAT "dwarf-with-dsym")
 endif(APPLE)
 
 if (OSC)
@@ -351,7 +376,7 @@ if (MINGW)
       ${PROJECT_BINARY_DIR}/resfile.o
       PROPERTIES generated true
       )
-   # Windows: add -mconsole to LINK_FLAGS to get a console window for debug output
+   # Windows: Add -mconsole to LINK_FLAGS to get a console window for debug output
    if(CMAKE_BUILD_TYPE MATCHES "DEBUG")
      set_target_properties( mscore
         PROPERTIES
@@ -370,11 +395,12 @@ if (MINGW)
       portaudio
       portmidi
       winmm
+      mscore_freetype
       z
       )
 
    if (OMR)
-      target_link_libraries(mscore omr fitz freetype jbig2dec jpeg openjpeg)
+      target_link_libraries(mscore omr poppler)
       if (OCR)
             target_link_libraries(mscore tesseract_api)
       endif (OCR)
@@ -384,43 +410,38 @@ if (MINGW)
 
    install( TARGETS mscore RUNTIME DESTINATION bin )
 
+   # Keep dependencies in alphabetical order. Changes made to this list
+   # might need to be made in "build/Linux+BSD/portable/copy-libs" too.
    install( FILES
       ${CROSS}/bin/libgcc_s_dw2-1.dll
       ${CROSS}/bin/libstdc++-6.dll
       ${CROSS}/bin/libwinpthread-1.dll
-      ${CROSS}/lib/portaudio.dll
-      ${CROSS}/lib/libsndfile-1.dll
       ${CROSS}/lib/libogg.dll
+      ${CROSS}/lib/libsndfile-1.dll
       ${CROSS}/lib/libvorbis.dll
       ${CROSS}/lib/libvorbisfile.dll
-      ${CROSS}/opt/bin/ssleay32.dll
+      ${CROSS}/lib/portaudio.dll
       ${CROSS}/opt/bin/libeay32.dll
+      ${CROSS}/opt/bin/ssleay32.dll
+      ${CROSSQT}/bin/Qt5CLucene.dll
       ${CROSSQT}/bin/Qt5Core.dll
-      ${CROSSQT}/bin/Qt5Widgets.dll
       ${CROSSQT}/bin/Qt5Gui.dll
-      ${CROSSQT}/bin/Qt5Xml.dll
-      ${CROSSQT}/bin/Qt5Svg.dll
-      ${CROSSQT}/bin/Qt5Network.dll
-      ${CROSSQT}/bin/Qt5WebChannel.dll
-      ${CROSSQT}/bin/Qt5WebKit.dll
-      ${CROSSQT}/bin/Qt5WebKitWidgets.dll
-      ${CROSSQT}/bin/Qt5XmlPatterns.dll
-      ${CROSSQT}/bin/Qt5Qml.dll
-      ${CROSSQT}/bin/Qt5Quick.dll
-      ${CROSSQT}/bin/Qt5QuickWidgets.dll
-      ${CROSSQT}/bin/Qt5Script.dll
-      ${CROSSQT}/bin/Qt5Sql.dll
-      ${CROSSQT}/bin/Qt5Positioning.dll
-      ${CROSSQT}/bin/Qt5PrintSupport.dll
-      ${CROSSQT}/bin/Qt5OpenGL.dll
-      ${CROSSQT}/bin/Qt5Sensors.dll
+      ${CROSSQT}/bin/Qt5Help.dll
       ${CROSSQT}/bin/Qt5Multimedia.dll
       ${CROSSQT}/bin/Qt5MultimediaWidgets.dll
-      ${CROSSQT}/bin/icuin53.dll
-      ${CROSSQT}/bin/icuuc53.dll
-      ${CROSSQT}/bin/icudt53.dll
-      ${CROSSQT}/bin/Qt5Help.dll
-      ${CROSSQT}/bin/Qt5CLucene.dll
+      ${CROSSQT}/bin/Qt5Network.dll
+      ${CROSSQT}/bin/Qt5OpenGL.dll
+      ${CROSSQT}/bin/Qt5Positioning.dll
+      ${CROSSQT}/bin/Qt5PrintSupport.dll
+      ${CROSSQT}/bin/Qt5Qml.dll
+      ${CROSSQT}/bin/Qt5Quick.dll
+      ${CROSSQT}/bin/Qt5Sensors.dll
+      ${CROSSQT}/bin/Qt5Sql.dll
+      ${CROSSQT}/bin/Qt5Svg.dll
+      ${CROSSQT}/bin/Qt5WebChannel.dll
+      ${CROSSQT}/bin/Qt5Widgets.dll
+      ${CROSSQT}/bin/Qt5Xml.dll
+      ${CROSSQT}/bin/Qt5XmlPatterns.dll
       ${PROJECT_SOURCE_DIR}/build/qt.conf
       DESTINATION bin)
 
@@ -430,7 +451,6 @@ if (MINGW)
 
     install(FILES
       ${CROSSQT}/plugins/imageformats/qjpeg.dll
-      ${CROSSQT}/plugins/imageformats/qmng.dll
       ${CROSSQT}/plugins/imageformats/qsvg.dll
       ${CROSSQT}/plugins/imageformats/qtiff.dll
       DESTINATION bin/imageformats)
@@ -450,17 +470,18 @@ if (MINGW)
     install(DIRECTORY
       ${CROSSQT}/qml
       DESTINATION .
-      REGEX ".*QtWebkit.*" EXCLUDE
-      REGEX ".*QtTest.*" EXCLUDE
-      REGEX ".*QtSensors.*" EXCLUDE
+      REGEX ".*d\\.dll" EXCLUDE
       REGEX ".*QtGraphicalEffects.*" EXCLUDE
       REGEX ".*QtMultimedia.*" EXCLUDE
-      REGEX ".*d\\.dll" EXCLUDE)
+      REGEX ".*QtSensors.*" EXCLUDE
+      REGEX ".*QtTest.*" EXCLUDE
+      REGEX ".*QtWebkit.*" EXCLUDE)
 
 else (MINGW)
    target_link_libraries(mscore
       ${ALSA_LIB}
       ${QT_LIBRARIES}
+      mscore_freetype
       z
       dl
       pthread
@@ -468,6 +489,15 @@ else (MINGW)
     if (USE_PORTAUDIO)
       target_link_libraries(mscore ${PORTAUDIO_LIB})
     endif (USE_PORTAUDIO)
+
+    if (USE_PORTMIDI)
+        if (APPLE)
+            set(PORTMIDI_LIB portmidi)
+        else (APPLE)
+            set(PORTMIDI_LIB -lportmidi -lporttime) # Remove -lporttime on RPM-based systems where PortTime is part of PortMidi.
+        endif (APPLE)
+        target_link_libraries(mscore ${PORTMIDI_LIB})
+    endif (USE_PORTMIDI)
 
     if (USE_PULSEAUDIO)
       target_link_libraries(mscore ${PULSEAUDIO_LIBRARY})
@@ -480,22 +510,19 @@ else (MINGW)
       )
 
    if (OMR)
-      target_link_libraries(mscore omr fitz fontconfig freetype jbig2dec jpeg openjpeg)
+      target_link_libraries(mscore omr poppler)
       if (OCR)
             target_link_libraries(mscore tesseract_api)
       endif (OCR)
    endif (OMR)
 
    if (APPLE)
-     if (USE_PORTMIDI)
-       target_link_libraries(mscore portmidi)
-     endif (USE_PORTMIDI)
      target_link_libraries(mscore ${OsxFrameworks})
    else (APPLE)
        target_link_libraries(mscore rt)
    endif (APPLE)
 
-   # gold does not use indirect shared libraries for symbol resolution, Linux only
+   # 'gold' does not use indirect shared libraries for symbol resolution, Linux only
    if (NOT APPLE)
       if(USE_JACK)
          target_link_libraries(mscore dl)
@@ -513,24 +540,64 @@ else (MINGW)
      install (FILES data/mscore.icns DESTINATION ${Mscore_SHARE_NAME}${Mscore_INSTALL_NAME})
      install (FILES data/musescoreDocument.icns DESTINATION ${Mscore_SHARE_NAME}${Mscore_INSTALL_NAME})
    else (APPLE)
+     #### PACKAGING for Linux and BSD based systems (more in top-level CMakeLists.txt) ####
+     # Install mscore executable (package maintainers may add "MuseScore" and/or "musescore" aliases that symlink to mscore)
      install( TARGETS mscore RUNTIME DESTINATION bin )
-     install( FILES   data/mscore.png DESTINATION share/pixmaps)
+     if (LN_EXECUTABLE)
+        add_custom_target(mscore_alias ALL
+            COMMAND echo "Creating symlink alias for mscore executable."
+            COMMAND ${LN_EXECUTABLE} -sf "mscore${MSCORE_INSTALL_SUFFIX}" "musescore${MSCORE_INSTALL_SUFFIX}"
+            COMMAND echo 'Symlink alias: musescore${MSCORE_INSTALL_SUFFIX} -> mscore${MSCORE_INSTALL_SUFFIX}'
+            )
+        install( FILES ${PROJECT_BINARY_DIR}/mscore/musescore${MSCORE_INSTALL_SUFFIX} DESTINATION bin)
+     else (LN_EXECUTABLE)
+        add_custom_target(mscore_alias ALL
+            COMMAND echo "No symlink aliases will be created."
+            VERBATIM
+            )
+     endif (LN_EXECUTABLE)
+     # Install MuseScore icons (use SVGs where possible, but install PNGs as backup for systems that don't support SVG)
+     if (MSCORE_UNSTABLE)
+         set(MSCORE_ICON_BASE ../assets/musescore-icon-square) # Square icons on development builds
+     else (MSCORE_UNSTABLE)
+         set(MSCORE_ICON_BASE ../assets/musescore-icon-round) # Round icons on stable releases
+     endif (MSCORE_UNSTABLE)
+     install(FILES ${MSCORE_ICON_BASE}.svg RENAME mscore${MSCORE_INSTALL_SUFFIX}.svg DESTINATION share/icons/hicolor/scalable/apps)
+     install(FILES ${MSCORE_ICON_BASE}-64.png RENAME mscore${MSCORE_INSTALL_SUFFIX}.png DESTINATION share/icons/hicolor/64x64/apps)
+     # Install MIME (filetype) icons for each mimetype on Linux
+     install( FILES   ../assets/mscz-icon.svg RENAME application-x-musescore${MSCORE_INSTALL_SUFFIX}.svg
+        DESTINATION share/icons/hicolor/scalable/mimetypes) # SVG icon for .MSCZ files
+     install( FILES   ../assets/mscz-icon-48.png RENAME application-x-musescore${MSCORE_INSTALL_SUFFIX}.png
+        DESTINATION share/icons/hicolor/48x48/mimetypes) # PNG icon for .MSCZ files
+     install( FILES   ../assets/mscx-icon.svg RENAME application-x-musescore${MSCORE_INSTALL_SUFFIX}+xml.svg
+        DESTINATION share/icons/hicolor/scalable/mimetypes) # SVG icon for .MSCX files
+     install( FILES   ../assets/mscx-icon-48.png RENAME application-x-musescore${MSCORE_INSTALL_SUFFIX}+xml.png
+        DESTINATION share/icons/hicolor/48x48/mimetypes) # PNG icon for .MSCX files
+     # use a custom icon for MusicXML files (there isn't a standard icon for MusicXML files)
+     install( FILES   ../assets/mxl-icon.svg RENAME application-vnd.recordare.musicxml${MSCORE_INSTALL_SUFFIX}.svg
+        DESTINATION share/icons/hicolor/scalable/mimetypes) # SVG icon for .MXL (compressed MusicXML) files
+     install( FILES   ../assets/mxl-icon-48.png RENAME application-vnd.recordare.musicxml${MSCORE_INSTALL_SUFFIX}.png
+        DESTINATION share/icons/hicolor/48x48/mimetypes) # PNG icon for .MXL (compressed MusicXML) files
+     install( FILES   ../assets/xml-icon.svg RENAME application-vnd.recordare.musicxml${MSCORE_INSTALL_SUFFIX}+xml.svg
+        DESTINATION share/icons/hicolor/scalable/mimetypes) # SVG icon for .XML (MusicXML) files
+     install( FILES   ../assets/xml-icon-48.png RENAME application-vnd.recordare.musicxml${MSCORE_INSTALL_SUFFIX}+xml.png
+        DESTINATION share/icons/hicolor/48x48/mimetypes) # PNG icon for .XML (MusicXML) files
+     # Note: Must now run "gtk-update-icon-cache" to set the new icons. This is done in the Makefile.
    endif (APPLE)
 endif (MINGW)
 
 if (APPLE)
      install (FILES
-      ../fonts/gootville/Gootville.otf
       ../fonts/gootville/GootvilleText.otf
-      ../fonts/mscore/mscore.ttf
       ../fonts/mscore/MScoreText.ttf
-      ../fonts/MuseJazz.ttf
+      ../fonts/musejazz/MuseJazzText.otf
       ../fonts/FreeSerif.ttf
       ../fonts/FreeSerifBold.ttf
+      ../fonts/FreeSerifItalic.ttf
+      ../fonts/FreeSerifBoldItalic.ttf
       ../fonts/FreeSans.ttf
       ../fonts/mscoreTab.ttf
       ../fonts/mscore-BC.ttf
-      ../fonts/bravura/Bravura.otf
       ../fonts/bravura/BravuraText.otf
      DESTINATION ${Mscore_SHARE_NAME}${Mscore_INSTALL_NAME}fonts
      )

@@ -26,6 +26,7 @@ namespace Ms {
 KeySigEvent::KeySigEvent(const KeySigEvent& k)
       {
       _key        = k._key;
+      _mode       = k._mode;
       _custom     = k._custom;
       _keySymbols = k._keySymbols;
       }
@@ -61,7 +62,9 @@ void KeySigEvent::print() const
       if (!isValid())
             qDebug("invalid>");
       else {
-            if (custom())
+            if (isAtonal())
+                  qDebug("atonal>");
+            else if (custom())
                   qDebug("custom>");
             else
                   qDebug("accidental %d>", int(_key));
@@ -85,9 +88,9 @@ void KeySigEvent::setKey(Key v)
 
 bool KeySigEvent::operator==(const KeySigEvent& e) const
       {
-      if (e._custom != _custom)
+      if (e._custom != _custom || e._mode != _mode)
             return false;
-      if (_custom) {
+      if (_custom && !isAtonal()) {
             if (e._keySymbols.size() != _keySymbols.size())
                   return false;
             for (int i = 0; i < _keySymbols.size(); ++i) {
@@ -107,7 +110,8 @@ bool KeySigEvent::operator==(const KeySigEvent& e) const
 
 void AccidentalState::init(Key key)
       {
-      memset(state, 2, 74);
+//      memset(state, 2, 74);
+      memset(state, 2, 75);
       for (int octave = 0; octave < 11; ++octave) {
             if (key > 0) {
                   for (int i = 0; i < int(key); ++i) {
@@ -173,10 +177,20 @@ void KeySigEvent::initFromSubtype(int st)
 //   accidentalVal
 //---------------------------------------------------------
 
+AccidentalVal AccidentalState::accidentalVal(int line, bool &error) const
+      {
+      if (line < MIN_ACC_STATE || line >= MAX_ACC_STATE) {
+            error = true;
+            return AccidentalVal::NATURAL;
+            }
+      return AccidentalVal((state[line] & 0x0f) - 2);
+      }
+
 AccidentalVal AccidentalState::accidentalVal(int line) const
       {
-      Q_ASSERT(line >= 0 && line < 75);
-      return AccidentalVal((state[line] & 0x0f) - 2);
+      Q_ASSERT(line >= MIN_ACC_STATE && line < MAX_ACC_STATE);
+      bool error = false;
+      return accidentalVal(line, error);
       }
 
 //---------------------------------------------------------
@@ -185,7 +199,7 @@ AccidentalVal AccidentalState::accidentalVal(int line) const
 
 bool AccidentalState::tieContext(int line) const
       {
-      Q_ASSERT(line >= 0 && line < 75);
+      Q_ASSERT(line >= MIN_ACC_STATE && line < MAX_ACC_STATE);
       return state[line] & TIE_CONTEXT;
       }
 
@@ -195,7 +209,7 @@ bool AccidentalState::tieContext(int line) const
 
 void AccidentalState::setAccidentalVal(int line, AccidentalVal val, bool tieContext)
       {
-      Q_ASSERT(line >= 0 && line < 75);
+      Q_ASSERT(line >= MIN_ACC_STATE && line < MAX_ACC_STATE);
       // casts needed to work around a bug in Xcode 4.2 on Mac, see #25910
       Q_ASSERT(int(val) >= int(AccidentalVal::FLAT2) && int(val) <= int(AccidentalVal::SHARP2));
       state[line] = (int(val) + 2) | (tieContext ? TIE_CONTEXT : 0);

@@ -59,7 +59,7 @@ class ChordLine : public Element {
       virtual void setLengthY(float length)     { _lengthY = length; }
 
       virtual void read(XmlReader&);
-      virtual void write(Xml& xml) const;
+      virtual void write(XmlWriter& xml) const;
       virtual void layout();
       virtual void draw(QPainter*) const;
 
@@ -67,7 +67,7 @@ class ChordLine : public Element {
       virtual void updateGrips(Grip*, QVector<QRectF>&) const override;
       virtual int grips() const override;
 
-      virtual QString accessibleInfo() override;
+      virtual QString accessibleInfo() const override;
       };
 
 extern const char* scorelineNames[];

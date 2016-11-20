@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>289</width>
+    <width>290</width>
     <height>168</height>
    </rect>
   </property>
@@ -169,11 +169,18 @@
      </item>
      <item row="0" column="2">
       <widget class="QToolButton" name="resetDirection">
+       <property name="toolTip">
+        <string>Reset to default</string>
+       </property>
        <property name="accessibleName">
-        <string>Reset Direction value</string>
+        <string>Reset 'Direction' value</string>
        </property>
        <property name="text">
-        <string notr="true">...</string>
+        <string notr="true"/>
+       </property>
+       <property name="icon">
+        <iconset resource="../musescore.qrc">
+         <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
        </property>
       </widget>
      </item>
@@ -208,21 +215,115 @@
      </item>
      <item row="1" column="2">
       <widget class="QToolButton" name="resetAnchor">
+       <property name="toolTip">
+        <string>Reset to default</string>
+       </property>
        <property name="accessibleName">
-        <string>Reset Anchor value</string>
+        <string>Reset 'Anchor' value</string>
        </property>
        <property name="text">
-        <string notr="true">...</string>
+        <string notr="true"/>
+       </property>
+       <property name="icon">
+        <iconset resource="../musescore.qrc">
+         <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
        </property>
       </widget>
      </item>
      <item row="2" column="2">
       <widget class="QToolButton" name="resetTimeStretch">
+       <property name="toolTip">
+        <string>Reset to default</string>
+       </property>
        <property name="accessibleName">
-        <string>Reset Time stretch value</string>
+        <string>Reset 'Time stretch' value</string>
        </property>
        <property name="text">
-        <string notr="true">...</string>
+        <string notr="true"/>
+       </property>
+       <property name="icon">
+        <iconset resource="../musescore.qrc">
+         <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="label_3">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>Ornament style</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QComboBox" name="ornamentStyle">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="accessibleName">
+        <string>Direction</string>
+       </property>
+       <item>
+        <property name="text">
+         <string>Default</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Baroque</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="3" column="2">
+      <widget class="QToolButton" name="resetOrnamentStyle">
+       <property name="toolTip">
+        <string>Reset to default</string>
+       </property>
+       <property name="accessibleName">
+        <string>Reset 'Ornament style' value</string>
+       </property>
+       <property name="text">
+        <string notr="true"/>
+       </property>
+       <property name="icon">
+        <iconset resource="../musescore.qrc">
+         <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0">
+      <widget class="QCheckBox" name="playArticulation">
+       <property name="text">
+        <string>Play</string>
+       </property>
+       <property name="checked">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="2">
+      <widget class="QToolButton" name="resetPlayArticulation">
+       <property name="toolTip">
+        <string>Reset to default</string>
+       </property>
+       <property name="accessibleName">
+        <string>Reset 'Play' value</string>
+       </property>
+       <property name="text">
+        <string notr="true"/>
+       </property>
+       <property name="icon">
+        <iconset resource="../musescore.qrc">
+         <normaloff>:/data/icons/edit-reset.svg</normaloff>:/data/icons/edit-reset.svg</iconset>
        </property>
       </widget>
      </item>
@@ -237,6 +338,10 @@
   <tabstop>resetAnchor</tabstop>
   <tabstop>timeStretch</tabstop>
   <tabstop>resetTimeStretch</tabstop>
+  <tabstop>ornamentStyle</tabstop>
+  <tabstop>resetOrnamentStyle</tabstop>
+  <tabstop>playArticulation</tabstop>
+  <tabstop>resetPlayArticulation</tabstop>
  </tabstops>
  <resources>
   <include location="../musescore.qrc"/>

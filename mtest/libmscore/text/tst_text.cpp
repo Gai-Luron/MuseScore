@@ -16,12 +16,13 @@
 #include "libmscore/text.h"
 #include "libmscore/score.h"
 #include "libmscore/sym.h"
+#include "libmscore/xml.h"
 #include "mtest/testutils.h"
 
 using namespace Ms;
 
 //---------------------------------------------------------
-//   TestNote
+//   TestText
 //---------------------------------------------------------
 
 class TestText : public QObject, public MTest
@@ -32,8 +33,11 @@ class TestText : public QObject, public MTest
       void initTestCase();
       void testText();
       void testSpecialSymbols();
+      void testPaste();
       void testTextProperties();
       void testCompatibility();
+      void testDelete();
+      void testReadWrite();
       };
 
 //---------------------------------------------------------
@@ -44,6 +48,28 @@ void TestText::initTestCase()
       {
       initMTest();
       }
+
+//---------------------------------------------------------
+//   testDelete
+//---------------------------------------------------------
+
+void TestText::testDelete()
+      {
+      Text* text = new Text(score);
+      text->setTextStyle(score->textStyle(TextStyleType::DYNAMICS));
+
+      text->setPlainText("aaa bbb ccc\nddd eee fff\nggg hhh iii");
+      text->layout();
+      QCOMPARE(text->xmlText(), QString("aaa bbb ccc\nddd eee fff\nggg hhh iii"));
+
+      text->startEdit(0, QPoint());
+      text->moveCursorToStart();
+      QVERIFY(text->movePosition(QTextCursor::Down, QTextCursor::KeepAnchor, 2));
+      text->deleteSelectedText();
+      text->endEdit();
+      QCOMPARE(text->xmlText(), QString("ggg hhh iii"));
+      }
+
 
 //---------------------------------------------------------
 ///   testText
@@ -60,32 +86,32 @@ void TestText::testText()
       text->moveCursorToEnd();
       text->insertText("a");
       text->endEdit();
-      QCOMPARE(text->text(), QString("a"));
+      QCOMPARE(text->xmlText(), QString("a"));
 
       text->startEdit(0, QPoint());
       text->moveCursorToEnd();
       text->insertText("bc");
       text->endEdit();
-      QCOMPARE(text->text(), QString("abc"));
+      QCOMPARE(text->xmlText(), QString("abc"));
 
       text->startEdit(0, QPoint());
       text->moveCursorToEnd();
       text->insertText("d");
       text->insertText("e");
       text->endEdit();
-      QCOMPARE(text->text(), QString("abcde"));
+      QCOMPARE(text->xmlText(), QString("abcde"));
 
       text->startEdit(0, QPoint());
       text->moveCursorToStart();
       text->insertText("1");
       text->endEdit();
-      QCOMPARE(text->text(), QString("1abcde"));
+      QCOMPARE(text->xmlText(), QString("1abcde"));
 
       text->startEdit(0, QPoint());
       text->moveCursorToStart();
       text->insertText("0");
       text->endEdit();
-      QCOMPARE(text->text(), QString("01abcde"));
+      QCOMPARE(text->xmlText(), QString("01abcde"));
 
       text->startEdit(0, QPoint());
       text->moveCursorToStart();
@@ -93,7 +119,7 @@ void TestText::testText()
       text->movePosition(QTextCursor::Right);
       text->insertText("2");
       text->endEdit();
-      QCOMPARE(text->text(), QString("012abcde"));
+      QCOMPARE(text->xmlText(), QString("012abcde"));
 
       text->startEdit(0, QPoint());
       text->moveCursorToEnd();
@@ -104,20 +130,20 @@ void TestText::testText()
       text->movePosition(QTextCursor::Left);
       text->insertText("3");
       text->endEdit();
-      QCOMPARE(text->text(), QString("0123abcde"));
+      QCOMPARE(text->xmlText(), QString("0123abcde"));
 
       text->startEdit(0, QPoint());
       text->moveCursorToEnd();
       text->insertSym(SymId::segno);
       text->endEdit();
-      QCOMPARE(text->text(), QString("0123abcde<sym>segno</sym>"));
+      QCOMPARE(text->xmlText(), QString("0123abcde<sym>segno</sym>"));
 
       text->startEdit(0, QPoint());
       text->moveCursorToEnd();
       text->movePosition(QTextCursor::Left);
       text->insertText("#");
       text->endEdit();
-      QCOMPARE(text->text(), QString("0123abcde#<sym>segno</sym>"));
+      QCOMPARE(text->xmlText(), QString("0123abcde#<sym>segno</sym>"));
       }
 
 //---------------------------------------------------------
@@ -135,33 +161,81 @@ void TestText::testSpecialSymbols()
       text->moveCursorToEnd();
       text->insertText("<");
       text->endEdit();
-      QCOMPARE(text->text(), QString("&lt;"));
+      QCOMPARE(text->xmlText(), QString("&lt;"));
 
       text->selectAll();
       text->deleteSelectedText();
       text->insertText("&");
       text->endEdit();
-      QCOMPARE(text->text(), QString("&amp;"));
+      QCOMPARE(text->xmlText(), QString("&amp;"));
 
       text->selectAll();
       text->deleteSelectedText();
       text->insertText(">");
       text->endEdit();
-      QCOMPARE(text->text(), QString("&gt;"));
+      QCOMPARE(text->xmlText(), QString("&gt;"));
 
       text->selectAll();
       text->deleteSelectedText();
       text->insertText("\"");
       text->endEdit();
-      QCOMPARE(text->text(), QString("&quot;"));
+      QCOMPARE(text->xmlText(), QString("&quot;"));
 
       text->selectAll();
       text->deleteSelectedText();
       text->insertText("&gt;");
       text->endEdit();
-      QCOMPARE(text->text(), QString("&amp;gt;"));
+      QCOMPARE(text->xmlText(), QString("&amp;gt;"));
       }
 
+//---------------------------------------------------------
+///   testPaste
+//---------------------------------------------------------
+
+void TestText::testPaste()
+      {
+      Text* text = new Text(score);
+      text->setTextStyle(score->textStyle(TextStyleType::DYNAMICS));
+
+      text->startEdit(0, QPoint());
+      text->layout();
+      text->moveCursorToEnd();
+
+      QApplication::clipboard()->setText("copy & paste");
+      text->paste();
+      text->endEdit();
+      QCOMPARE(text->xmlText(), QString("copy &amp; paste"));
+
+      text->selectAll();
+      text->deleteSelectedText();
+      text->startEdit(0, QPoint());
+      text->layout();
+      text->moveCursorToEnd();
+      QApplication::clipboard()->setText("copy &aa paste");
+      text->paste();
+      text->endEdit();
+      QCOMPARE(text->xmlText(), QString("copy &amp;aa paste"));
+
+      text->selectAll();
+      text->deleteSelectedText();
+      text->startEdit(0, QPoint());
+      text->layout();
+      text->moveCursorToEnd();
+      QApplication::clipboard()->setText("&");
+      text->paste();
+      text->endEdit();
+      QCOMPARE(text->xmlText(), QString("&amp;"));
+
+      text->selectAll();
+      text->deleteSelectedText();
+      text->startEdit(0, QPoint());
+      text->layout();
+      text->moveCursorToEnd();
+      QApplication::clipboard()->setText("&sometext");
+      text->paste();
+      text->endEdit();
+      QCOMPARE(text->xmlText(), QString("&amp;sometext"));
+      }
 //---------------------------------------------------------
 ///   testTextProperties
 //---------------------------------------------------------
@@ -169,7 +243,7 @@ void TestText::testSpecialSymbols()
 void TestText::testTextProperties()
       {
       Text* text = new Text(score);
-      text->setTextStyle(score->textStyle(TextStyleType::DYNAMICS));
+      text->setTextStyle(score->textStyle(TextStyleType::STAFF));
 
       text->startEdit(0, QPoint());
       text->layout();
@@ -177,7 +251,7 @@ void TestText::testTextProperties()
       text->moveCursorToEnd();
       text->insertText("ILoveMuseScore");
       text->endEdit();
-      QCOMPARE(text->text(), QString("ILoveMuseScore"));
+      QCOMPARE(text->xmlText(), QString("ILoveMuseScore"));
 
       //select Love and make it bold
       text->startEdit(0, QPoint());
@@ -187,7 +261,7 @@ void TestText::testTextProperties()
 
       text->setFormat(FormatId::Bold , true);
       text->endEdit();
-      QCOMPARE(text->text(), QString("I<b>Love</b>MuseScore"));
+      QCOMPARE(text->xmlText(), QString("I<b>Love</b>MuseScore"));
 
       //select Love and unbold it
       text->startEdit(0, QPoint());
@@ -197,7 +271,7 @@ void TestText::testTextProperties()
 
       text->setFormat(FormatId::Bold , false);
       text->endEdit();
-      QCOMPARE(text->text(), QString("ILoveMuseScore"));
+      QCOMPARE(text->xmlText(), QString("ILoveMuseScore"));
 
       //select Love and make it bold again
       text->startEdit(0, QPoint());
@@ -207,7 +281,7 @@ void TestText::testTextProperties()
 
       text->setFormat(FormatId::Bold , true);
       text->endEdit();
-      QCOMPARE(text->text(), QString("I<b>Love</b>MuseScore"));
+      QCOMPARE(text->xmlText(), QString("I<b>Love</b>MuseScore"));
 
       //select veMu and make it bold
       text->startEdit(0, QPoint());
@@ -217,7 +291,7 @@ void TestText::testTextProperties()
 
       text->setFormat(FormatId::Bold , true);
       text->endEdit();
-      QCOMPARE(text->text(), QString("I<b>LoveMu</b>seScore"));
+      QCOMPARE(text->xmlText(), QString("I<b>LoveMu</b>seScore"));
 
       //select Mu and make it nonbold
       text->startEdit(0, QPoint());
@@ -227,7 +301,7 @@ void TestText::testTextProperties()
 
       text->setFormat(FormatId::Bold , false);
       text->endEdit();
-      QCOMPARE(text->text(), QString("I<b>Love</b>MuseScore"));
+      QCOMPARE(text->xmlText(), QString("I<b>Love</b>MuseScore"));
 
       //make veMuse italic
       text->startEdit(0, QPoint());
@@ -237,7 +311,7 @@ void TestText::testTextProperties()
 
       text->setFormat(FormatId::Italic , true);
       text->endEdit();
-      QCOMPARE(text->text(), QString("I<b>Lo<i>ve</i></b><i>Muse</i>Score"));
+      QCOMPARE(text->xmlText(), QString("I<b>Lo<i>ve</i></b><i>Muse</i>Score"));
 
       }
 
@@ -246,7 +320,8 @@ void TestText::testTextProperties()
 ///   testCompatibility
 //---------------------------------------------------------
 
-void TestText::testCompatibility() {
+void TestText::testCompatibility()
+      {
       Text* text = new Text(score);
       //bold
       const QString sb("<html><head><meta name=\"qrichtext\" content=\"1\" /><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" /><style type=\"text/css\">"
@@ -293,10 +368,54 @@ void TestText::testCompatibility() {
 "</style></head><body style=\" font-family:'Times New Roman'; font-size:10.0006pt; font-weight:400; font-style:normal;\">"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">test&amp;&lt;&gt;&quot;'</p></body></html>");
       QCOMPARE(text->convertFromHtml(sescape), QString("<font face=\"Times New Roman\"/>test&amp;&lt;&gt;&quot;'"));
+      }
 
+//---------------------------------------------------------
+///   testReadWrite
+//---------------------------------------------------------
 
+void TestText::testReadWrite() {
+      auto testrw = [](Score* score, Text* t) {
+            QBuffer buffer;
+            buffer.open(QIODevice::WriteOnly);
+            XmlWriter xml(score, &buffer);
+            t->write(xml);
+            buffer.close();
+
+            XmlReader e(score, buffer.buffer());
+            Text* text2 = new Text(score);
+            e.readNextStartElement();
+            text2->read(e);
+            QCOMPARE(t->xmlText(), text2->xmlText());
+        };
+      Text* text = new Text(score);
+      text->setXmlText("test");
+      testrw(score, text);
+
+      text = new Text(score);
+      text->setXmlText("<b>Title</b><i>two</i>");
+      testrw(score, text);
+
+      text = new Text(score);
+      text->setXmlText("<i>Title</i> <b>Two</b>");
+      testrw(score, text);
+
+      text = new Text(score);
+      text->setXmlText("<i>Title</i>    <b>Two</b>");
+      testrw(score, text);
+
+      text = new Text(score);
+      text->setXmlText("<i>Title</i>\t<b>Two</b>");
+      testrw(score, text);
+
+      text = new Text(score);
+      text->setXmlText("<i>Title</i>\n<b>Two</b>");
+      testrw(score, text);
+
+      text = new Text(score);
+      text->setXmlText("<i>Ti  tle</i><b>Tw  o</b>");
+      testrw(score, text);
 }
-
 
 QTEST_MAIN(TestText)
 

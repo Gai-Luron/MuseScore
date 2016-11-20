@@ -24,6 +24,7 @@
 #include "libmscore/note.h"
 #include "libmscore/keysig.h"
 #include "mscore/exportmidi.h"
+#include "mscore/preferences.h"
 #include <QIODevice>
 
 #include "libmscore/mcursor.h"
@@ -31,7 +32,7 @@
 #define DIR QString("libmscore/midi/")
 
 namespace Ms {
-      extern Score::FileError importMidi(Score*, const QString&);
+      extern Score::FileError importMidi(MasterScore*, const QString&);
       }
 
 using namespace Ms;
@@ -43,6 +44,7 @@ using namespace Ms;
 class TestMidi : public QObject, public MTest
       {
       Q_OBJECT
+      void midiExportTestRef(const QString& file);
 
    private slots:
       void initTestCase();
@@ -51,6 +53,9 @@ class TestMidi : public QObject, public MTest
       void midi03();
       void events_data();
       void events();
+      void midiBendsExport1() { midiExportTestRef("testBends1"); }
+      void midiBendsExport2() { midiExportTestRef("testBends2"); }      // Play property test
+      void midiPortExport()   { midiExportTestRef("testMidiPort"); }
       };
 
 //---------------------------------------------------------
@@ -66,6 +71,10 @@ void TestMidi::initTestCase()
 void TestMidi::events_data()
       {
       QTest::addColumn<QString>("file");
+      // Test Metronome
+      QTest::newRow("testMetronomeSimple") <<  "testMetronomeSimple";
+      QTest::newRow("testMetronomeCompound") <<  "testMetronomeCompound";
+      QTest::newRow("testMetronomeAnacrusis") <<  "testMetronomeAnacrusis";
       // Test Eighth Swing
       QTest::newRow("testSwing8thSimple") <<  "testSwing8thSimple";
       QTest::newRow("testSwing8thTies") <<  "testSwing8thTies";
@@ -83,7 +92,27 @@ void TestMidi::events_data()
       QTest::newRow("testSwingTexts") <<  "testSwingTexts";
       // ornaments
       QTest::newRow("testMordents") <<  "testMordents";
+      //QTest::newRow("testBaroqueOrnaments") << "testBaroqueOrnaments"; // fail, at least a problem with the first note and stretch
+      QTest::newRow("testOrnamentAccidentals") << "testOrnamentAccidentals";
       QTest::newRow("testGraceBefore") <<  "testGraceBefore";
+      QTest::newRow("testBeforeAfterGraceTrill") <<  "testBeforeAfterGraceTrill";
+      QTest::newRow("testBeforeAfterGraceTrillPlay=false") <<  "testBeforeAfterGraceTrillPlay=false";
+      QTest::newRow("testKantataBWV140Excerpts") <<  "testKantataBWV140Excerpts";
+      QTest::newRow("testTrillTransposingInstrument") <<  "testTrillTransposingInstrument";
+      QTest::newRow("testAndanteExcerpts") <<  "testAndanteExcerpts";
+      QTest::newRow("testTrillLines") << "testTrillLines";
+      QTest::newRow("testTrillTempos") << "testTrillTempos";
+      QTest::newRow("testTrillCrossStaff") << "testTrillCrossStaff";
+      QTest::newRow("testOrnaments") << "testOrnaments";
+      QTest::newRow("testTieTrill") << "testTieTrill";
+      // glissando
+      QTest::newRow("testGlissando") << "testGlissando";
+      QTest::newRow("testGlissandoAcrossStaffs") << "testGlissandoAcrossStaffs";
+      QTest::newRow("testGlissando-71826") << "testGlissando-71826";
+      // pedal
+      QTest::newRow("testPedal") <<  "testPedal";
+      // multi note tremolo
+      QTest::newRow("testMultiNoteTremolo") << "testMultiNoteTremolo";
       }
 
 //---------------------------------------------------------
@@ -111,7 +140,7 @@ bool compareElements(Element* e1, Element* e2)
             KeySig* ks1 = static_cast<KeySig*>(e1);
             KeySig* ks2 = static_cast<KeySig*>(e2);
             if (ks1->key() != ks2->key()) {
-                  qDebug("      key signature %d  !=  %d", ks1->key(), ks2->key());
+                  qDebug("      key signature %d  !=  %d", int(ks1->key()), int(ks2->key()));
                   return false;
                   }
             }
@@ -215,14 +244,14 @@ void TestMidi::midi01()
       c.addChord(61, TDuration(TDuration::DurationType::V_QUARTER));
       c.addChord(62, TDuration(TDuration::DurationType::V_QUARTER));
       c.addChord(63, TDuration(TDuration::DurationType::V_QUARTER));
-      Score* score = c.score();
+      MasterScore* score = c.score();
 
       score->doLayout();
       score->rebuildMidiMapping();
       c.saveScore();
       saveMidi(score, "test1.mid");
 
-      Score* score2 = new Score(mscore->baseStyle());
+      MasterScore* score2 = new MasterScore(mscore->baseStyle());
       score2->setName("test1b");
       QCOMPARE(importMidi(score2, "test1.mid"), Score::FileError::FILE_NO_ERROR);
 
@@ -255,14 +284,14 @@ void TestMidi::midi02()
       c.addChord(60, TDuration(TDuration::DurationType::V_QUARTER));
       c.addChord(61, TDuration(TDuration::DurationType::V_QUARTER));
       c.addChord(62, TDuration(TDuration::DurationType::V_QUARTER));
-      Score* score = c.score();
+      MasterScore* score = c.score();
 
       score->doLayout();
       score->rebuildMidiMapping();
       c.saveScore();
       saveMidi(score, "test2.mid");
 
-      Score* score2 = new Score(mscore->baseStyle());
+      MasterScore* score2 = new MasterScore(mscore->baseStyle());
       score2->setName("test2b");
 
       QCOMPARE(importMidi(score2, "test2.mid"), Score::FileError::FILE_NO_ERROR);
@@ -297,14 +326,14 @@ void TestMidi::midi03()
       c.addChord(61, TDuration(TDuration::DurationType::V_QUARTER));
       c.addChord(62, TDuration(TDuration::DurationType::V_QUARTER));
       c.addChord(63, TDuration(TDuration::DurationType::V_QUARTER));
-      Score* score = c.score();
+      MasterScore* score = c.score();
 
       score->doLayout();
       score->rebuildMidiMapping();
       c.saveScore();
       saveMidi(score, "test3.mid");
 
-      Score* score2 = new Score(mscore->baseStyle());
+      MasterScore* score2 = new MasterScore(mscore->baseStyle());
       score2->setName("test3b");
       QCOMPARE(importMidi(score2, "test3.mid"), Score::FileError::FILE_NO_ERROR);
 
@@ -331,15 +360,14 @@ void TestMidi::events()
       QString writeFile(file + "-test.txt");
       QString reference(DIR + file + "-ref.txt");
 
-      Score* score = readScore(readFile);
-      score->doLayout();
+      MasterScore* score = readScore(readFile);
       EventMap events;
       score->renderMidi(&events);
       qDebug() << "Opened score " << readFile;
       QFile filehandler(writeFile);
       filehandler.open(QIODevice::WriteOnly | QIODevice::Text);
       QTextStream out(&filehandler);
-      multimap<int, NPlayEvent> ::iterator iter;
+
       for (auto iter = events.begin(); iter!= events.end(); ++iter){
             out << qSetFieldWidth(5) << "Tick  =  ";
             out << qSetFieldWidth(5) << iter->first;
@@ -358,6 +386,24 @@ void TestMidi::events()
       QVERIFY(score);
       QVERIFY(compareFiles(writeFile, reference));
      // QVERIFY(saveCompareScore(score, writeFile, reference));
+      }
+
+//---------------------------------------------------------
+//   midiExportTest
+//   read a MuseScore mscx file, write to a MIDI file and verify against reference
+//---------------------------------------------------------
+
+void TestMidi::midiExportTestRef(const QString& file)
+      {
+      MScore::debugMode = true;
+      preferences.midiExportRPNs = true;
+      MasterScore* score = readScore(DIR + file + ".mscx");
+      QVERIFY(score);
+      score->doLayout();
+      score->rebuildMidiMapping();
+      QVERIFY(saveMidi(score, QString(file) + ".mid"));
+      QVERIFY(compareFiles(QString(file) + ".mid", DIR + QString(file) + "-ref.mid"));
+      delete score;
       }
 
 QTEST_MAIN(TestMidi)

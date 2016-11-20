@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<museScore version="2.00">
+<museScore version="3.00">
   <Score>
     <LayerTag id="0" tag="default"></LayerTag>
     <currentLayer>0</currentLayer>
@@ -66,8 +66,8 @@
         </Staff>
       <trackName>Flute</trackName>
       <Instrument>
-        <longName pos="0">Flute</longName>
-        <shortName pos="0">Fl.</shortName>
+        <longName>Flute</longName>
+        <shortName>Fl.</shortName>
         <trackName>Flute</trackName>
         <minPitchP>59</minPitchP>
         <maxPitchP>98</maxPitchP>
@@ -151,7 +151,7 @@
         <Rest>
           <lid>8</lid>
           <durationType>measure</durationType>
-          <duration z="2" n="4"/>
+          <duration>2/4</duration>
           </Rest>
         <BarLine>
           <subtype>end</subtype>
@@ -161,10 +161,15 @@
         </Measure>
       </Staff>
     <Score>
+      <Tracklist sTrack="0" dstTrack="0"/>
+      <Tracklist sTrack="1" dstTrack="1"/>
+      <Tracklist sTrack="2" dstTrack="2"/>
+      <Tracklist sTrack="3" dstTrack="3"/>
       <LayerTag id="0" tag="default"></LayerTag>
       <currentLayer>0</currentLayer>
       <Division>480</Division>
       <Style>
+        <createMultiMeasureRests>1</createMultiMeasureRests>
         <TextStyle>
           <halign>left</halign>
           <valign>top</valign>
@@ -215,10 +220,10 @@
             </StaffType>
           <bracket type="-1" span="0"/>
           </Staff>
-        <trackName></trackName>
+        <trackName>Flute</trackName>
         <Instrument>
-          <longName pos="0">Flute</longName>
-          <shortName pos="0">Fl.</shortName>
+          <longName>Flute</longName>
+          <shortName>Fl.</shortName>
           <trackName>Flute</trackName>
           <minPitchP>59</minPitchP>
           <maxPitchP>98</maxPitchP>
@@ -306,7 +311,7 @@
           <Rest>
             <lid>8</lid>
             <durationType>measure</durationType>
-            <duration z="2" n="4"/>
+            <duration>2/4</duration>
             </Rest>
           <BarLine>
             <subtype>end</subtype>

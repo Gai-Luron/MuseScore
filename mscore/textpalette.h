@@ -38,15 +38,19 @@ class TextPalette : public QWidget, public Ui::TextPaletteBase {
       Text* _textElement;
       QFont _font;
       Palette* pCommon;
-      Palette* pAll;
+      Palette* pSmufl;
+      Palette* pUnicode;
 
+      QListWidget* lws;
+      QListWidget* lwu;
+
+      virtual void hideEvent(QHideEvent*);
       void closeEvent(QCloseEvent* ev);
       void populateCommon();
 
    private slots:
-      void commonToggled(bool);
-      void pageChanged(int);
-      void populateAll();
+      void populateSmufl();
+      void populateUnicode();
 
    public:
       TextPalette(QWidget* parent);

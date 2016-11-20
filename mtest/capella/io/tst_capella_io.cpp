@@ -63,6 +63,7 @@ private slots:
       void capxTestTuplet1() { capxReadTest("testTuplet1"); } // generates different (incorrect ?) l1 and l2 values in beams
       void capxTestTuplet2() { capxReadTest("testTuplet2"); } // generates different beaming with respect to the original
       void capxTestVolta1() { capxReadTest("testVolta1"); }
+      void capxTestBarline() { capxReadTest("testBarline"); }
       };
 
 //---------------------------------------------------------
@@ -81,7 +82,7 @@ void TestCapellaIO::initTestCase()
 
 void TestCapellaIO::capReadTest(const char* file)
       {
-      Score* score = readScore(DIR + file + ".cap");
+      MasterScore* score = readScore(DIR + file + ".cap");
       QVERIFY(score);
       score->doLayout();
       QVERIFY(saveCompareScore(score, QString("%1.cap.mscx").arg(file),
@@ -96,7 +97,7 @@ void TestCapellaIO::capReadTest(const char* file)
 
 void TestCapellaIO::capxReadTest(const char* file)
       {
-      Score* score = readScore(DIR + file + ".capx");
+      MasterScore* score = readScore(DIR + file + ".capx");
       QVERIFY(score);
       score->doLayout();
       QVERIFY(saveCompareScore(score, QString("%1.capx.mscx").arg(file),

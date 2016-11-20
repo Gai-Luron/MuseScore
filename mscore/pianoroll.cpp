@@ -10,29 +10,28 @@
 //  the file LICENCE.GPL
 //=============================================================================
 
-#include "config.h"
 #include "pianoroll.h"
+#include "config.h"
 #include "piano.h"
 #include "ruler.h"
 #include "pianoview.h"
+#include "musescore.h"
+#include "seq.h"
+#include "preferences.h"
+#include "waveview.h"
 #include "libmscore/staff.h"
 #include "libmscore/measure.h"
 #include "libmscore/note.h"
-#include "awl/pitchlabel.h"
-#include "awl/pitchedit.h"
-#include "awl/poslabel.h"
-#include "musescore.h"
+#include "libmscore/repeatlist.h"
 #include "libmscore/undo.h"
 #include "libmscore/part.h"
 #include "libmscore/instrument.h"
-#include "seq.h"
-#include "preferences.h"
-#include "seq.h"
-#include "waveview.h"
+#include "awl/pitchlabel.h"
+#include "awl/pitchedit.h"
+#include "awl/poslabel.h"
+
 
 namespace Ms {
-
-extern bool useFactorySettings;
 
 //---------------------------------------------------------
 //   PianorollEditor
@@ -41,6 +40,7 @@ extern bool useFactorySettings;
 PianorollEditor::PianorollEditor(QWidget* parent)
    : QMainWindow(parent)
       {
+      setObjectName("Pianoroll");
       setWindowTitle(QString("MuseScore"));
 
       waveView = 0;
@@ -49,8 +49,14 @@ PianorollEditor::PianorollEditor(QWidget* parent)
 
       QWidget* mainWidget = new QWidget;
       QToolBar* tb = addToolBar(tr("Toolbar 1"));
-      tb->addAction(getAction("undo"));
-      tb->addAction(getAction("redo"));
+      if (qApp->layoutDirection() == Qt::LayoutDirection::LeftToRight) {
+            tb->addAction(getAction("undo"));
+            tb->addAction(getAction("redo"));
+            }
+      else {
+            tb->addAction(getAction("redo"));
+            tb->addAction(getAction("undo"));
+            }
       tb->addSeparator();
 #ifdef HAS_MIDI
       tb->addAction(getAction("midi-on"));
@@ -64,7 +70,9 @@ PianorollEditor::PianorollEditor(QWidget* parent)
       tb->addAction(getAction("loop"));
       tb->addSeparator();
       tb->addAction(getAction("repeat"));
-      tb->addAction(getAction("follow"));
+      QAction* followAction = getAction("follow");
+      followAction->setChecked(preferences.followSong);
+      tb->addAction(followAction);
       tb->addSeparator();
       tb->addAction(getAction("metronome"));
 
@@ -194,21 +202,17 @@ PianorollEditor::PianorollEditor(QWidget* parent)
       connect(piano,       SIGNAL(keyPressed(int)),    SLOT(keyPressed(int)));
       connect(piano,       SIGNAL(keyReleased(int)),   SLOT(keyReleased(int)));
 
-      if (!useFactorySettings) {
-            QSettings settings;
-            settings.beginGroup("Pianoroll");
-            resize(settings.value("size", QSize(900, 500)).toSize());
-            move(settings.value("pos", QPoint(10, 10)).toPoint());
-            settings.endGroup();
-            }
+      readSettings();
 
-      QActionGroup* ag = new QActionGroup(this);
-      QAction* a = new QAction(this);
-      a->setData("delete");
-      a->setShortcut(Qt::Key_Delete);
-      ag->addAction(a);
-      addActions(ag->actions());
-      connect(ag, SIGNAL(triggered(QAction*)), SLOT(cmd(QAction*)));
+      actions.append(getAction("delete"));
+      actions.append(getAction("pitch-up"));
+      actions.append(getAction("pitch-down"));
+      actions.append(getAction("pitch-up-octave"));
+      actions.append(getAction("pitch-down-octave"));
+      addActions(actions);
+      for (auto* action : actions)
+            connect(action, &QAction::triggered, this, [this, action](bool){ cmd(action); });
+
       setXpos(0);
       }
 
@@ -220,6 +224,8 @@ PianorollEditor::~PianorollEditor()
       {
       if (_score)
             _score->removeViewer(this);
+      for (auto* action : actions)
+            action->disconnect(this);
       }
 
 //---------------------------------------------------------
@@ -246,7 +252,7 @@ void PianorollEditor::setStaff(Staff* st)
             }
       staff = st;
       if (staff) {
-            setWindowTitle(tr("MuseScore: <%1> Staff: %2").arg(_score->name()).arg(st->idx()));
+            setWindowTitle(tr("MuseScore: <%1> Staff: %2").arg(_score->masterScore()->fileInfo()->completeBaseName()).arg(st->idx()));
             TempoMap* tl = _score->tempomap();
             TimeSigMap*  sl = _score->sigmap();
             for (int i = 0; i < 3; ++i)
@@ -266,11 +272,17 @@ void PianorollEditor::setStaff(Staff* st)
 
 void PianorollEditor::writeSettings()
       {
-      QSettings settings;
-      settings.beginGroup("Pianoroll");
-      settings.setValue("size", size());
-      settings.setValue("pos", QWidget::pos());
-      settings.endGroup();
+      MuseScore::saveGeometry(this);
+      }
+
+//---------------------------------------------------------
+//   readSettings
+//---------------------------------------------------------
+
+void PianorollEditor::readSettings()
+      {
+      resize(QSize(800, 600)); //ensure default size if no geometry in settings
+      MuseScore::restoreGeometry(this);
       }
 
 //---------------------------------------------------------
@@ -328,7 +340,6 @@ void PianorollEditor::updateSelection()
 
 void PianorollEditor::selectionChanged()
       {
-      updateSelection();
       QList<QGraphicsItem*> items = gv->scene()->selectedItems();
       if (items.size() == 1) {
             QGraphicsItem* item = items[0];
@@ -344,21 +355,21 @@ void PianorollEditor::selectionChanged()
             for (QGraphicsItem* item : items) {
                   if (item->type() == PianoItemType) {
                         Note* note = static_cast<PianoItem*>(item)->note();
-                        _score->select(note, SelectType::ADD, 0);
+                        if (!note->selected())
+                              _score->select(note, SelectType::ADD, 0);
                         }
                   }
             }
-      startTimer(0);    // delayed update
-      }
+      for (MuseScoreView* view : score()->getViewer())
+            view->updateAll();
 
-//---------------------------------------------------------
-//   timerEvent
-//---------------------------------------------------------
+      gv->scene()->blockSignals(true);
+      for (QGraphicsItem* item : gv->scene()->items())
+            if (item->type() == PianoItemType)
+                item->setSelected(static_cast<PianoItem*>(item)->note()->selected());
+      gv->scene()->blockSignals(false);
 
-void PianorollEditor::timerEvent(QTimerEvent* event)
-      {
-      killTimer(event->timerId());
-      gv->updateNotes();
+      gv->scene()->update();
       updateSelection();
       }
 
@@ -396,9 +407,9 @@ void PianorollEditor::veloTypeChanged(int val)
       if (Note::ValueType(val) == note->veloType())
             return;
 
-      _score->undo()->beginMacro();
+      _score->undoStack()->beginMacro();
       _score->undo(new ChangeVelocity(note, Note::ValueType(val), note->veloOffset()));
-      _score->undo()->endMacro(_score->undo()->current()->childCount() == 0);
+      _score->undoStack()->endMacro(_score->undoStack()->current()->childCount() == 0);
       updateVelocity(note);
       }
 
@@ -452,9 +463,9 @@ void PianorollEditor::velocityChanged(int val)
       if (vt == Note::ValueType::OFFSET_VAL)
             return;
 
-      _score->undo()->beginMacro();
+      _score->undoStack()->beginMacro();
       _score->undo(new ChangeVelocity(note, vt, val));
-      _score->undo()->endMacro(_score->undo()->current()->childCount() == 0);
+      _score->undoStack()->endMacro(_score->undoStack()->current()->childCount() == 0);
       }
 
 //---------------------------------------------------------
@@ -463,7 +474,7 @@ void PianorollEditor::velocityChanged(int val)
 
 void PianorollEditor::keyPressed(int pitch)
       {
-      seq->startNote(staff->part()->instr()->channel(0)->channel, pitch, 80, 0, 0.0);
+      seq->startNote(staff->part()->instrument()->channel(0)->channel, pitch, 80, 0, 0.0);
       }
 
 //---------------------------------------------------------
@@ -482,6 +493,8 @@ void PianorollEditor::keyReleased(int /*pitch*/)
 void PianorollEditor::heartBeat(Seq* seq)
       {
       unsigned tick = seq->getCurTick();
+      if (score()->repeatList())
+            tick = score()->repeatList()->utick2tick(tick);
       if (locator[0].tick() != tick) {
             posChanged(POS::CURRENT, tick);
             if (preferences.followSong)
@@ -503,21 +516,11 @@ void PianorollEditor::moveLocator(int i, const Pos& pos)
 //   cmd
 //---------------------------------------------------------
 
-void PianorollEditor::cmd(QAction* a)
+void PianorollEditor::cmd(QAction* /*a*/)
       {
-      score()->startCmd();
-      if (a->data() == "delete") {
-            QList<QGraphicsItem*> items = gv->items();
-            foreach(QGraphicsItem* item, items) {
-                  if (item->type() == PianoItemType) {
-                        Note* note = static_cast<PianoItem*>(item)->note();
-                        score()->deleteItem(note);
-                        }
-                  }
-            }
-
+      //score()->startCmd();
       gv->setStaff(staff, locator);
-      score()->endCmd();
+      //score()->endCmd();
       }
 
 //---------------------------------------------------------

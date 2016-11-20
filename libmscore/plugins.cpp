@@ -114,6 +114,10 @@ bool FileIO::write(const QString& data)
       return true;
       }
 
+//---------------------------------------------------------
+//   remove
+//---------------------------------------------------------
+
 bool FileIO::remove()
       {
       if (mSource.isEmpty())
@@ -127,6 +131,21 @@ bool FileIO::exists()
       {
       QFile file(mSource);
       return file.exists();
+      }
+
+int FileIO::modifiedTime()
+      {
+      if (mSource.isEmpty()) {
+            emit error("source is empty");
+            return 0;
+            }
+      QUrl url(mSource);
+      QString source(mSource);
+      if(url.isValid() && url.isLocalFile()) {
+            source = url.toLocalFile();
+            }
+      QFileInfo fileInfo(source);
+      return fileInfo.lastModified().toTime_t();
       }
 
 //---------------------------------------------------------
@@ -170,8 +189,8 @@ void MsScoreView::paint(QPainter* p)
 
       Page* page = score->pages()[_currentPage];
       QList<const Element*> el;
-      foreach(System* s, *page->systems()) {
-            foreach(MeasureBase* m, s->measures())
+      for (System* s : page->systems()) {
+            for (MeasureBase* m : s->measures())
                   m->scanElements(&el, collectElements, false);
             }
       page->scanElements(&el, collectElements, false);

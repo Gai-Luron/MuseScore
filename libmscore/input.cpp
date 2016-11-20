@@ -31,7 +31,7 @@ const Drumset* InputState::drumset() const
       {
       if (_segment == 0 || _track == -1)
             return 0;
-      return _segment->score()->staff(_track/VOICES)->part()->instr(_segment->tick())->drumset();
+      return _segment->score()->staff(_track/VOICES)->part()->instrument(_segment->tick())->drumset();
       }
 
 //---------------------------------------------------------
@@ -96,7 +96,7 @@ void InputState::update(Element* e)
             setNoteType(NoteType::NORMAL);
             }
       if (e->type() == Element::Type::NOTE || e->type() == Element::Type::REST) {
-            const Instrument* instr = e->staff()->part()->instr();
+            const Instrument* instr = e->part()->instrument();
             if (instr->useDrumset()) {
                   if (e->type() == Element::Type::NOTE)
                         setDrumNote(static_cast<Note*>(e)->pitch());
@@ -116,11 +116,12 @@ void InputState::moveInputPos(Element* e)
             return;
 
       Segment* s;
-      if (e->isChordRest())
-            s = static_cast<ChordRest*>(e)->segment();
+      if (e->isChordRest1())
+            s = toChordRest(e)->segment();
       else
-            s = static_cast<Segment*>(e);
-      if (s->type() == Element::Type::SEGMENT) {
+            s = toSegment(e);
+
+      if (s->isSegment()) {
             if (s->measure()->isMMRest()) {
                   Measure* m = s->measure()->mmRestFirst();
                   s = m->findSegment(Segment::Type::ChordRest, m->tick());
@@ -153,8 +154,13 @@ Segment* InputState::nextInputPos() const
       Measure* m = _segment->measure();
       Segment* s = _segment->next1(Segment::Type::ChordRest);
       for (; s; s = s->next1(Segment::Type::ChordRest)) {
-            if (s->element(_track) || s->measure() != m)
+            if (s->element(_track) || s->measure() != m) {
+                  if (s->element(_track)) {
+                        if (s->element(_track)->isRest() && toRest(s->element(_track))->isGap())
+                              continue;
+                        }
                   return s;
+                  }
             }
       return 0;
       }

@@ -72,7 +72,7 @@ void StringData::read(XmlReader& e)
 //   write
 //---------------------------------------------------------
 
-void StringData::write(Xml& xml) const
+void StringData::write(XmlWriter& xml) const
       {
       xml.stag("StringData");
       xml.tag("frets", _frets);
@@ -157,7 +157,7 @@ void StringData::fretChords(Chord * chord) const
       int   count = 0;
       // store staff pitch offset at this tick, to speed up actual note pitch calculations
       // (ottavas not implemented yet)
-      int transp = chord->staff() ? chord->staff()->part()->instr()->transpose().chromatic : 0;
+      int transp = chord->staff() ? chord->part()->instrument()->transpose().chromatic : 0;     // TODO: tick?
       int pitchOffset = /*chord->staff()->pitchOffset(chord->segment()->tick())*/ - transp;
       // if chord parent is not a segment, the chord is special (usually a grace chord):
       // fret it by itself, ignoring the segment
@@ -257,7 +257,7 @@ void StringData::fretChords(Chord * chord) const
 
 int StringData::pitchOffsetAt(Staff* staff, int /*tick*/)
       {
-      int transp = staff ? staff->part()->instr()->transpose().chromatic : 0;
+      int transp = staff ? staff->part()->instrument()->transpose().chromatic : 0;  // TODO: tick?
       return (/*staff->pitchOffset(tick)*/ - transp);
       }
 
@@ -474,7 +474,7 @@ void StringData::readMusicXML(XmlReader& e)
 //   Write MusicXML
 //---------------------------------------------------------
 
-void StringData::writeMusicXML(Xml& /*xml*/) const
+void StringData::writeMusicXML(XmlWriter& /*xml*/) const
       {
       }
 

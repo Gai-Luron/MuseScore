@@ -21,8 +21,8 @@ namespace Ms {
 //---------------------------------------------------------
 //   @@ Marker
 //
-//   @P label       QString
-//   @P markerType  Ms::Marker::Type  (SEGNO, VARSEGNO, CODA, VARCODA, CODETTA, FINE, TOCODA, USER)
+//   @P label       string
+//   @P markerType  enum (Marker.CODA, .CODETTA, .FINE, .SEGNO, .TOCODA, .USER, .VARCODA, .VARSEGNO)
 //---------------------------------------------------------
 
 class Marker : public Text {
@@ -56,7 +56,7 @@ class Marker : public Text {
 
       void setMarkerType(Type t);
       Type markerType() const          { return _markerType; }
-      QString markerTypeUserName();
+      QString markerTypeUserName() const;
 
       virtual Marker* clone() const override      { return new Marker(*this); }
       virtual Element::Type type() const override { return Element::Type::MARKER; }
@@ -65,7 +65,7 @@ class Marker : public Text {
 
       virtual void layout() override;
       virtual void read(XmlReader&) override;
-      virtual void write(Xml& xml) const override;
+      virtual void write(XmlWriter& xml) const override;
 
       QString label() const            { return _label; }
       void setLabel(const QString& s)  { _label = s; }
@@ -82,7 +82,7 @@ class Marker : public Text {
 
       virtual Element* nextElement() override;
       virtual Element* prevElement() override;
-      virtual QString accessibleInfo() override;
+      virtual QString accessibleInfo() const override;
       };
 
 typedef struct {

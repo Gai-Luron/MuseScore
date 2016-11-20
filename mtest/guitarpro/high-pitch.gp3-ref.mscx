@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<museScore version="2.00">
+<museScore version="3.00">
   <Score>
     <LayerTag id="0" tag="default"></LayerTag>
     <currentLayer>0</currentLayer>
@@ -53,7 +53,7 @@
         </Staff>
       <trackName>Track 3</trackName>
       <Instrument>
-        <longName pos="0">Track 3</longName>
+        <longName>Track 3</longName>
         <trackName></trackName>
         <StringData>
           <frets>24</frets>
@@ -69,6 +69,8 @@
           <controller ctrl="10" value="63"/>
           <controller ctrl="93" value="255"/>
           <controller ctrl="91" value="255"/>
+          <midiPort>0</midiPort>
+          <midiChannel>4</midiChannel>
           </Channel>
         </Instrument>
       </Part>
@@ -110,7 +112,7 @@
           <Note>
             <lid>7</lid>
             <Accidental>
-              <subtype>sharp</subtype>
+              <subtype>accidentalSharp</subtype>
               </Accidental>
             <pitch>8</pitch>
             <tpc>22</tpc>
@@ -127,7 +129,7 @@
           <Note>
             <lid>9</lid>
             <Accidental>
-              <subtype>flat</subtype>
+              <subtype>accidentalFlat</subtype>
               </Accidental>
             <pitch>27</pitch>
             <tpc>11</tpc>
@@ -137,7 +139,7 @@
           <Note>
             <lid>10</lid>
             <Accidental>
-              <subtype>flat</subtype>
+              <subtype>accidentalFlat</subtype>
               </Accidental>
             <pitch>34</pitch>
             <tpc>12</tpc>
@@ -146,9 +148,6 @@
             </Note>
           <Note>
             <lid>11</lid>
-            <Accidental>
-              <subtype>natural</subtype>
-              </Accidental>
             <pitch>127</pitch>
             <tpc>15</tpc>
             <fret>8</fret>
@@ -272,10 +271,6 @@
             <string>0</string>
             </Note>
           </Chord>
-        <BarLine>
-          <subtype>end</subtype>
-          <span>1</span>
-          </BarLine>
         </Measure>
       </Staff>
     <Score>
@@ -344,11 +339,11 @@
             <useNumbers>1</useNumbers>
             </StaffType>
           <bracket type="-1" span="0"/>
-          <barLineSpan from="0" to="12">1</barLineSpan>
+          <barLineSpan from="0" to="10">1</barLineSpan>
           </Staff>
         <trackName></trackName>
         <Instrument>
-          <longName pos="0">Track 3</longName>
+          <longName>Track 3</longName>
           <trackName></trackName>
           <StringData>
             <frets>24</frets>
@@ -409,7 +404,7 @@
             <Note>
               <lid>7</lid>
               <Accidental>
-                <subtype>sharp</subtype>
+                <subtype>accidentalSharp</subtype>
                 </Accidental>
               <pitch>8</pitch>
               <tpc>22</tpc>
@@ -426,7 +421,7 @@
             <Note>
               <lid>9</lid>
               <Accidental>
-                <subtype>flat</subtype>
+                <subtype>accidentalFlat</subtype>
                 </Accidental>
               <pitch>27</pitch>
               <tpc>11</tpc>
@@ -436,7 +431,7 @@
             <Note>
               <lid>10</lid>
               <Accidental>
-                <subtype>flat</subtype>
+                <subtype>accidentalFlat</subtype>
                 </Accidental>
               <pitch>34</pitch>
               <tpc>12</tpc>
@@ -445,9 +440,6 @@
               </Note>
             <Note>
               <lid>11</lid>
-              <Accidental>
-                <subtype>natural</subtype>
-                </Accidental>
               <pitch>127</pitch>
               <tpc>15</tpc>
               <fret>8</fret>
@@ -571,10 +563,6 @@
               <string>0</string>
               </Note>
             </Chord>
-          <BarLine>
-            <subtype>end</subtype>
-            <span>1</span>
-            </BarLine>
           </Measure>
         </Staff>
       <Staff id="2">
@@ -735,10 +723,6 @@
               <string>0</string>
               </Note>
             </Chord>
-          <BarLine>
-            <subtype>end</subtype>
-            <span>1</span>
-            </BarLine>
           </Measure>
         </Staff>
       <name>Track 3</name>

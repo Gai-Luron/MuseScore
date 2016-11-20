@@ -23,7 +23,7 @@
 using namespace Ms;
 
 //---------------------------------------------------------
-//   TestSpanners
+//   TestEarlymusic
 //---------------------------------------------------------
 
 class TestEarlymusic : public QObject, public MTest
@@ -51,8 +51,7 @@ void TestEarlymusic::initTestCase()
 
 void TestEarlymusic::earlymusic01()
       {
-
-      Score* score = readScore(DIR + "mensurstrich01.mscx");
+      MasterScore* score = readScore(DIR + "mensurstrich01.mscx");
       QVERIFY(score);
       score->doLayout();
 
@@ -61,7 +60,7 @@ void TestEarlymusic::earlymusic01()
       QVERIFY(msr);
       Segment*    seg   = msr->findSegment(Segment::Type::ChordRest, 0);
       QVERIFY(seg);
-      Chord*      chord = static_cast<Chord*>(seg->element(0));
+      Ms::Chord*      chord = static_cast<Ms::Chord*>(seg->element(0));
       QVERIFY(chord && chord->type() == Element::Type::CHORD);
       QVERIFY(chord->crossMeasure() == CrossMeasure::UNKNOWN);
       TDuration cmDur   = chord->crossMeasureDurationType();
@@ -91,7 +90,7 @@ void TestEarlymusic::earlymusic01()
       QVERIFY(saveCompareScore(score, "mensurstrich01.mscx", DIR + "mensurstrich01-ref.mscx"));
 
       // UNDO AND VERIFY
-      score->undo()->undo();
+      score->undoStack()->undo();
       score->doLayout();
       QVERIFY(chord->crossMeasure() == CrossMeasure::UNKNOWN);
       cmDur = chord->crossMeasureDurationType();

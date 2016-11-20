@@ -33,17 +33,6 @@ TextProp::TextProp(QWidget* parent)
    : QWidget(parent)
       {
       setupUi(this);
-      //set the icon here or the style can't color them
-      alignLeft->setIcon(*icons[int(Icons::textLeft_ICON)]);
-      alignHCenter->setIcon(*icons[int(Icons::textCenter_ICON)]);
-      alignRight->setIcon(*icons[int(Icons::textRight_ICON)]);
-      alignTop->setIcon(*icons[int(Icons::textTop_ICON)]);
-      alignVCenter->setIcon(*icons[int(Icons::textVCenter_ICON)]);
-      alignBaseline->setIcon(*icons[int(Icons::textBaseline_ICON)]);
-      alignBottom->setIcon(*icons[int(Icons::textBottom_ICON)]);
-      fontBold->setIcon(*icons[int(Icons::textBold_ICON)]);
-      fontItalic->setIcon(*icons[int(Icons::textItalic_ICON)]);
-      fontUnderline->setIcon(*icons[int(Icons::textUnderline_ICON)]);
 
       QButtonGroup* g1 = new QButtonGroup(this);
       g1->addButton(alignLeft);
@@ -59,6 +48,18 @@ TextProp::TextProp(QWidget* parent)
       QButtonGroup* g3 = new QButtonGroup(this);
       g3->addButton(circleButton);
       g3->addButton(boxButton);
+
+      alignLeft->setIcon(*icons[int(Icons::textLeft_ICON)]);
+      alignRight->setIcon(*icons[int(Icons::textRight_ICON)]);
+      alignHCenter->setIcon(*icons[int(Icons::textCenter_ICON)]);
+      alignVCenter->setIcon(*icons[int(Icons::textVCenter_ICON)]);
+      alignTop->setIcon(*icons[int(Icons::textTop_ICON)]);
+      alignBaseline->setIcon(*icons[int(Icons::textBaseline_ICON)]);
+      alignBottom->setIcon(*icons[int(Icons::textBaseline_ICON)]);
+
+      fontBold->setIcon(*icons[int(Icons::textBold_ICON)]);
+      fontItalic->setIcon(*icons[int(Icons::textItalic_ICON)]);
+      fontUnderline->setIcon(*icons[int(Icons::textUnderline_ICON)]);
 
       connect(mmUnit, SIGNAL(toggled(bool)), SLOT(mmToggled(bool)));
       connect(resetToStyle, SIGNAL(clicked()), SLOT(doResetToTextStyle()));
@@ -85,7 +86,7 @@ void TextProp::setScore(bool onlyStyle, Score* score)
       for (int i = 0, n = scoreStyles.size(); i < n; ++i) {
             // if style not hidden in this context, add to combo with index in score style list as userData
             if ( !(scoreStyles.at(i).hidden() & TextStyleHidden::IN_LISTS) )
-                  styles->addItem(qApp->translate("TextStyle", scoreStyles.at(i).name().toLatin1().data()), i);
+                  styles->addItem(qApp->translate("TextStyle", scoreStyles.at(i).name().toUtf8().data()), i);
             }
       styles->blockSignals(false);
       }
@@ -182,6 +183,7 @@ void TextProp::setTextStyle(const TextStyle& s)
       paddingWidth->setValue(s.paddingWidth().val());
       frameRound->setValue(s.frameRound());
       circleButton->setChecked(s.circle());
+      square->setChecked(s.square());
       boxButton->setChecked(!s.circle());
       }
 
@@ -213,6 +215,7 @@ TextStyle TextProp::textStyle() const
       ts.setHasFrame(frame->isChecked());
       ts.setSystemFlag(systemFlag->isChecked());
       ts.setSizeIsSpatiumDependent(sizeIsSpatiumDependent->isChecked());
+      ts.setSquare(square->isChecked());
 
       Align a = 0;
       if (alignHCenter->isChecked())

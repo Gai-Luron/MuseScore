@@ -35,9 +35,9 @@ LayoutBreak::LayoutBreak(Score* score)
 LayoutBreak::LayoutBreak(const LayoutBreak& lb)
    : Element(lb)
       {
-      _layoutBreakType = lb._layoutBreakType;
-      lw = lb.lw;
-      _pause = lb._pause;
+      _layoutBreakType     = lb._layoutBreakType;
+      lw                   = lb.lw;
+      _pause               = lb._pause;
       _startWithLongNames  = lb._startWithLongNames;
       _startWithMeasureOne = lb._startWithMeasureOne;
       layout0();
@@ -47,7 +47,7 @@ LayoutBreak::LayoutBreak(const LayoutBreak& lb)
 //   write
 //---------------------------------------------------------
 
-void LayoutBreak::write(Xml& xml) const
+void LayoutBreak::write(XmlWriter& xml) const
       {
       xml.stag(name());
       Element::writeProperties(xml);
@@ -98,7 +98,7 @@ void LayoutBreak::draw(QPainter* painter) const
       stroker.setJoinStyle(Qt::MiterJoin);
       stroker.setCapStyle(Qt::SquareCap);
 
-      QVector<qreal> dashes ;
+      QVector<qreal> dashes;
       dashes.append(1);
       dashes.append(3);
       stroker.setDashPattern(dashes);
@@ -106,12 +106,10 @@ void LayoutBreak::draw(QPainter* painter) const
 
       painter->fillPath(stroke, selected() ? MScore::selectColor[0] : MScore::layoutBreakColor);
 
-
       painter->setPen(QPen(selected() ? MScore::selectColor[0] : MScore::layoutBreakColor,
          lw, Qt::SolidLine, Qt::SquareCap, Qt::MiterJoin));
       painter->setBrush(Qt::NoBrush);
       painter->drawPath(path2);
-
       }
 
 //---------------------------------------------------------
@@ -129,7 +127,7 @@ void LayoutBreak::layout0()
       QRectF rect(0.0, 0.0, w, h);
       path.addRect(rect);
 
-      switch(layoutBreakType()) {
+      switch (layoutBreakType()) {
             case Type::LINE:
                   path2.moveTo(w * .8, h * .3);
                   path2.lineTo(w * .8, h * .6);
@@ -162,6 +160,21 @@ void LayoutBreak::layout0()
 
                   path2.moveTo(w*.55, h*.21); // 0.01 to avoid overlap
                   path2.lineTo(w*.55, h*.79);
+                  break;
+
+            case Type::NOBREAK:
+                  path2.moveTo(w * .1,  h * .5);
+                  path2.lineTo(w * .9,  h * .5);
+
+                  path2.moveTo(w * .7, h * .3);
+                  path2.lineTo(w * .5, h * .5);
+                  path2.lineTo(w * .7, h * .7);
+                  path2.lineTo(w * .7, h * .3);
+
+                  path2.moveTo(w * .3,  h * .3);
+                  path2.lineTo(w * .5,  h * .5);
+                  path2.lineTo(w * .3,  h * .7);
+                  path2.lineTo(w * .3,  h * .3);
                   break;
 
             default:
@@ -242,14 +255,13 @@ bool LayoutBreak::setProperty(P_ID propertyId, const QVariant& v)
                   break;
             case P_ID::PAUSE:
                   setPause(v.toDouble());
-                  score()->addLayoutFlags(LayoutFlag::FIX_TICKS);
                   break;
             default:
                   if (!Element::setProperty(propertyId, v))
                         return false;
                   break;
             }
-      score()->setLayoutAll(true);
+      score()->setLayoutAll();
       setGenerated(false);
       return true;
       }
@@ -264,7 +276,7 @@ QVariant LayoutBreak::propertyDefault(P_ID id) const
             case P_ID::LAYOUT_BREAK:
                   return QVariant(); // LAYOUT_BREAK_LINE;
             case P_ID::PAUSE:
-                  return 0.0; // score()->styleD(StyleIdx::SectionPause);
+                  return score()->styleD(StyleIdx::SectionPause);
             default:
                   return Element::propertyDefault(id);
             }

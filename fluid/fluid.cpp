@@ -29,7 +29,6 @@
 #include "voice.h"
 
 namespace FluidS {
-using namespace Ms;
 
 /***************************************************************
  *
@@ -108,14 +107,11 @@ void Fluid::init(float sampleRate)
 Fluid::~Fluid()
       {
       _state = FLUID_SYNTH_STOPPED;
-      foreach(Voice* v, activeVoices)
-            delete v;
-      foreach(Voice* v, freeVoices)
-            delete v;
-      foreach(SFont* sf, sfonts)
-            delete sf;
-      foreach(Channel* c, channel)
-            delete c;
+      qDeleteAll(activeVoices);
+      qDeleteAll(freeVoices);
+      qDeleteAll(sfonts);
+      qDeleteAll(channel);
+      qDeleteAll(patches);
       }
 
 //---------------------------------------------------------
@@ -179,13 +175,10 @@ void Fluid::play(const PlayEvent& event)
                   err = !cp->preset()->noteon(this, noteid++, ch, key, vel, event.tuning());
                   }
             }
-      else if (type == ME_CONTROLLER)  {
+      else if (type == ME_CONTROLLER) {
             switch(event.dataA()) {
                   case CTRL_PROGRAM:
                         program_change(ch, event.dataB());
-                        break;
-                  case CTRL_PITCH:
-                        cp->pitchBend(event.dataB());
                         break;
                   case CTRL_PRESS:
                         break;
@@ -193,6 +186,10 @@ void Fluid::play(const PlayEvent& event)
                         cp->setcc(event.dataA(), event.dataB());
                         break;
                   }
+            }
+      else if (type == ME_PITCHBEND){
+            int midiPitch = event.dataB() * 128 + event.dataA();  // msb * 128 + lsb
+            cp->pitchBend(midiPitch);
             }
       if (err)
             qWarning("FluidSynth error: event 0x%2x channel %d: %s",
@@ -628,8 +625,10 @@ bool Fluid::loadSoundFonts(const QStringList& sl)
             if (s.isEmpty())
                   continue;
             QString path;
+            QFileInfo fis(s);
+            QString fileName = fis.fileName();
             foreach (const QFileInfo& fi, l) {
-                  if (fi.fileName() == s) {
+                  if (fi.fileName() == fileName) {
                         path = fi.absoluteFilePath();
                         break;
                         }
@@ -848,7 +847,7 @@ SynthesizerGroup Fluid::state() const
 //   setState
 //---------------------------------------------------------
 
-void Fluid::setState(const SynthesizerGroup& sp)
+bool Fluid::setState(const SynthesizerGroup& sp)
       {
       QStringList sfl;
       for (const IdValue& v : sp) {
@@ -857,7 +856,7 @@ void Fluid::setState(const SynthesizerGroup& sp)
             else
                   qDebug("Fluid::setState: unknown id %d", v.id);
             }
-      loadSoundFonts(sfl);
+      return loadSoundFonts(sfl);
       }
 
 //---------------------------------------------------------
@@ -889,8 +888,9 @@ QFileInfoList Fluid::sfFiles()
       {
       QFileInfoList l;
 
-      QString path = preferences.sfPath;
-      QStringList pl = path.split(";");
+      QStringList pl = preferences.mySoundfontsPath.split(";");
+      pl.prepend(QFileInfo(QString("%1%2").arg(mscoreGlobalShare).arg("sound")).absoluteFilePath());
+
       foreach (const QString& s, pl) {
             QString ss(s);
             if (!s.isEmpty() && s[0] == '~')

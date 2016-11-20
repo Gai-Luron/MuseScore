@@ -26,6 +26,7 @@ Hook::Hook(Score* s)
   : Symbol(s)
       {
       setFlag(ElementFlag::MOVABLE, false);
+      setZ(int(type()) * 100);
       }
 
 //---------------------------------------------------------
@@ -64,7 +65,6 @@ void Hook::setHookType(int i)
 
 void Hook::layout()
       {
-      ElementLayout::layout(this);
       setbbox(symBbox(_sym));
       }
 

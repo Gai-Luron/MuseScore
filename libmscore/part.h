@@ -19,40 +19,53 @@
 
 namespace Ms {
 
-class Xml;
+class XmlWriter;
 class Staff;
 class Score;
 class InstrumentTemplate;
 
 //---------------------------------------------------------
 //   @@ Part
-//   @P partName   QString  name of the part, used in the mixer
-//   @P show       bool     check/set whether or not a part is shown
-//   @P longName   QString
-//   @P shortName  QString
-//   @P volume     int
-//   @P mute       bool
-//   @P endTrack   int      (read only)
-//   @P startTrack int      (read only)
+//   @P endTrack        int         (read only)
+//   @P harmonyCount    int         (read only)
+//   @P hasDrumStaff    bool        (read only)
+//   @P hasPitchedStaff bool        (read only)
+//   @P hasTabStaff     bool        (read only)
+//   @P instrumentId    string      (read only)
+//   @P longName        string
+//   @P lyricCount      int         (read only)
+//   @P midiChannel     int         (read only)
+//   @P midiProgram     int         (read only)
+//   @P mute            bool
+//   @P partName        string      name of the part, used in the mixer
+//   @P shortName       string
+//   @P show            bool        check/set whether or not a part is shown
+//   @P startTrack      int         (read only)
+//   @P volume          int
 //---------------------------------------------------------
 
 class Part : public QObject, public ScoreElement {
       Q_OBJECT
 
-      Q_PROPERTY(QString partName READ partName WRITE setPartName)
-      Q_PROPERTY(bool show READ show WRITE setShow)
-      Q_PROPERTY(QString longName READ longName WRITE setLongName)
-      Q_PROPERTY(QString shortName READ shortName WRITE setShortName)
-      Q_PROPERTY(int volume READ volume WRITE setVolume)
-      Q_PROPERTY(bool mute READ mute WRITE setMute)
-      Q_PROPERTY(int endTrack READ endTrack)
-      Q_PROPERTY(int startTrack READ startTrack)
-      Q_PROPERTY(int midiProgram READ midiProgram)
-      Q_PROPERTY(QString instrumentId READ instrumentId)
+      Q_PROPERTY(int          endTrack          READ endTrack)
+      Q_PROPERTY(int          harmonyCount      READ harmonyCount)
+      Q_PROPERTY(bool         hasDrumStaff      READ hasDrumStaff)
+      Q_PROPERTY(bool         hasPitchedStaff   READ hasPitchedStaff)
+      Q_PROPERTY(bool         hasTabStaff       READ hasTabStaff)
+      Q_PROPERTY(QString      instrumentId      READ instrumentId)
+      Q_PROPERTY(QString      longName          READ longName     WRITE setLongName)
+      Q_PROPERTY(int          lyricCount        READ lyricCount)
+      Q_PROPERTY(int          midiChannel       READ midiChannel)
+      Q_PROPERTY(int          midiProgram       READ midiProgram)
+      Q_PROPERTY(bool         mute              READ mute         WRITE setMute)
+      Q_PROPERTY(QString      partName          READ partName     WRITE setPartName)
+      Q_PROPERTY(QString      shortName         READ shortName    WRITE setShortName)
+      Q_PROPERTY(bool         show              READ show         WRITE setShow)
+      Q_PROPERTY(int          startTrack        READ startTrack)
+      Q_PROPERTY(int          volume            READ volume       WRITE setVolume)
 
       QString _partName;           ///< used in tracklist (mixer)
-      InstrumentList _instrList;
-
+      InstrumentList _instruments;
       QList<Staff*> _staves;
       QString _id;                  ///< used for MusicXml import
       bool _show;                   ///< show part in partitur if true
@@ -61,9 +74,11 @@ class Part : public QObject, public ScoreElement {
       Part(Score* = 0);
       void initFromInstrTemplate(const InstrumentTemplate*);
 
+      virtual const char* name() const override { return "Part"; }
+
       void read(XmlReader&);
-      void read114(XmlReader&);
-      void write(Xml& xml) const;
+      virtual bool readProperties(XmlReader&);
+      void write(XmlWriter& xml) const;
 
       int nstaves() const                       { return _staves.size(); }
       QList<Staff*>* staves()                   { return &_staves; }
@@ -80,14 +95,17 @@ class Part : public QObject, public ScoreElement {
       QString instrumentName(int tick = -1) const;
       QString instrumentId(int tick = -1) const;
 
-      const QList<StaffName>& longNames(int tick = -1) const  { return instr(tick)->longNames();  }
-      const QList<StaffName>& shortNames(int tick = -1) const { return instr(tick)->shortNames(); }
+      const QList<StaffName>& longNames(int tick = -1) const  { return instrument(tick)->longNames();  }
+      const QList<StaffName>& shortNames(int tick = -1) const { return instrument(tick)->shortNames(); }
 
       void setLongNames(QList<StaffName>& s, int tick = -1);
       void setShortNames(QList<StaffName>& s, int tick = -1);
 
       void setLongName(const QString& s);
       void setShortName(const QString& s);
+
+      void setPlainLongName(const QString& s);
+      void setPlainShortName(const QString& s);
 
       void setStaves(int);
 
@@ -107,26 +125,34 @@ class Part : public QObject, public ScoreElement {
 
       int midiChannel() const;
       int midiPort() const;
-      void setMidiChannel(int) const;
+      void setMidiChannel(int ch, int port = -1, int tick = -1);  // tick != -1 for InstrumentChange
 
       void insertStaff(Staff*, int idx);
       void removeStaff(Staff*);
       bool show() const                        { return _show;  }
       void setShow(bool val)                   { _show = val;   }
 
-      Instrument* instr(int tick = -1);
-      const Instrument* instr(int tick = -1) const;
+      Instrument* instrument(int tick = -1);
+      const Instrument* instrument(int tick = -1) const;
       void setInstrument(Instrument*, int tick = -1);       // transfer ownership
       void setInstrument(const Instrument&&, int tick = -1);
       void setInstrument(const Instrument&, int tick = -1);
       void removeInstrument(int tick);
+      const InstrumentList* instruments() const   { return &_instruments;       }
+
+      void insertTime(int tick, int len);
 
       QString partName() const                 { return _partName; }
       void setPartName(const QString& s)       { _partName = s; }
-      InstrumentList* instrList()              { return &_instrList;       }
 
       QVariant getProperty(P_ID) const override;
       bool setProperty(P_ID, const QVariant&) override;
+
+      int lyricCount();
+      int harmonyCount();
+      bool hasPitchedStaff();
+      bool hasTabStaff();
+      bool hasDrumStaff();
       };
 
 }     // namespace Ms

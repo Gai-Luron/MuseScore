@@ -22,8 +22,6 @@
 
 namespace Ms {
 
-// extern MuseScoreCore* mscoreCore;
-
 //---------------------------------------------------------
 //   QmlPlugin
 //---------------------------------------------------------
@@ -32,6 +30,7 @@ QmlPlugin::QmlPlugin(QQuickItem* parent)
    : QQuickItem(parent)
       {
       msc = MuseScoreCore::mscoreCore;
+      _requiresScore = true;              // by default plugins require a score to work
       }
 
 QmlPlugin::~QmlPlugin()
@@ -51,10 +50,12 @@ Score* QmlPlugin::curScore() const
 //   scores
 //---------------------------------------------------------
 
+#if 0 // TODO-ws
 QQmlListProperty<Score> QmlPlugin::scores()
       {
       return QQmlListProperty<Score>(this, msc->scores());
       }
+#endif
 
 //---------------------------------------------------------
 //   writeScore
@@ -69,15 +70,31 @@ bool QmlPlugin::writeScore(Score* s, const QString& name, const QString& ext)
 
 //---------------------------------------------------------
 //   readScore
+//
+// noninteractive can be used to avoid a 'save changes'
+// dialog on closing a score that is either imported
+// or was created with an older version of MuseScore
 //---------------------------------------------------------
 
-Score* QmlPlugin::readScore(const QString& name)
+Score* QmlPlugin::readScore(const QString& name, bool noninteractive)
       {
       Score * score = msc->openScore(name);
       // tell QML not to garbage collect this score
-      if (score)
+      if (score) {
             QQmlEngine::setObjectOwnership(score, QQmlEngine::CppOwnership);
+            if (noninteractive)
+	          score->setCreated(false);
+            }
       return score;
+      }
+
+//---------------------------------------------------------
+//   closeScore
+//---------------------------------------------------------
+
+void QmlPlugin::closeScore(Ms::Score* score)
+      {
+      msc->closeScore(score);
       }
 
 //---------------------------------------------------------
@@ -103,7 +120,7 @@ Score* QmlPlugin::newScore(const QString& name, const QString& part, int measure
       {
       if (msc->currentScore())
             msc->currentScore()->endCmd();
-      Score* score = new Score(MScore::defaultStyle());
+      MasterScore* score = new MasterScore(MScore::defaultStyle());
       score->setName(name);
       score->appendPart(part);
       score->appendMeasures(measures);
@@ -131,6 +148,61 @@ void QmlPlugin::cmd(const QString& s)
       }
 
 //---------------------------------------------------------
+//   openLog
+//---------------------------------------------------------
+
+void QmlPlugin::openLog(const QString& name)
+      {
+      if (logFile.isOpen())
+            logFile.close();
+      logFile.setFileName(name);
+      if (!logFile.open(QIODevice::WriteOnly))
+            qDebug("QmlPlugin::openLog: failed");
+      }
+
+//---------------------------------------------------------
+//   closeLog
+//---------------------------------------------------------
+
+void QmlPlugin::closeLog()
+      {
+      if (logFile.isOpen())
+            logFile.close();
+      }
+
+//---------------------------------------------------------
+//   log
+//---------------------------------------------------------
+
+void QmlPlugin::log(const QString& txt)
+      {
+      if (logFile.isOpen())
+            logFile.write(txt.toLocal8Bit());
+      }
+
+//---------------------------------------------------------
+//   logn
+//---------------------------------------------------------
+
+void QmlPlugin::logn(const QString& txt)
+      {
+      log(txt);
+      if (logFile.isOpen())
+            logFile.write("\n");
+      }
+
+//---------------------------------------------------------
+//   log2
+//---------------------------------------------------------
+
+void QmlPlugin::log2(const QString& txt, const QString& txt2)
+      {
+      logFile.write(txt.toLocal8Bit());
+      logFile.write(txt2.toLocal8Bit());
+      logFile.write("\n");
+      }
+
+//---------------------------------------------------------
 //   newQProcess
 //---------------------------------------------------------
 
@@ -138,6 +210,7 @@ MsProcess* QmlPlugin::newQProcess()
       {
       return 0; // TODO: new MsProcess(this);
       }
+
 }
 #endif
 

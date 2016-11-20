@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<museScore version="2.00">
+<museScore version="3.00">
   <Score>
     <LayerTag id="0" tag="default"></LayerTag>
     <currentLayer>0</currentLayer>
@@ -53,7 +53,7 @@
         </Staff>
       <trackName>Track 1</trackName>
       <Instrument>
-        <longName pos="0">Track 1</longName>
+        <longName>Track 1</longName>
         <trackName></trackName>
         <StringData>
           <frets>24</frets>
@@ -93,7 +93,7 @@
         <Tempo>
           <tempo>4.16667</tempo>
           <lid>3</lid>
-          <text><sym>unicodeNoteQuarterUp</sym> = 250</text>
+          <text><sym>metNoteQuarterUp</sym> = 250</text>
           </Tempo>
         <Chord>
           <lid>4</lid>
@@ -190,7 +190,7 @@
         <Tempo>
           <tempo>1.33333</tempo>
           <lid>22</lid>
-          <text><sym>unicodeNoteQuarterUp</sym> = 80</text>
+          <text><sym>metNoteQuarterUp</sym> = 80</text>
           </Tempo>
         <Chord>
           <lid>23</lid>
@@ -198,7 +198,7 @@
           <Note>
             <lid>24</lid>
             <Accidental>
-              <subtype>sharp</subtype>
+              <subtype>accidentalSharp</subtype>
               </Accidental>
             <pitch>54</pitch>
             <tpc>20</tpc>
@@ -212,7 +212,7 @@
           <Note>
             <lid>26</lid>
             <Accidental>
-              <subtype>natural</subtype>
+              <subtype>accidentalNatural</subtype>
               </Accidental>
             <pitch>53</pitch>
             <tpc>13</tpc>
@@ -237,7 +237,7 @@
           <Note>
             <lid>30</lid>
             <Accidental>
-              <subtype>flat</subtype>
+              <subtype>accidentalFlat</subtype>
               </Accidental>
             <pitch>51</pitch>
             <tpc>11</tpc>
@@ -245,10 +245,6 @@
             <string>3</string>
             </Note>
           </Chord>
-        <BarLine>
-          <subtype>end</subtype>
-          <span>1</span>
-          </BarLine>
         </Measure>
       </Staff>
     <Score>
@@ -321,7 +317,7 @@
           </Staff>
         <trackName></trackName>
         <Instrument>
-          <longName pos="0">Track 1</longName>
+          <longName>Track 1</longName>
           <trackName></trackName>
           <StringData>
             <frets>24</frets>
@@ -365,7 +361,7 @@
           <Tempo>
             <tempo>4.16667</tempo>
             <lid>3</lid>
-            <text><sym>unicodeNoteQuarterUp</sym> = 250</text>
+            <text><sym>metNoteQuarterUp</sym> = 250</text>
             </Tempo>
           <Chord>
             <lid>4</lid>
@@ -462,7 +458,7 @@
           <Tempo>
             <tempo>1.33333</tempo>
             <lid>22</lid>
-            <text><sym>unicodeNoteQuarterUp</sym> = 80</text>
+            <text><sym>metNoteQuarterUp</sym> = 80</text>
             </Tempo>
           <Chord>
             <lid>23</lid>
@@ -470,7 +466,7 @@
             <Note>
               <lid>24</lid>
               <Accidental>
-                <subtype>sharp</subtype>
+                <subtype>accidentalSharp</subtype>
                 </Accidental>
               <pitch>54</pitch>
               <tpc>20</tpc>
@@ -484,7 +480,7 @@
             <Note>
               <lid>26</lid>
               <Accidental>
-                <subtype>natural</subtype>
+                <subtype>accidentalNatural</subtype>
                 </Accidental>
               <pitch>53</pitch>
               <tpc>13</tpc>
@@ -509,7 +505,7 @@
             <Note>
               <lid>30</lid>
               <Accidental>
-                <subtype>flat</subtype>
+                <subtype>accidentalFlat</subtype>
                 </Accidental>
               <pitch>51</pitch>
               <tpc>11</tpc>
@@ -517,10 +513,6 @@
               <string>3</string>
               </Note>
             </Chord>
-          <BarLine>
-            <subtype>end</subtype>
-            <span>1</span>
-            </BarLine>
           </Measure>
         </Staff>
       <Staff id="2">
@@ -661,10 +653,6 @@
               <string>3</string>
               </Note>
             </Chord>
-          <BarLine>
-            <subtype>end</subtype>
-            <span>1</span>
-            </BarLine>
           </Measure>
         </Staff>
       <name>Track 1</name>

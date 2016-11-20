@@ -33,7 +33,7 @@ Fingering::Fingering(Score* s)
 //   write
 //---------------------------------------------------------
 
-void Fingering::write(Xml& xml) const
+void Fingering::write(XmlWriter& xml) const
       {
       if (!xml.canWrite(this))
             return;
@@ -97,13 +97,13 @@ void Fingering::reset()
 //   accessibleInfo
 //---------------------------------------------------------
 
-QString Fingering::accessibleInfo()
+QString Fingering::accessibleInfo() const
       {
       QString rez = Element::accessibleInfo();
       if (textStyleType() == TextStyleType::STRING_NUMBER) {
             rez += " " + tr("String number");
             }
-      return QString("%1: %2").arg(rez).arg(text());
+      return QString("%1: %2").arg(rez).arg(plainText());
       }
 
 }

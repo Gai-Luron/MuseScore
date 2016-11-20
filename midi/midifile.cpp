@@ -102,19 +102,17 @@ void MidiFile::writeEvent(const MidiEvent& event)
                   put(event.velo());
                   break;
 
+            case ME_PITCHBEND:
+                  writeStatus(ME_PITCHBEND, event.channel());
+                  put(event.dataA());
+                  put(event.dataB());
+                  break;
+
             case ME_CONTROLLER:
                   switch(event.controller()) {
                         case CTRL_PROGRAM:
                               writeStatus(ME_PROGRAM, event.channel());
                               put(event.value() & 0x7f);
-                              break;
-                        case CTRL_PITCH:
-                              {
-                              writeStatus(ME_PITCHBEND, event.channel());
-                              int v = event.value() + 8192;
-                              put(v & 0x7f);
-                              put((v >> 7) & 0x7f);
-                              }
                               break;
                         case CTRL_PRESS:
                               writeStatus(ME_AFTERTOUCH, event.channel());
@@ -246,7 +244,7 @@ bool MidiFile::read(QIODevice* in)
             }
       else {                        // ticks per second = fps * ticks per frame
             _isDivisionInTps = true;
-            const int framesPerSecond = -firstByte;
+            const int framesPerSecond = -((signed char) firstByte);
             const int ticksPerFrame = secondByte;
             if (framesPerSecond == 29)
                   _division = qRound(29.97 * ticksPerFrame);
@@ -599,9 +597,8 @@ bool MidiFile::readEvent(MidiEvent* event)
                   event->setValue(b & 0x7f);
                   break;
             case ME_PITCHBEND:        // pitch bend
-                  event->setType(ME_CONTROLLER);
-                  event->setController(CTRL_PITCH);
-                  event->setValue(((((b & 0x80) ? 0 : b) << 7) + a) - 8192);
+                  event->setDataA(a & 0x7f);
+                  event->setDataB(b & 0x7f);
                   break;
             case ME_PROGRAM:
                   event->setValue(a & 0x7f);
@@ -719,7 +716,7 @@ void MidiTrack::mergeNoteOnOffAndFindMidiType(MidiType *mt)
                               if (rpnh == -1 || rpnl == -1) {
                                     qDebug("parameter number not defined, data 0x%x 0x%x, tick %d, channel %d",
                                        datah, datal, i->first, ev.channel());
-                                    break;
+                                    continue;
                                     }
                               // assume that the sequence is always
                               //    CTRL_HDATA - CTRL_LDATA
@@ -798,7 +795,7 @@ void MidiTrack::mergeNoteOnOffAndFindMidiType(MidiType *mt)
                                           // 3 - DRUM 2
                                           // 4 - DRUM 3
                                           // 5 - DRUM 4
-                                          if (buffer[6] != 0) {
+                                          if (buffer[6] != 0 && buffer[4] == ev.channel()) {
                                                 _drumTrack = true;
                                                 }
                                           ev.setType(ME_INVALID);
@@ -857,8 +854,8 @@ void MidiFile::separateChannel()
                         // create a list of channels used in current track
             QList<int> channel;
             MidiTrack &mt = _tracks[i];      // current track
-            for (auto i : mt.events()) {
-                  const MidiEvent& e = i.second;
+            for (const auto& ie : mt.events()) {
+                  const MidiEvent& e = ie.second;
                   if (e.isChannelEvent() && !channel.contains(e.channel()))
                         channel.append(e.channel());
                   }
@@ -872,7 +869,7 @@ void MidiFile::separateChannel()
             for (int ii = 1; ii < nn; ++ii) {
                   MidiTrack t;
                   t.setOutChannel(channel[ii]);
-                  _tracks.insert(i + 1, t);
+                  _tracks.insert(i + ii, t);
                   }
                         // extract all different channel events from current track to inserted tracks
             for (auto ie = mt.events().begin(); ie != mt.events().end(); ) {

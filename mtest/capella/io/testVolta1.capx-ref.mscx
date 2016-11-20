@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<museScore version="2.00">
+<museScore version="3.00">
   <Score>
     <LayerTag id="0" tag="default"></LayerTag>
     <currentLayer>0</currentLayer>
@@ -37,6 +37,7 @@
     <metaTag name="lyricist"></metaTag>
     <metaTag name="movementNumber"></metaTag>
     <metaTag name="movementTitle"></metaTag>
+    <metaTag name="originalFormat">capx</metaTag>
     <metaTag name="poet"></metaTag>
     <metaTag name="source"></metaTag>
     <metaTag name="translator"></metaTag>
@@ -57,8 +58,8 @@
         </Staff>
       <trackName></trackName>
       <Instrument>
-        <longName pos="0">Guitar</longName>
-        <shortName pos="0">Gtr.</shortName>
+        <longName>Guitar</longName>
+        <shortName>Gtr.</shortName>
         <trackName></trackName>
         <Channel>
           <program value="24"/>
@@ -144,7 +145,6 @@
       <Measure number="4">
         <LayoutBreak>
           <subtype>line</subtype>
-          <pause>3</pause>
           </LayoutBreak>
         <StaffText>
           <pos x="5" y="-4"/>
@@ -164,10 +164,6 @@
             <tpc>14</tpc>
             </Note>
           </Chord>
-        <BarLine>
-          <subtype>end</subtype>
-          <span>1</span>
-          </BarLine>
         </Measure>
       </Staff>
     </Score>

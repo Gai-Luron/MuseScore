@@ -22,6 +22,7 @@
 #include "libmscore/text.h"
 #include "libmscore/measure.h"
 #include "libmscore/repeatlist.h"
+#include "preferences.h"
 
 namespace Ms {
 
@@ -241,30 +242,35 @@ bool ExportMidi::write(const QString& name, bool midiExpandRepeats)
             cs->renderSpanners(&events, staffIdx);
 
             // Pass throught the all instruments in the part
-            const InstrumentList* il = part->instrList();
+            const InstrumentList* il = part->instruments();
             for(auto j = il->begin(); j!= il->end(); j++) {
                   // Pass throught the all channels of the instrument
                   // "normal", "pizzicato", "tremolo" for Strings,
                   // "normal", "mute" for Trumpet
                   foreach(const Channel* ch, j->second->channel()) {
-                        char port    = part->score()->midiPort(ch->channel);
-                        char channel = part->score()->midiChannel(ch->channel);
+                        char port    = part->masterScore()->midiPort(ch->channel);
+                        char channel = part->masterScore()->midiChannel(ch->channel);
 
                         if (staff->isTop()) {
                               track.insert(0, MidiEvent(ME_CONTROLLER, channel, CTRL_RESET_ALL_CTRL, 0));
-                              // set pitch bend sensitivity to 12 semitones:
-                              /*track.insert(0, MidiEvent(ME_CONTROLLER, channel, CTRL_LRPN, 0));
-                              track.insert(0, MidiEvent(ME_CONTROLLER, channel, CTRL_HRPN, 0));
-                              track.insert(0, MidiEvent(ME_CONTROLLER, channel, CTRL_HDATA, 12));
+                              // We need this to get the correct pitch of bends
+                              // Hidden under preferences because some software
+                              // crashes when receiving RPNs: https://musescore.org/en/node/37431
+                              if (channel != 9 && preferences.midiExportRPNs) {
+                                    // set pitch bend sensitivity to 12 semitones:
+                                    track.insert(0, MidiEvent(ME_CONTROLLER, channel, CTRL_LRPN, 0));
+                                    track.insert(0, MidiEvent(ME_CONTROLLER, channel, CTRL_HRPN, 0));
+                                    track.insert(0, MidiEvent(ME_CONTROLLER, channel, CTRL_HDATA, 12));
 
-                              // reset fine tuning
-                              track.insert(0, MidiEvent(ME_CONTROLLER, channel, CTRL_LRPN, 1));
-                              track.insert(0, MidiEvent(ME_CONTROLLER, channel, CTRL_HRPN, 0));
-                              track.insert(0, MidiEvent(ME_CONTROLLER, channel, CTRL_HDATA, 64));
+                                    // reset fine tuning
+                                    /*track.insert(0, MidiEvent(ME_CONTROLLER, channel, CTRL_LRPN, 1));
+                                    track.insert(0, MidiEvent(ME_CONTROLLER, channel, CTRL_HRPN, 0));
+                                    track.insert(0, MidiEvent(ME_CONTROLLER, channel, CTRL_HDATA, 64));*/
 
-                              // deactivate rpn
-                              track.insert(0, MidiEvent(ME_CONTROLLER, channel, CTRL_LRPN, 127));
-                              track.insert(0, MidiEvent(ME_CONTROLLER, channel, CTRL_HRPN, 127));*/
+                                    // deactivate rpn
+                                    track.insert(0, MidiEvent(ME_CONTROLLER, channel, CTRL_LRPN, 127));
+                                    track.insert(0, MidiEvent(ME_CONTROLLER, channel, CTRL_HRPN, 127));
+                              }
 
                               if (ch->program != -1)
                                     track.insert(0, MidiEvent(ME_CONTROLLER, channel, CTRL_PROGRAM, ch->program));
@@ -275,19 +281,21 @@ bool ExportMidi::write(const QString& name, bool midiExpandRepeats)
                               }
 
                         // Export port to MIDI META event
-                        MidiEvent ev;
-                        ev.setType(ME_META);
-                        ev.setMetaType(META_PORT_CHANGE);
-                        ev.setLen(1);
-                        unsigned char* data = new unsigned char[1];
-                        data[0] = int(track.outPort());
-                        ev.setEData(data);
-                        track.insert(0, ev);
+                        if (track.outPort() >= 0 && track.outPort() <= 127) {
+                              MidiEvent ev;
+                              ev.setType(ME_META);
+                              ev.setMetaType(META_PORT_CHANGE);
+                              ev.setLen(1);
+                              unsigned char* data = new unsigned char[1];
+                              data[0] = int(track.outPort());
+                              ev.setEData(data);
+                              track.insert(0, ev);
+                              }
 
                         for (auto i = events.begin(); i != events.end(); ++i) {
                               NPlayEvent event(i->second);
-                              char eventPort    = cs->midiPort(event.channel());
-                              char eventChannel = cs->midiChannel(event.channel());
+                              char eventPort    = cs->masterScore()->midiPort(event.channel());
+                              char eventChannel = cs->masterScore()->midiChannel(event.channel());
                               if (port != eventPort || channel != eventChannel)
                                     continue;
 
@@ -298,6 +306,10 @@ bool ExportMidi::write(const QString& name, bool midiExpandRepeats)
                               else if (event.type() == ME_CONTROLLER) {
                                     track.insert(i->first, MidiEvent(ME_CONTROLLER, channel,
                                                                      event.controller(), event.value()));
+                                    }
+                              else if(event.type() == ME_PITCHBEND) {
+                                    track.insert(i->first, MidiEvent(ME_PITCHBEND, channel,
+                                                                     event.dataA(), event.dataB()));
                                     }
                               else {
                                     qDebug("writeMidi: unknown midi event 0x%02x", event.type());

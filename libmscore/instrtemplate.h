@@ -20,7 +20,7 @@
 
 namespace Ms {
 
-class Xml;
+class XmlWriter;
 class Part;
 class Staff;
 class StringData;
@@ -36,8 +36,8 @@ class InstrumentGenre {
       QString name;
 
       InstrumentGenre() {}
-      void write(Xml& xml) const;
-      void write1(Xml& xml) const;
+      void write(XmlWriter& xml) const;
+      void write1(XmlWriter& xml) const;
       void read(XmlReader&);
       };
 
@@ -51,10 +51,10 @@ class InstrumentTemplate {
    public:
       QString id;
       QString trackName;
-      QList<StaffName> longNames;      ///< shown on first system
-      QList<StaffName> shortNames;     ///< shown on followup systems
-      QString musicXMLid;              ///< used in MusicXML 3.0
-      QString description;             ///< a longer description of the instrument
+      StaffNameList longNames;   ///< shown on first system
+      StaffNameList shortNames;  ///< shown on followup systems
+      QString musicXMLid;        ///< used in MusicXML 3.0
+      QString description;       ///< a longer description of the instrument
 
       char minPitchA;         // pitch range playable by an amateur
       char maxPitchA;
@@ -93,8 +93,8 @@ class InstrumentTemplate {
       bool genreMember(const QString &);
 
       void setPitchRange(const QString& s, char* a, char* b) const;
-      void write(Xml& xml) const;
-      void write1(Xml& xml) const;
+      void write(XmlWriter& xml) const;
+      void write1(XmlWriter& xml) const;
       void read(XmlReader&);
       int nstaves() const { return staves; }
       void setStaves(int val) { staves = val; }

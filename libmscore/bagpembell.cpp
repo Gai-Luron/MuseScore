@@ -304,17 +304,16 @@ BagpipeEmbellishmentInfo BagpipeEmbellishment::BagpipeEmbellishmentList[] = {
       };
 
 // Staff line and pitch for every bagpipe note
-
 BagpipeNoteInfo BagpipeEmbellishment::BagpipeNoteInfoList[] = {
-      { "LG",  6,  67},
-      { "LA",  5,  69},
-      { "B",   4,  71},
-      { "C",   3,  73}, // actually C#
-      { "D",   2,  74},
-      { "E",   1,  76},
-      { "F",   0,  78}, // actually F#
-      { "HG", -1,  79},
-      { "HA", -2,  81}
+      { "LG",  6,  65},
+      { "LA",  5,  67},
+      { "B",   4,  69},
+      { "C",   3,  71}, // actually C#
+      { "D",   2,  72},
+      { "E",   1,  74},
+      { "F",   0,  76}, // actually F#
+      { "HG", -1,  77},
+      { "HA", -2,  79}
 };
 
 //---------------------------------------------------------
@@ -356,7 +355,7 @@ noteList BagpipeEmbellishment::getNoteList() const
 //   write
 //---------------------------------------------------------
 
-void BagpipeEmbellishment::write(Xml& xml) const
+void BagpipeEmbellishment::write(XmlWriter& xml) const
       {
       xml.stag(name());
       xml.tag("subtype", _embelType);
@@ -459,7 +458,7 @@ static void symMetrics(const char* name, const Sym& headsym)
              headsym.getAttach().y());
       }
 */
-      
+
 //---------------------------------------------------------
 //   mag
 //      return fixed magnification

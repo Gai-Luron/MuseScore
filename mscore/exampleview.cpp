@@ -31,9 +31,11 @@ ExampleView::ExampleView(QWidget* parent)
       _score = 0;
       setAcceptDrops(true);
       setFocusPolicy(Qt::StrongFocus);
-      double mag = 1.0;
-      qreal _spatium = SPATIUM20 * MScore::DPI;
-      _matrix  = QTransform(mag, 0.0, 0.0, mag, _spatium, -_spatium * 6);
+      double mag = 0.9 * guiScaling * (DPI_DISPLAY / DPI);  // 90% of nominal
+      qreal _spatium = SPATIUM20 * mag;
+      // example would normally be 10sp from top of page; this leaves 3sp margin above
+//      _matrix  = QTransform(mag, 0.0, 0.0, mag, _spatium, -_spatium * 7.0);
+      _matrix  = QTransform(mag, 0.0, 0.0, mag, _spatium, -_spatium * 9.0);
       imatrix  = _matrix.inverted();
       }
 
@@ -127,7 +129,7 @@ void ExampleView::drawBackground(QPainter*, const QRectF&) const
 
 void ExampleView::drawElements(QPainter& painter, const QList<Element*>& el)
       {
-      foreach (Element* e, el) {
+      for (Element* e : el) {
             e->itemDiscovered = 0;
             QPointF pos(e->pagePos());
             painter.translate(pos);
@@ -174,7 +176,7 @@ void ExampleView::dragEnterEvent(QDragEnterEvent* event)
 
 // qDebug("ExampleView::dragEnterEvent Symbol: <%s>", a.data());
 
-            XmlReader e(a);
+            XmlReader e(score(), a);
             QPointF dragOffset;
             Fraction duration;  // dummy
             Element::Type type = Element::readType(e, &dragOffset, &duration);
@@ -238,7 +240,7 @@ void ExampleView::dragMoveEvent(QDragMoveEvent* event)
       if (!found)
             setDropTarget(0);
       dragElement->scanElements(&pos, moveElement, false);
-      _score->end();
+      _score->update();
       return;
       }
 
@@ -336,7 +338,10 @@ void ExampleView::mousePressEvent(QMouseEvent* event)
 
 QSize ExampleView::sizeHint() const
       {
-      return QSize(1000 * guiScaling, 80 * guiScaling);
+      qreal mag = 0.9 * guiScaling * (DPI_DISPLAY / DPI);
+      qreal _spatium = SPATIUM20 * mag;
+      // staff is 4sp tall with 3sp margin above; this leaves 3sp margin below
+      return QSize(1000 * mag, _spatium * 10.0);
       }
 
 

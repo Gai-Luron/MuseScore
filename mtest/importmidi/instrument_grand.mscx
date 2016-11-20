@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<museScore version="2.00">
+<museScore version="3.00">
   <Score>
     <LayerTag id="0" tag="default"></LayerTag>
     <currentLayer>0</currentLayer>
@@ -54,8 +54,8 @@
         </Staff>
       <trackName>String Synthesizer</trackName>
       <Instrument>
-        <longName pos="0">String Synthesizer</longName>
-        <shortName pos="0">Synth.</shortName>
+        <longName>String Synthesizer</longName>
+        <shortName>Synth.</shortName>
         <trackName>String Synthesizer</trackName>
         <minPitchP>21</minPitchP>
         <maxPitchP>108</maxPitchP>
@@ -93,9 +93,13 @@
           </Articulation>
         <Channel name="synth-string-1">
           <program value="50"/>
+          <midiPort>0</midiPort>
+          <midiChannel>0</midiChannel>
           </Channel>
         <Channel name="synth-string-2">
           <program value="51"/>
+          <midiPort>0</midiPort>
+          <midiChannel>1</midiChannel>
           </Channel>
         </Instrument>
       </Part>
@@ -113,8 +117,8 @@
         </Staff>
       <trackName>Piano</trackName>
       <Instrument>
-        <longName pos="0">Piano</longName>
-        <shortName pos="0">Pno.</shortName>
+        <longName>Piano</longName>
+        <shortName>Pno.</shortName>
         <trackName>Piano</trackName>
         <minPitchP>21</minPitchP>
         <maxPitchP>108</maxPitchP>
@@ -152,15 +156,13 @@
           </Articulation>
         <Channel>
           <program value="0"/>
+          <midiPort>1</midiPort>
+          <midiChannel>1</midiChannel>
           </Channel>
         </Instrument>
       </Part>
     <Staff id="1">
       <Measure number="1">
-        <Clef>
-          <concertClefType>G</concertClefType>
-          <transposingClefType>G</transposingClefType>
-          </Clef>
         <TimeSig>
           <sigN>4</sigN>
           <sigD>4</sigD>
@@ -206,10 +208,6 @@
       </Staff>
     <Staff id="2">
       <Measure number="1">
-        <Clef>
-          <concertClefType>F</concertClefType>
-          <transposingClefType>F</transposingClefType>
-          </Clef>
         <TimeSig>
           <sigN>4</sigN>
           <sigD>4</sigD>
@@ -237,10 +235,6 @@
       </Staff>
     <Staff id="3">
       <Measure number="1">
-        <Clef>
-          <concertClefType>G</concertClefType>
-          <transposingClefType>G</transposingClefType>
-          </Clef>
         <TimeSig>
           <sigN>4</sigN>
           <sigD>4</sigD>
@@ -286,10 +280,6 @@
       </Staff>
     <Staff id="4">
       <Measure number="1">
-        <Clef>
-          <concertClefType>F</concertClefType>
-          <transposingClefType>F</transposingClefType>
-          </Clef>
         <TimeSig>
           <sigN>4</sigN>
           <sigD>4</sigD>

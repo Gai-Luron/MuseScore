@@ -18,7 +18,9 @@
 namespace Ms {
 
 class Note;
-class Xml;
+class XmlWriter;
+
+enum class BeatType : char;
 
 //---------------------------------------------------------
 //   Event types
@@ -124,7 +126,7 @@ enum {
       // controller
       //
       CTRL_PROGRAM   = 0x81,
-      CTRL_PITCH     = 0x82,
+      /*             = 0x82,*/
       CTRL_PRESS     = 0x83,
       CTRL_POLYAFTER = 0x84
       };
@@ -177,7 +179,7 @@ class MidiCoreEvent {
       void setData(int t, int a, int b) { _type = t; _a = a; _b = b; }
 
       bool isChannelEvent() const;
-      void write(Xml&) const;
+      void write(XmlWriter&) const;
       bool operator==(const MidiCoreEvent& e) const {
             return e._type == _type && e._channel == _channel && e._a == _a && e._b == _b;
             }
@@ -239,6 +241,7 @@ class NPlayEvent : public PlayEvent {
       NPlayEvent(uchar t, uchar c, uchar a, uchar b)
          : PlayEvent(t, c, a, b) {}
       NPlayEvent(const MidiCoreEvent& e) : PlayEvent(e) {}
+      NPlayEvent(BeatType beatType);
       const Note* note() const       { return _note; }
       void setNote(const Note* v)    { _note = v; }
       };
@@ -267,7 +270,7 @@ class Event : public PlayEvent {
       ~Event();
       bool operator==(const Event&) const;
 
-      void write(Xml&) const;
+      void write(XmlWriter&) const;
       void dump() const;
 
 

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<museScore version="2.00">
+<museScore version="3.00">
   <Score>
     <LayerTag id="0" tag="default"></LayerTag>
     <currentLayer>0</currentLayer>
@@ -54,8 +54,8 @@
         </Staff>
       <trackName>Electric Piano</trackName>
       <Instrument>
-        <longName pos="0">Electric Piano</longName>
-        <shortName pos="0">El. Pno.</shortName>
+        <longName>Electric Piano</longName>
+        <shortName>El. Pno.</shortName>
         <trackName>Electric Piano</trackName>
         <minPitchP>21</minPitchP>
         <maxPitchP>108</maxPitchP>
@@ -110,8 +110,8 @@
         </Staff>
       <trackName>Piano</trackName>
       <Instrument>
-        <longName pos="0">Piano</longName>
-        <shortName pos="0">Pno.</shortName>
+        <longName>Piano</longName>
+        <shortName>Pno.</shortName>
         <trackName>Piano</trackName>
         <minPitchP>21</minPitchP>
         <maxPitchP>108</maxPitchP>
@@ -154,10 +154,6 @@
       </Part>
     <Staff id="1">
       <Measure number="1">
-        <Clef>
-          <concertClefType>G</concertClefType>
-          <transposingClefType>G</transposingClefType>
-          </Clef>
         <TimeSig>
           <sigN>4</sigN>
           <sigD>4</sigD>
@@ -165,7 +161,7 @@
           </TimeSig>
         <Tempo>
           <tempo>2</tempo>
-          <text><sym>unicodeNoteQuarterUp</sym> = 120</text>
+          <text><sym>metNoteQuarterUp</sym> = 120</text>
           </Tempo>
         <Chord>
           <durationType>whole</durationType>
@@ -192,10 +188,6 @@
       </Staff>
     <Staff id="2">
       <Measure number="1">
-        <Clef>
-          <concertClefType>F</concertClefType>
-          <transposingClefType>F</transposingClefType>
-          </Clef>
         <TimeSig>
           <sigN>4</sigN>
           <sigD>4</sigD>
@@ -214,10 +206,6 @@
       </Staff>
     <Staff id="3">
       <Measure number="1">
-        <Clef>
-          <concertClefType>G</concertClefType>
-          <transposingClefType>G</transposingClefType>
-          </Clef>
         <TimeSig>
           <sigN>4</sigN>
           <sigD>4</sigD>
@@ -248,10 +236,6 @@
       </Staff>
     <Staff id="4">
       <Measure number="1">
-        <Clef>
-          <concertClefType>F</concertClefType>
-          <transposingClefType>F</transposingClefType>
-          </Clef>
         <TimeSig>
           <sigN>4</sigN>
           <sigD>4</sigD>

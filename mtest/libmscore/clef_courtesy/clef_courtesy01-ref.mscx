@@ -1,13 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<museScore version="2.00">
+<museScore version="3.00">
   <Score>
     <LayerTag id="0" tag="default"></LayerTag>
     <currentLayer>0</currentLayer>
     <Division>480</Division>
     <Style>
       <maxSystemDistance>20</maxSystemDistance>
-      <lyricsDistance>0</lyricsDistance>
-      <lyricsMinBottomDistance>0</lyricsMinBottomDistance>
       <frameSystemDistance>0</frameSystemDistance>
       <barWidth>0.2</barWidth>
       <endBarWidth>0.4</endBarWidth>
@@ -121,6 +119,10 @@
             <tpc>14</tpc>
             </Note>
           </Chord>
+        <BarLine>
+          <subtype>normal</subtype>
+          <span>1</span>
+          </BarLine>
         </Measure>
       <Measure number="2">
         <Chord>
@@ -130,11 +132,14 @@
             <tpc>14</tpc>
             </Note>
           </Chord>
+        <BarLine>
+          <subtype>normal</subtype>
+          <span>1</span>
+          </BarLine>
         </Measure>
       <Measure number="3">
         <LayoutBreak>
           <subtype>line</subtype>
-          <pause>2</pause>
           </LayoutBreak>
         <Chord>
           <durationType>whole</durationType>
@@ -147,6 +152,10 @@
           <concertClefType>G8va</concertClefType>
           <transposingClefType>G8va</transposingClefType>
           </Clef>
+        <BarLine>
+          <subtype>normal</subtype>
+          <span>1</span>
+          </BarLine>
         </Measure>
       <Measure number="4">
         <Chord>
@@ -156,6 +165,10 @@
             <tpc>14</tpc>
             </Note>
           </Chord>
+        <BarLine>
+          <subtype>normal</subtype>
+          <span>1</span>
+          </BarLine>
         </Measure>
       <Measure number="5">
         <Chord>
@@ -165,15 +178,14 @@
             <tpc>14</tpc>
             </Note>
           </Chord>
+        <BarLine>
+          <subtype>normal</subtype>
+          <span>1</span>
+          </BarLine>
         </Measure>
       <Measure number="6">
         <LayoutBreak>
-          <subtype>line</subtype>
-          <pause>2</pause>
-          </LayoutBreak>
-        <LayoutBreak>
           <subtype>section</subtype>
-          <pause>2</pause>
           </LayoutBreak>
         <Chord>
           <durationType>whole</durationType>
@@ -186,6 +198,10 @@
           <concertClefType>G</concertClefType>
           <transposingClefType>G</transposingClefType>
           </Clef>
+        <BarLine>
+          <subtype>normal</subtype>
+          <span>1</span>
+          </BarLine>
         </Measure>
       <Measure number="1">
         <Chord>
@@ -195,6 +211,10 @@
             <tpc>14</tpc>
             </Note>
           </Chord>
+        <BarLine>
+          <subtype>normal</subtype>
+          <span>1</span>
+          </BarLine>
         </Measure>
       <Measure number="2">
         <Chord>
@@ -204,6 +224,10 @@
             <tpc>14</tpc>
             </Note>
           </Chord>
+        <BarLine>
+          <subtype>normal</subtype>
+          <span>1</span>
+          </BarLine>
         </Measure>
       <Measure number="3">
         <Chord>

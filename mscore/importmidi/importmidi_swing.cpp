@@ -153,7 +153,7 @@ void SwingDetector::applySwing()
       const int startTick = first->segment()->tick();
       ChordRest *last = elements.back();
       last->segment()->remove(last);
-      Segment *s = last->measure()->getSegment(last, startTick + MScore::division / 2);
+      Segment *s = last->measure()->getSegment(Segment::Type::ChordRest, startTick + MScore::division / 2);
       s->add(last);
 
       if (elements.size() == 3) {
@@ -227,7 +227,7 @@ void detectSwing(Staff *staff, MidiOperations::Swing swingType)
                         // add swing label to the score
             StaffText* st = new StaffText(score);
             st->setTextStyleType(TextStyleType::STAFF);
-            st->setText(swingCaption(swingType));
+            st->setPlainText(swingCaption(swingType));
             Segment* seg = score->firstSegment(Segment::Type::ChordRest);
             st->setParent(seg);
             st->setTrack(strack);   // voice == 0

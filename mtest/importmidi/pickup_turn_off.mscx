@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<museScore version="2.00">
+<museScore version="3.00">
   <Score>
     <LayerTag id="0" tag="default"></LayerTag>
     <currentLayer>0</currentLayer>
@@ -47,8 +47,8 @@
         </Staff>
       <trackName>Soprano, Staff</trackName>
       <Instrument>
-        <longName pos="0">Soprano, Staff</longName>
-        <shortName pos="0">S.</shortName>
+        <longName>Soprano, Staff</longName>
+        <shortName>S.</shortName>
         <trackName>Soprano</trackName>
         <minPitchP>60</minPitchP>
         <maxPitchP>84</maxPitchP>

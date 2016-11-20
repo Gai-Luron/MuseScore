@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<museScore version="2.00">
+<museScore version="3.00">
   <Score>
     <LayerTag id="0" tag="default"></LayerTag>
     <currentLayer>0</currentLayer>
@@ -53,8 +53,8 @@
         </Staff>
       <trackName>E-Gt</trackName>
       <Instrument>
-        <longName pos="0">Electric Guitar</longName>
-        <shortName pos="0">El. Guit.</shortName>
+        <longName>Electric Guitar</longName>
+        <shortName>El. Guit.</shortName>
         <trackName>Electric Guitar</trackName>
         <minPitchP>40</minPitchP>
         <maxPitchP>86</maxPitchP>
@@ -133,7 +133,7 @@
         <Tempo>
           <tempo>2</tempo>
           <lid>5</lid>
-          <text><sym>unicodeNoteQuarterUp</sym> = 120</text>
+          <text><sym>metNoteQuarterUp</sym> = 120</text>
           </Tempo>
         <Chord>
           <lid>6</lid>
@@ -189,10 +189,6 @@
             <string>2</string>
             </Note>
           </Chord>
-        <BarLine>
-          <subtype>end</subtype>
-          <span>1</span>
-          </BarLine>
         </Measure>
       </Staff>
     <Score>
@@ -265,8 +261,8 @@
           </Staff>
         <trackName></trackName>
         <Instrument>
-          <longName pos="0">Electric Guitar</longName>
-          <shortName pos="0">El. Guit.</shortName>
+          <longName>Electric Guitar</longName>
+          <shortName>El. Guit.</shortName>
           <trackName>Electric Guitar</trackName>
           <minPitchP>40</minPitchP>
           <maxPitchP>86</maxPitchP>
@@ -349,7 +345,7 @@
           <Tempo>
             <tempo>2</tempo>
             <lid>5</lid>
-            <text><sym>unicodeNoteQuarterUp</sym> = 120</text>
+            <text><sym>metNoteQuarterUp</sym> = 120</text>
             </Tempo>
           <Chord>
             <lid>6</lid>
@@ -405,10 +401,6 @@
               <string>2</string>
               </Note>
             </Chord>
-          <BarLine>
-            <subtype>end</subtype>
-            <span>1</span>
-            </BarLine>
           </Measure>
         </Staff>
       <Staff id="2">
@@ -471,10 +463,6 @@
               <string>2</string>
               </Note>
             </Chord>
-          <BarLine>
-            <subtype>end</subtype>
-            <span>1</span>
-            </BarLine>
           </Measure>
         </Staff>
       <name>E-Gt</name>

@@ -1,0 +1,42 @@
+test script p1
+     Direction.AUTO: 0
+     Direction.UP:   1
+     Direction.DOWN: 2
+filter:512
+filter:-1
+Clef
+type is:16
+KeySig
+type is:17
+TimeSig
+type is:19
+Chord
+type is:79
+  durationType:480
+  beamMode:0
+  small:false
+  stemDirection:0
+  duration:
+    numerator:1
+    denominator:4
+    ticks:480
+Rest
+type is:20
+  duration:
+    numerator:1
+    denominator:4
+    ticks:480
+  beamMode:4
+  small:false
+Chord
+type is:79
+  durationType:960
+  beamMode:0
+  small:false
+  stemDirection:0
+  duration:
+    numerator:1
+    denominator:2
+    ticks:960
+BarLine
+type is:7

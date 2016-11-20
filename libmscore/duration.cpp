@@ -98,7 +98,7 @@ bool DurationElement::readProperties(XmlReader& e)
                   }
             if (t) {
                   setTuplet(t);
-                  if (!score()->undo()->active())     // HACK, also added in Undo::AddElement()
+                  if (!score()->undoStack()->active())     // HACK, also added in Undo::AddElement()
                         t->add(this);
                   }
             return true;
@@ -112,7 +112,7 @@ bool DurationElement::readProperties(XmlReader& e)
 //   writeProperties
 //---------------------------------------------------------
 
-void DurationElement::writeProperties(Xml& xml) const
+void DurationElement::writeProperties(XmlWriter& xml) const
       {
       Element::writeProperties(xml);
       if (tuplet())
@@ -123,11 +123,11 @@ void DurationElement::writeProperties(Xml& xml) const
 //   writeTuplet
 //---------------------------------------------------------
 
-void DurationElement::writeTuplet(Xml& xml)
+void DurationElement::writeTuplet(XmlWriter& xml)
       {
       if (tuplet() && tuplet()->elements().front() == this) {
             tuplet()->writeTuplet(xml);           // recursion
-            tuplet()->setId(xml.tupletId++);
+            tuplet()->setId(xml.nextTupletId());
             tuplet()->write(xml);
             }
       }
@@ -156,7 +156,7 @@ bool DurationElement::setProperty(P_ID propertyId, const QVariant& v)
             case P_ID::DURATION: {
                   Fraction f(v.value<Fraction>());
                   setDuration(f);
-                  score()->setLayoutAll(true);
+                  score()->setLayoutAll();
                   }
                   break;
             default:

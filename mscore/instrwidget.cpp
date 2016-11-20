@@ -39,7 +39,6 @@
 
 namespace Ms {
 
-extern bool useFactorySettings;
 void filterInstruments(QTreeWidget *instrumentList, const QString &searchPhrase = QString());
 
 //---------------------------------------------------------
@@ -114,10 +113,10 @@ void StaffListItem::initStaffTypeCombo(bool forceRecreate)
       // or in Instruments Wizard
       if (part) {
             const StringData* stringData = part->it ? &(part->it->stringData) :
-                        ( (part->part && part->part->instr()) ? part->part->instr()->stringData() : 0);
+                        ( (part->part && part->part->instrument()) ? part->part->instrument()->stringData() : 0);
             canUseTabs = stringData && stringData->strings() > 0;
             canUsePerc = part->it ? part->it->useDrumset :
-                        ( (part->part && part->part->instr()) ? part->part->instr()->useDrumset() : false);
+                        ( (part->part && part->part->instrument()) ? part->part->instrument()->useDrumset() : false);
             }
       _staffTypeCombo = new QComboBox();
       _staffTypeCombo->setAutoFillBackground(true);
@@ -460,7 +459,7 @@ void InstrumentsWidget::genPartList(Score* cs)
                   sli->setPartIdx(s->rstaff());
                   const LinkedStaves* ls = s->linkedStaves();
                   bool bLinked = false;
-                  if (ls && !ls->isEmpty()) {
+                  if (ls && !ls->empty()) {
                         foreach(Staff* ps, ls->staves()) {
                               if (ps != s && ps->score() == s->score()) {
                                     bLinked = true;
@@ -849,7 +848,7 @@ StaffListItem* InstrumentsWidget::on_belowButton_clicked()
       if (pli->it)
             clefType = pli->it->clefType(ridx);
       else
-            clefType = pli->part->instr()->clefType(ridx);
+            clefType = pli->part->instrument()->clefType(ridx);
       nsli->setDefaultClefType(clefType);
       pli->updateClefs();
 
@@ -938,19 +937,6 @@ void InstrumentsWidget::filterInstrumentsByGenre(QTreeWidget *instrumentList, QS
       }
 
 //---------------------------------------------------------
-//   writeSettings
-//---------------------------------------------------------
-
-void InstrumentsWidget::writeSettings()
-      {
-      QSettings settings;
-      settings.beginGroup("Instruments");
-      settings.setValue("size", size());
-      settings.setValue("pos", pos());
-      settings.endGroup();
-      }
-
-//---------------------------------------------------------
 //   createInstruments
 //---------------------------------------------------------
 
@@ -1029,7 +1015,7 @@ void InstrumentsWidget::createInstruments(Score* cs)
             staffIdx = nstaffIdx;
             }
 
-      cs->setLayoutAll(true);
+      cs->setLayoutAll();
       }
 
 //---------------------------------------------------------

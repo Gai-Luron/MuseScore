@@ -22,24 +22,21 @@ namespace Ms {
 //---------------------------------------------------------
 
 InspectorJump::InspectorJump(QWidget* parent)
-   : InspectorBase(parent)
+   : InspectorElementBase(parent)
       {
-      b.setupUi(addWidget());
       t.setupUi(addWidget());
       j.setupUi(addWidget());
 
-      iList = {
-            { P_ID::COLOR,              0, false, b.color,      b.resetColor      },
-            { P_ID::VISIBLE,            0, false, b.visible,    b.resetVisible    },
-            { P_ID::USER_OFF,           0, false, b.offsetX,    b.resetX          },
-            { P_ID::USER_OFF,           1, false, b.offsetY,    b.resetY          },
-            { P_ID::TEXT_STYLE_TYPE,    0, 0,     t.style,      t.resetStyle      },
-            { P_ID::JUMP_TO,            0, false, j.jumpTo,     j.resetJumpTo     },
-            { P_ID::PLAY_UNTIL,         0, false, j.playUntil,  j.resetPlayUntil  },
-            { P_ID::CONTINUE_AT,        0, false, j.continueAt, j.resetContinueAt }
+      const std::vector<InspectorItem> iiList = {
+            { P_ID::TEXT_STYLE_TYPE,    0, 0,     t.style,       t.resetStyle       },
+            { P_ID::JUMP_TO,            0, false, j.jumpTo,      j.resetJumpTo      },
+            { P_ID::PLAY_UNTIL,         0, false, j.playUntil,   j.resetPlayUntil   },
+            { P_ID::CONTINUE_AT,        0, false, j.continueAt,  j.resetContinueAt  },
+            { P_ID::PLAY_REPEATS,       0, false, j.playRepeats, j.resetPlayRepeats }
             };
 
-      mapSignals();
+      mapSignals(iiList);
+      connect(t.resetToStyle, SIGNAL(clicked()), SLOT(resetToStyle()));
       }
 
 //---------------------------------------------------------
@@ -57,10 +54,10 @@ void InspectorJump::setElement()
       int n = ts.size();
       for (int i = 0; i < n; ++i) {
             if (!(ts.at(i).hidden() & TextStyleHidden::IN_LISTS) )
-                  t.style->addItem(qApp->translate("TextStyle",ts.at(i).name().toLatin1().data()), i);
+                  t.style->addItem(qApp->translate("TextStyle",ts.at(i).name().toUtf8().data()), i);
             }
       t.style->blockSignals(false);
-      InspectorBase::setElement();
+      InspectorElementBase::setElement();
       }
 
 }

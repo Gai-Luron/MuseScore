@@ -15,7 +15,7 @@
 
 namespace Ms {
 
-class Xml;
+class XmlWriter;
 class Score;
 class XmlReader;
 enum class AccidentalVal : signed char;
@@ -33,6 +33,11 @@ enum class Key {
       INVALID = Key::MIN - 1,
       NUM_OF = Key::MAX - Key::MIN + 1,
       DELTA_ENHARMONIC = 12
+      };
+
+enum class KeyMode {
+      UNKNOWN = -1,
+      NONE, MAJOR, MINOR
       };
 
 static inline bool operator<  (Key a, Key b) { return int(a) < int(b); }
@@ -63,6 +68,7 @@ struct KeySym {
 
 class KeySigEvent {
       Key _key            { Key::INVALID };          // -7 -> +7
+      KeyMode _mode       { KeyMode::UNKNOWN };
       bool _custom        { false };
       QList<KeySym> _keySymbols;
 
@@ -78,9 +84,12 @@ class KeySigEvent {
       void print() const;
 
       Key key() const            { return _key;                    }
+      KeyMode mode() const       { return _mode;                   }
+      void setMode(KeyMode m)    { _mode = m;                      }
       bool custom() const        { return _custom;                 }
       void setCustom(bool val)   { _custom = val; _key = Key::C;   }
       bool isValid() const       { return _key != Key::INVALID;    }
+      bool isAtonal() const      { return _mode == KeyMode::NONE;  }
       void initFromSubtype(int);    // for backward compatibility
       void initLineList(char*);
       QList<KeySym>& keySymbols()             { return _keySymbols; }
@@ -93,13 +102,16 @@ class KeySigEvent {
 //---------------------------------------------------------
 
 static const int TIE_CONTEXT = 0x10;
+static const int MIN_ACC_STATE = 0;
+static const int MAX_ACC_STATE = 75;
 
 class AccidentalState {
-      uchar state[75];    // (0 -- 4) | TIE_CONTEXT
+      uchar state[MAX_ACC_STATE];    // (0 -- 4) | TIE_CONTEXT
 
    public:
       AccidentalState() {}
       void init(Key key);
+      AccidentalVal accidentalVal(int line, bool &error) const;
       AccidentalVal accidentalVal(int line) const;
       bool tieContext(int line) const;
       void setAccidentalVal(int line, AccidentalVal val, bool tieContext = false);

@@ -22,7 +22,7 @@ namespace Ms {
 class System;
 class Text;
 class Measure;
-class Xml;
+class XmlWriter;
 class Score;
 class MeasureBase;
 
@@ -37,33 +37,36 @@ struct PaperSize {
          : name(n), w(wi), h(hi) {}
       };
 
-extern const PaperSize* getPaperSize(const QString&);
 extern const PaperSize* getPaperSize(const qreal wi, const qreal hi);
 
 //---------------------------------------------------------
 //   @@ PageFormat
-//   @P size              QSizeF  paper size in inch
-//   @P printableWidth    qreal
-//   @P evenLeftMargin    qreal
-//   @P oddLeftMargin     qreal
-//   @P eventTopMargin    qreal
-//   @P oddTopMargin      qreal
-//   @P evenBottomMargin  qreal
-//   @P oddBottomMargin   qreal
+//   @P evenBottomMargin  float
+//   @P evenLeftMargin    float
+//   @P eventTopMargin    float
+//   @P oddBottomMargin   float
+//   @P oddLeftMargin     float
+//   @P oddTopMargin      float
+//   @P printableWidth    float
+//   @P size              size  paper size in inch
 //   @P twosided          bool
 //---------------------------------------------------------
 
+#ifdef SCRIPT_INTERFACE
 class PageFormat : public QObject {
       Q_OBJECT
-      Q_PROPERTY(QSizeF size             READ size             WRITE setSize)
-      Q_PROPERTY(qreal  printableWidth   READ printableWidth   WRITE setPrintableWidth  )
-      Q_PROPERTY(qreal  evenLeftMargin   READ evenLeftMargin   WRITE setEvenLeftMargin  )
-      Q_PROPERTY(qreal  oddLeftMargin    READ oddLeftMargin    WRITE setOddLeftMargin   )
-      Q_PROPERTY(qreal  evenTopMargin    READ evenTopMargin    WRITE setEvenTopMargin  )
-      Q_PROPERTY(qreal  oddTopMargin     READ oddTopMargin     WRITE setOddTopMargin    )
       Q_PROPERTY(qreal  evenBottomMargin READ evenBottomMargin WRITE setEvenBottomMargin)
+      Q_PROPERTY(qreal  evenLeftMargin   READ evenLeftMargin   WRITE setEvenLeftMargin  )
+      Q_PROPERTY(qreal  evenTopMargin    READ evenTopMargin    WRITE setEvenTopMargin  )
       Q_PROPERTY(qreal  oddBottomMargin  READ oddBottomMargin  WRITE setOddBottomMargin )
+      Q_PROPERTY(qreal  oddLeftMargin    READ oddLeftMargin    WRITE setOddLeftMargin   )
+      Q_PROPERTY(qreal  oddTopMargin     READ oddTopMargin     WRITE setOddTopMargin    )
+      Q_PROPERTY(qreal  printableWidth   READ printableWidth   WRITE setPrintableWidth  )
+      Q_PROPERTY(QSizeF size             READ size             WRITE setSize)
       Q_PROPERTY(bool   twosided         READ twosided         WRITE setTwosided        )
+#else
+class PageFormat {
+#endif
 
       QSizeF _size;
       qreal _printableWidth;        // _width - left margin - right margin
@@ -79,14 +82,15 @@ class PageFormat : public QObject {
       PageFormat();
 
       const QSizeF& size() const    { return _size;          }    // size in inch
+      QSizeF& size()                { return _size;          }    // size in inch
       qreal width() const           { return _size.width();  }
       qreal height() const          { return _size.height(); }
       void setSize(const QSizeF& s) { _size = s;             }
       void copy(const PageFormat&);
 
       QString name() const;
-      void read(XmlReader&, Score* s = 0);
-      void write(Xml&) const;
+      void read(XmlReader&);
+      void write(XmlWriter&) const;
       qreal evenLeftMargin() const        { return _evenLeftMargin;   }
       qreal oddLeftMargin() const         { return _oddLeftMargin;    }
       qreal evenTopMargin() const         { return _evenTopMargin;    }
@@ -136,27 +140,28 @@ class Page : public Element {
    public:
       Page(Score*);
       ~Page();
-      virtual Page* clone() const            { return new Page(*this); }
-      virtual Element::Type type() const     { return Element::Type::PAGE; }
-      const QList<System*>* systems() const  { return &_systems;   }
-      QList<System*>* systems()              { return &_systems;   }
+      virtual Page* clone() const           { return new Page(*this); }
+      virtual Element::Type type() const    { return Element::Type::PAGE; }
+      const QList<System*>& systems() const { return _systems;   }
+      QList<System*>& systems()             { return _systems;   }
+      System* system(int idx)               { return _systems[idx];   }
 
       virtual void layout();
-      virtual void write(Xml&) const;
+      virtual void write(XmlWriter&) const;
       virtual void read(XmlReader&);
 
       void appendSystem(System* s);
 
       int no() const                     { return _no;        }
-      void setNo(int n);
+      void setNo(int n)                  { _no = n;           }
       bool isOdd() const;
       qreal tm() const;            // margins in pixel
       qreal bm() const;
       qreal lm() const;
       qreal rm() const;
 
-      virtual void draw(QPainter*) const;
-      virtual void scanElements(void* data, void (*func)(void*, Element*), bool all=true);
+      virtual void draw(QPainter*) const override;
+      virtual void scanElements(void* data, void (*func)(void*, Element*), bool all=true) override;
 
       QList<Element*> items(const QRectF& r);
       QList<Element*> items(const QPointF& p);
@@ -166,8 +171,9 @@ class Page : public Element {
       Measure* searchMeasure(const QPointF& p) const;
       MeasureBase* pos2measure(const QPointF&, int* staffIdx, int* pitch,
          Segment**, QPointF* offset) const;
-      QList<const Element*> elements();         ///< list of visible elements
+      QList<Element*> elements();               ///< list of visible elements
       QRectF tbbox();                           // tight bounding box, excluding white space
+      int endTick() const;
       };
 
 extern const PaperSize paperSizes[];

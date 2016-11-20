@@ -19,33 +19,33 @@ namespace Ms {
 
 extern QString dataPath;
 extern QString mscoreGlobalShare;
+extern QString localeName;
 
 ResourceManager::ResourceManager(QWidget *parent) :
       QDialog(parent)
       {
+      setObjectName("ResourceManager");
       setupUi(this);
       setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
       QDir dir;
       dir.mkpath(dataPath + "/locale");
-      baseAddr = "http://extensions.musescore.org/2.0/";
+      baseAddr = "http://extensions.musescore.org/2.0.2/";
       displayPlugins();
       displayLanguages();
-      languagesTable->horizontalHeader()->setResizeMode(QHeaderView::Stretch);
+      languagesTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
       languagesTable->verticalHeader()->hide();
-      tabs->removeTab(1);
-      tabs->setCurrentIndex(0);
+      tabs->removeTab(tabs->indexOf(plugins));
+      tabs->setCurrentIndex(tabs->indexOf(languages));
+      MuseScore::restoreGeometry(this);
       }
 
 void ResourceManager::displayPlugins()
       {
-      tabs->setTabText(1, "Plugins");
       textBrowser->setText("hello");
       }
 
 void ResourceManager::displayLanguages()
       {
-      tabs->setTabText(0,tr("Languages"));
-      
       // Download details.json
       DownloadUtils *js = new DownloadUtils(this);
       js->setTarget(baseAddr + "languages/details.json");
@@ -104,20 +104,20 @@ void ResourceManager::displayLanguages()
             temp = updateButtons[row];
             buttonMap[temp] = "languages/" + filename;
             buttonHashMap[temp] = hashValue;
-            
+
             languagesTable->setIndexWidget(languagesTable->model()->index(row, col++), temp);
-            
+
             // get hash mscore and instruments
             QJsonObject mscoreObject = value.value("mscore").toObject();
             QString hashMscore = mscoreObject.value("hash").toString();
             QString filenameMscore = mscoreObject.value("file_name").toString();
-            
+
             bool verifyMScore = verifyLanguageFile(filenameMscore, hashMscore);
 
             QJsonObject instrumentsObject = value.value("instruments").toObject();
             QString hashInstruments = instrumentsObject.value("hash").toString();
             QString filenameInstruments = instrumentsObject.value("file_name").toString();
-            
+
             bool verifyInstruments = verifyLanguageFile(filenameInstruments, hashInstruments);
 
             if (verifyMScore && verifyInstruments) { // compare local file with distant hash
@@ -185,6 +185,9 @@ void ResourceManager::download()
             if (result) {
                   QFile::remove(localPath);
                   button->setText(tr("Updated"));
+                  //  retranslate the UI if current language is updated
+                  if (data == buttonMap.first())
+                        setMscoreLocale(localeName);
                   }
             else {
                   button->setText(tr("Failed, try again"));
@@ -207,4 +210,16 @@ bool ResourceManager::verifyFile(QString path, QString hash)
             }
       return false;
       }
+
+//---------------------------------------------------------
+//   hideEvent
+//---------------------------------------------------------
+
+void ResourceManager::hideEvent(QHideEvent* event)
+      {
+      MuseScore::saveGeometry(this);
+      QWidget::hideEvent(event);
+      }
+
 }
+

@@ -13,10 +13,12 @@
 #ifndef __CHORDREST_H__
 #define __CHORDREST_H__
 
+#include <functional>
 #include "symbol.h"
 #include "duration.h"
 #include "beam.h"
 #include "segment.h"
+#include "shape.h"
 
 namespace Ms {
 
@@ -41,27 +43,28 @@ class Spanner;
 //   @@ ChordRest
 ///    Virtual base class. Chords and rests can be part of a beam
 //
+//   @P beamMode      enum (Beam.AUTO, .BEGIN, .MID, .END, .NONE, .BEGIN32, .BEGIN64, .INVALID)
 //   @P durationType  int
-//   @P beamMode      Ms::Beam::Mode (AUTO, BEGIN, MID, END, NONE, BEGIN32, BEGIN64, INVALID)
 //   @P small         bool           small chord/rest
 //-------------------------------------------------------------------
 
 class ChordRest : public DurationElement {
       Q_OBJECT
-      Q_PROPERTY(int            durationType  READ durationTypeTicks  WRITE setDurationType)
       Q_PROPERTY(Ms::Beam::Mode beamMode      READ beamMode           WRITE undoSetBeamMode)
+      Q_PROPERTY(int            durationType  READ durationTypeTicks  WRITE setDurationType)
       Q_PROPERTY(bool           small         READ small              WRITE undoSetSmall)
-      Q_ENUMS(Ms::Beam::Mode)
 
       TDuration _durationType;
       int _staffMove;         // -1, 0, +1, used for crossbeaming
 
+      void processSiblings(std::function<void(Element*)> func);
+
    protected:
-      QList<Articulation*> _articulations;
-      Beam* _beam;
-      QList<Lyrics*> _lyricsList;
+      QVector<Articulation*> _articulations;
+      std::vector<Lyrics*> _lyrics;
       TabDurationSymbol* _tabDur;         // stores a duration symbol in tablature staves
 
+      Beam* _beam;
       Beam::Mode _beamMode;
       bool _up;                           // actual stem direction
       bool _small;
@@ -69,8 +72,6 @@ class ChordRest : public DurationElement {
       // CrossMeasure: combine 2 tied notes if across a bar line and can be combined in a single duration
       CrossMeasure _crossMeasure;         ///< 0: no cross-measure modification; 1: 1st note of a mod.; -1: 2nd note
       TDuration _crossMeasureTDur;        ///< the total Duration type of the combined notes
-
-      Space _space;                       // cached value from layout
 
    public:
       ChordRest(Score*);
@@ -86,7 +87,7 @@ class ChordRest : public DurationElement {
       virtual Segment* segment() const  { return (Segment*)parent(); }
       virtual Measure* measure() const = 0;
 
-      virtual void writeProperties(Xml& xml) const;
+      virtual void writeProperties(XmlWriter& xml) const;
       virtual bool readProperties(XmlReader&);
       virtual void scanElements(void* data, void (*func)(void*, Element*), bool all=true);
 
@@ -112,8 +113,8 @@ class ChordRest : public DurationElement {
       bool up() const                           { return _up;   }
       void setUp(bool val)                      { _up = val; }
 
-      QList<Articulation*>& articulations()     { return _articulations; }
-      const QList<Articulation*>& articulations() const { return _articulations; }
+      QVector<Articulation*>& articulations()     { return _articulations; }
+      const QVector<Articulation*>& articulations() const { return _articulations; }
       Articulation* hasArticulation(const Articulation*);
 
       bool small() const                        { return _small; }
@@ -122,7 +123,9 @@ class ChordRest : public DurationElement {
 
       int staffMove() const                     { return _staffMove; }
       void setStaffMove(int val)                { _staffMove = val; }
+      virtual int vStaffIdx() const override    { return staffIdx() + _staffMove;  }
 
+      void layout0(AccidentalState*);
       void layoutArticulations();
 
       const TDuration durationType() const      { return _crossMeasure == CrossMeasure::FIRST ?
@@ -139,19 +142,19 @@ class ChordRest : public DurationElement {
       int actualDots() const  { return _durationType.dots(); }
       int durationTypeTicks() { return _crossMeasure == CrossMeasure::FIRST ? _crossMeasureTDur.ticks()
                                     : _durationType.ticks(); }
-      QString durationUserName();
+      QString durationUserName() const;
 
-      virtual void setTrack(int val);
-      virtual int tick() const;
-      virtual int rtick() const;
-      virtual Space space() const               { return _space; }
+      virtual void setTrack(int val) override;
 
-      const QList<Lyrics*>& lyricsList() const { return _lyricsList; }
-      QList<Lyrics*>& lyricsList()             { return _lyricsList; }
-      Lyrics* lyrics(int no)                   { return _lyricsList.value(no); }
+      const std::vector<Lyrics*>& lyrics() const { return _lyrics; }
+      std::vector<Lyrics*>& lyrics()             { return _lyrics; }
+      Lyrics* lyrics(int verse, Placement) const;
+      int lastVerse(Placement) const;
+      void flipLyrics(Lyrics*);
+
       virtual void add(Element*);
       virtual void remove(Element*);
-      void removeDeleteBeam(bool beamed = false);
+      void removeDeleteBeam(bool beamed);
 
       CrossMeasure crossMeasure() const            { return _crossMeasure; }
       void setCrossMeasure(CrossMeasure val)       { _crossMeasure = val;  }
@@ -167,12 +170,18 @@ class ChordRest : public DurationElement {
       bool isGrace() const;
       bool isGraceBefore() const;
       bool isGraceAfter() const;
-      void writeBeam(Xml& xml);
+      void writeBeam(XmlWriter& xml);
       Segment* nextSegmentAfterCR(Segment::Type types) const;
 
+      virtual void setScore(Score* s) override;
       virtual Element* nextElement() override;
       virtual Element* prevElement() override;
-      virtual QString accessibleExtraInfo() override;
+      virtual QString accessibleExtraInfo() const override;
+      virtual Shape shape() const override;
+      virtual void layoutStem1() {};
+      virtual void computeUp()   { _up = true; };
+
+      bool isFullMeasureRest() const { return _durationType == TDuration::DurationType::V_MEASURE; }
       };
 
 

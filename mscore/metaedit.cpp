@@ -21,6 +21,7 @@
 #include "metaedit.h"
 #include "libmscore/score.h"
 #include "libmscore/undo.h"
+#include "musescore.h"
 
 namespace Ms {
 
@@ -31,6 +32,7 @@ namespace Ms {
 MetaEditDialog::MetaEditDialog(Score* s, QWidget* parent)
    : QDialog(parent)
       {
+      setObjectName("MetaEditDialog");
       setupUi(this);
       setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
       score = s;
@@ -39,9 +41,11 @@ MetaEditDialog::MetaEditDialog(Score* s, QWidget* parent)
       level->setValue(score->mscVersion());
       version->setText(score->mscoreVersion());
       revision->setValue(score->mscoreRevision());
+      filePath->setText(score->importedFilePath());
 
       int idx = 0;
       QMapIterator<QString, QString> i(s->metaTags());
+      QGridLayout* grid = static_cast<QGridLayout*>(scrollWidget->layout());
       while (i.hasNext()) {
             i.next();
             QLabel* label = new QLabel;
@@ -53,6 +57,7 @@ MetaEditDialog::MetaEditDialog(Score* s, QWidget* parent)
             ++idx;
             }
       connect(newButton, SIGNAL(clicked()), SLOT(newClicked()));
+      MuseScore::restoreGeometry(this);
       }
 
 //---------------------------------------------------------
@@ -65,6 +70,7 @@ void MetaEditDialog::newClicked()
          tr("MuseScore: Input Tag Name"),
          tr("New tag name:")
          );
+      QGridLayout* grid = static_cast<QGridLayout*>(scrollWidget->layout());
       if (!s.isEmpty()) {
             int idx = grid->rowCount();
             QLabel* label = new QLabel;
@@ -83,6 +89,7 @@ void MetaEditDialog::newClicked()
 void MetaEditDialog::accept()
       {
       if (dirty) {
+            QGridLayout* grid = static_cast<QGridLayout*>(scrollWidget->layout());
             int idx = grid->rowCount();
             QMap<QString, QString> m;
             for (int i = 0; i < idx; ++i) {
@@ -98,5 +105,16 @@ void MetaEditDialog::accept()
             }
       QDialog::accept();
       }
+
+//---------------------------------------------------------
+//   hideEvent
+//---------------------------------------------------------
+
+void MetaEditDialog::hideEvent(QHideEvent* event)
+      {
+      MuseScore::saveGeometry(this);
+      QWidget::hideEvent(event);
+      }
+
 }
 

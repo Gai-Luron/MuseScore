@@ -31,7 +31,10 @@
 
 #include <portaudio.h>
 #include "mididriver.h"
+
+#ifdef USE_PORTMIDI
 #include "pm.h"
+#endif
 
 namespace Ms {
 
@@ -101,6 +104,8 @@ bool Portaudio::init(bool)
       if (di == nullptr)
             di = Pa_GetDeviceInfo(Pa_GetDefaultOutputDevice());
 
+      if (!di)
+            return false;    // Portaudio is not properly initialized; disable audio
       _sampleRate = int(di->defaultSampleRate);
 
       /* Open an audio I/O stream. */
@@ -161,7 +166,7 @@ QStringList Portaudio::apiList() const
       for (PaHostApiIndex i = 0; i < apis; ++i) {
             const PaHostApiInfo* info = Pa_GetHostApiInfo(i);
             if (info)
-                  al.append(info->name);
+                  al.append(QString::fromLocal8Bit(info->name));
             }
       return al;
       }
@@ -179,7 +184,7 @@ QStringList Portaudio::deviceList(int apiIdx)
                   PaDeviceIndex idx = Pa_HostApiDeviceIndexToDeviceIndex(apiIdx, i);
                   const PaDeviceInfo* di = Pa_GetDeviceInfo(idx);
                   if (di)
-                        dl.append(di->name);
+                        dl.append(QString::fromLocal8Bit(di->name));
                   }
             }
       return dl;

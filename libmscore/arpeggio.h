@@ -37,7 +37,8 @@ class Arpeggio : public Element {
       qreal _userLen2;
       qreal _height;
       int _span;              // spanning staves
-      QString symbols;
+      std::vector<SymId> symbols;
+      bool _playArpeggio;
 
       void symbolLine(SymId start, SymId fill);
       void symbolLine2(SymId end, SymId fill);
@@ -68,7 +69,7 @@ class Arpeggio : public Element {
       virtual bool edit(MuseScoreView*, Grip, int key, Qt::KeyboardModifiers, const QString&) override;
 
       virtual void read(XmlReader& e) override;
-      virtual void write(Xml& xml) const override;
+      virtual void write(XmlWriter& xml) const override;
 
       int span() const      { return _span; }
       void setSpan(int val) { _span = val; }
@@ -79,8 +80,12 @@ class Arpeggio : public Element {
       void setUserLen1(qreal v) { _userLen1 = v; }
       void setUserLen2(qreal v) { _userLen2 = v; }
 
+      bool playArpeggio()       { return _playArpeggio; }
+      void setPlayArpeggio(bool p) { _playArpeggio = p; }
+
       virtual QVariant getProperty(P_ID propertyId) const override;
       virtual bool setProperty(P_ID propertyId, const QVariant&) override;
+      virtual QVariant propertyDefault(P_ID propertyId) const override;
       };
 
 

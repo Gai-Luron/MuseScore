@@ -34,12 +34,12 @@ TimeSig::TimeSig(Score* s)
       {
       setFlags(ElementFlag::SELECTABLE | ElementFlag::ON_STAFF);
       _showCourtesySig = true;
-      customText = false;
+      customText       = false;
       _stretch.set(1, 1);
       _sig.set(0, 1);               // initialize to invalid
-      _timeSigType   = TimeSigType::NORMAL;
+      _timeSigType      = TimeSigType::NORMAL;
       _largeParentheses = false;
-      _needLayout = true;
+      _needLayout       = true;
       }
 
 //---------------------------------------------------------
@@ -142,7 +142,7 @@ void TimeSig::setDenominatorString(const QString& a)
 //   write TimeSig
 //---------------------------------------------------------
 
-void TimeSig::write(Xml& xml) const
+void TimeSig::write(XmlWriter& xml) const
       {
       xml.stag("TimeSig");
       if (timeSigType() != TimeSigType::NORMAL)
@@ -201,14 +201,7 @@ void TimeSig::read(XmlReader& e)
                   }
             else if (tag == "subtype") {
                   int i = e.readInt();
-                  if (score()->mscVersion() < 122 && score()->mscVersion() > 114) {
-                        setSig(Fraction(
-                             ((i >> 24) & 0x3f)
-                           + ((i >> 18) & 0x3f)
-                           + ((i >> 12) & 0x3f)
-                           + ((i >>  6) & 0x3f), i & 0x3f), TimeSigType::NORMAL);
-                        }
-                  else if (score()->mscVersion() <= 114) {
+                  if (score()->mscVersion() <= 114) {
                         if (i == 0x40000104)
                               _timeSigType = TimeSigType::FOUR_FOUR;
                         else if (i == 0x40002084)
@@ -247,11 +240,22 @@ void TimeSig::read(XmlReader& e)
       }
 
 //---------------------------------------------------------
+//   layout
+//---------------------------------------------------------
+
+void TimeSig::layout()
+      {
+      if (_needLayout)
+            layout1();
+      }
+
+//---------------------------------------------------------
 //   layout1
 //---------------------------------------------------------
 
 void TimeSig::layout1()
       {
+      setPos(0.0, 0.0);
       qreal _spatium = spatium();
 
       setbbox(QRectF());                  // prepare for an empty time signature
@@ -260,8 +264,8 @@ void TimeSig::layout1()
       pn = QPointF();
       pointLargeRightParen = QPointF();
 
-      qreal lineDist      = 1.0;          // assume dimensions a standard staff
-      int   numOfLines    = 5;
+      qreal lineDist;
+      int   numOfLines;
       TimeSigType sigType = timeSigType();
       Staff* _staff       = staff();
 
@@ -278,9 +282,13 @@ void TimeSig::layout1()
                   // draw() will anyway skip any drawing if staff type has no time sigs
                   return;
                   }
-            // update to real staff values
             numOfLines  = _staff->lines();
             lineDist    = _staff->lineDistance();
+            }
+      else {
+            // assume dimensions of a standard staff
+            lineDist = 1.0;
+            numOfLines = 5;
             }
 
       // if some symbol
@@ -293,13 +301,13 @@ void TimeSig::layout1()
       if (sigType ==  TimeSigType::FOUR_FOUR) {
             pz = QPointF(0.0, yoff);
             setbbox(symBbox(SymId::timeSigCommon).translated(pz));
-            _numeratorString = score()->scoreFont()->toString(SymId::timeSigCommon);
+            _numeratorString = "C";
             _denominatorString.clear();
             }
       else if (sigType == TimeSigType::ALLA_BREVE) {
             pz = QPointF(0.0, yoff);
             setbbox(symBbox(SymId::timeSigCutCommon).translated(pz));
-            _numeratorString = score()->scoreFont()->toString(SymId::timeSigCutCommon);
+            _numeratorString = '\xA2';
             _denominatorString.clear();
             }
       else {
@@ -307,16 +315,13 @@ void TimeSig::layout1()
                   _numeratorString   = QString("%1").arg(_sig.numerator());   // build numerator string
                   _denominatorString = QString("%1").arg(_sig.denominator()); // build denominator string
                   }
-            QString ns = toTimeSigString(_numeratorString);
-            QString ds = toTimeSigString(_denominatorString);
-            QFont font = score()->scoreFont()->font();
-            QFontMetricsF fm(font);
+            std::vector<SymId> ns = toTimeSigString(_numeratorString);
+            std::vector<SymId> ds = toTimeSigString(_denominatorString);
+
+            ScoreFont* font = score()->scoreFont();
             qreal mag = magS();
-            QRectF numRect = fm.tightBoundingRect(ns);          // get 'tight' bounding boxes for strings
-            QRectF denRect = fm.tightBoundingRect(ds);
-            // really Qt does not provide a QRectF::scale() method?!!
-            numRect = QRect(numRect.x()*mag, numRect.y()*mag, fm.width(ns)*mag, numRect.height()*mag);
-            denRect = QRect(denRect.x()*mag, denRect.y()*mag, fm.width(ds)*mag, denRect.height()*mag);
+            QRectF numRect = font->bbox(ns, mag);
+            QRectF denRect = font->bbox(ds, mag);
 
             // position numerator and denominator; vertical displacement:
             // number of lines is odd: 0.0 (strings are directly above and below the middle line)
@@ -364,8 +369,8 @@ void TimeSig::draw(QPainter* painter) const
       if (staff() && !staff()->staffType()->genTimesig())
             return;
       painter->setPen(curColor());
-      QString ns = toTimeSigString(_numeratorString);
-      QString ds = toTimeSigString(_denominatorString);
+      std::vector<SymId> ns = toTimeSigString(_numeratorString);
+      std::vector<SymId> ds = toTimeSigString(_denominatorString);
 
       drawSymbols(ns, painter, pz);
       drawSymbols(ds, painter, pn);
@@ -373,15 +378,6 @@ void TimeSig::draw(QPainter* painter) const
             drawSymbol(SymId::timeSigParensLeft, painter, pointLargeLeftParen);
             drawSymbol(SymId::timeSigParensRight, painter, pointLargeRightParen);
             }
-      }
-
-//---------------------------------------------------------
-//   space
-//---------------------------------------------------------
-
-Space TimeSig::space() const
-      {
-      return Space(point(score()->styleS(StyleIdx::timesigLeftMargin)), width());
       }
 
 //---------------------------------------------------------
@@ -427,7 +423,7 @@ void TimeSig::setSSig(const QString& s)
 
 void TimeSig::undoSetShowCourtesySig(bool v)
       {
-      score()->undoChangeProperty(this, P_ID::SHOW_COURTESY, v);
+      undoChangeProperty(P_ID::SHOW_COURTESY, v);
       }
 
 //---------------------------------------------------------
@@ -436,7 +432,7 @@ void TimeSig::undoSetShowCourtesySig(bool v)
 
 void TimeSig::undoSetNumeratorString(const QString& s)
       {
-      score()->undoChangeProperty(this, P_ID::NUMERATOR_STRING, s);
+      undoChangeProperty(P_ID::NUMERATOR_STRING, s);
       }
 
 //---------------------------------------------------------
@@ -445,7 +441,7 @@ void TimeSig::undoSetNumeratorString(const QString& s)
 
 void TimeSig::undoSetDenominatorString(const QString& s)
       {
-      score()->undoChangeProperty(this, P_ID::DENOMINATOR_STRING, s);
+      undoChangeProperty(P_ID::DENOMINATOR_STRING, s);
       }
 
 //---------------------------------------------------------
@@ -454,7 +450,7 @@ void TimeSig::undoSetDenominatorString(const QString& s)
 
 void TimeSig::undoSetGroups(const Groups& g)
       {
-      score()->undoChangeProperty(this, P_ID::GROUPS, QVariant::fromValue(g));
+      undoChangeProperty(P_ID::GROUPS, QVariant::fromValue(g));
       }
 
 //---------------------------------------------------------
@@ -516,7 +512,7 @@ bool TimeSig::setProperty(P_ID propertyId, const QVariant& v)
                   break;
             }
       _needLayout = true;
-      score()->setLayoutAll(true);
+      score()->setLayoutAll();
       setGenerated(false);
       return true;
       }
@@ -554,16 +550,6 @@ void TimeSig::localSpatiumChanged(qreal /*oldValue*/, qreal /*newValue*/)
       }
 
 //---------------------------------------------------------
-//   layout
-//---------------------------------------------------------
-
-void TimeSig::layout()
-      {
-      if (_needLayout)
-            layout1();
-      }
-
-//---------------------------------------------------------
 //   nextElement
 //---------------------------------------------------------
 
@@ -585,7 +571,7 @@ Element* TimeSig::prevElement()
 //   accessibleInfo
 //---------------------------------------------------------
 
-QString TimeSig::accessibleInfo()
+QString TimeSig::accessibleInfo() const
       {
       QString timeSigString;
       switch (timeSigType()) {

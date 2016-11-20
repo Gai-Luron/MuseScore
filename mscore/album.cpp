@@ -22,11 +22,21 @@
 #include "globals.h"
 #include "libmscore/score.h"
 #include "libmscore/page.h"
+#include "libmscore/excerpt.h"
 #include "preferences.h"
 #include "libmscore/mscore.h"
 #include "libmscore/xml.h"
 
 namespace Ms {
+
+//---------------------------------------------------------
+//   ~AlbumItem
+//---------------------------------------------------------
+
+AlbumItem::~AlbumItem()
+      {
+      delete score;
+      }
 
 //---------------------------------------------------------
 //   Album
@@ -35,6 +45,11 @@ namespace Ms {
 Album::Album()
       {
       _dirty = false;
+      }
+
+Album::~Album()
+      {
+      qDeleteAll(_scores);
       }
 
 //---------------------------------------------------------
@@ -48,11 +63,9 @@ void Album::print()
       loadScores();
       QPrinter printer(QPrinter::HighResolution);
 
-      Score* score = _scores[0]->score;
       printer.setCreator("MuseScore Version: " MSC_VERSION);
       printer.setFullPage(true);
       printer.setColorMode(QPrinter::Color);
-      printer.setDoubleSidedPrinting(score->pageFormat()->twosided());
       printer.setOutputFormat(QPrinter::NativeFormat);
 
       QPrintDialog pd(&printer, 0);
@@ -62,7 +75,7 @@ void Album::print()
       QPainter painter(&printer);
       painter.setRenderHint(QPainter::Antialiasing, true);
       painter.setRenderHint(QPainter::TextAntialiasing, true);
-      double mag = printer.logicalDpiX() / MScore::DPI;
+      double mag = printer.logicalDpiX() / DPI;
       painter.scale(mag, mag);
 
       int fromPage = printer.fromPage() - 1;
@@ -80,7 +93,7 @@ void Album::print()
       if (_scores[0]->score)
             pageOffset = _scores[0]->score->pageNumberOffset();
 
-      foreach(AlbumItem* item, _scores) {
+      for (AlbumItem* item : _scores) {
             Score* score = item->score;
             if (score == 0)
                   continue;
@@ -101,7 +114,7 @@ void Album::print()
                   QRectF fr = page->abbox();
                   QList<Element*> ell = page->items(fr);
                   qStableSort(ell.begin(), ell.end(), elementLessThan);
-                  foreach(const Element* e, ell) {
+                  for (const Element* e : ell) {
                         e->itemDiscovered = 0;
                         if (!e->visible())
                               continue;
@@ -124,37 +137,95 @@ void Album::print()
 //   createScore
 //---------------------------------------------------------
 
-bool Album::createScore(const QString& fn)
+bool Album::createScore(const QString& fn, bool addPageBreak, bool addSectionBreak)
       {
       loadScores();
 
-      Score* firstScore = _scores[0]->score;
-      if (!firstScore)
+      MasterScore* firstScore = _scores[0]->score->masterScore();
+      if (!firstScore) {
+            qDebug("First score is NULL. Will not attempt to join scores.");
             return false;
+            }
+
+      // do layout for first score's root and excerpt scores
       firstScore->doLayout();
-      Score* score = firstScore->clone();
-      foreach (AlbumItem* item, _scores) {
-            if (item->score == 0 || item->score == firstScore)
-                  continue;
-            item->score->doLayout();
-            if (!score->appendScore(item->score)) {
-                  qDebug("cannot append score");
-                  delete score;
+      for (int i = 0; i < firstScore->excerpts().count(); i++) {
+            if (firstScore->excerpts().at(i)->partScore()) {
+                  firstScore->excerpts().at(i)->partScore()->doLayout();
+                  }
+            else {
+                  qDebug("First score has excerpts, but excerpt %d is NULL.  Will not attempt to join scores.", i);
                   return false;
                   }
             }
-      score->fileInfo()->setFile(fn);
+
+      MasterScore* score = firstScore->clone();
+
+      int excerptCount = firstScore->excerpts().count();
+      bool joinExcerpt = true;
+	for (AlbumItem* item : _scores) {
+            if (item->score == 0 || item->score == firstScore)
+                  continue;
+            if (item->score->excerpts().count() != excerptCount) {
+                  joinExcerpt = false;
+                  qDebug("Will not join parts. Album item \"%s\".  Mismatch between number of excerpts with first album item \"%s\"", qPrintable(item->name), qPrintable(_scores[0]->name));
+                  break;
+                  }
+            }
+      if (!joinExcerpt) {
+            for (Excerpt* ex : score->excerpts())
+                  score->removeExcerpt(ex);
+            }
+
+      for (AlbumItem* item : _scores) {
+
+            if (item->score == 0 || item->score == firstScore)
+                  continue;
+
+            // try to append root score
+            item->score->doLayout();
+            if (!score->appendScore(item->score, addPageBreak, addSectionBreak)) {
+                  qDebug("Cannot append root score of album item \"%s\".", qPrintable(item->name));
+                  delete score;
+                  return false;
+                  }
+
+            // try to append each excerpt
+            if (joinExcerpt) {
+                  for (int i = 0; i < score->excerpts().count(); i++) {
+                        Score* currentScoreExcerpt = item->score->excerpts().at(i)->partScore();
+                        if (currentScoreExcerpt) {
+                              currentScoreExcerpt->doLayout();
+                              if (!score->excerpts().at(i)->partScore()->appendScore(currentScoreExcerpt, addPageBreak, addSectionBreak)) {
+                                    qDebug("Cannot append excerpt %d of album item \"%s\".", i, qPrintable(item->name));
+                                    delete score;
+                                    return false;
+                                    }
+                              }
+                        else {
+                              qDebug("First score has excerpts, but excerpt %d of album item \"%s\" is NULL.  Will not attempt to join scores.",
+                                          i, qPrintable(item->name));
+                              delete score;
+                              return false;
+                              }
+                        }
+                  }
+            }
+
+      score->masterScore()->fileInfo()->setFile(fn);
       qDebug("Album::createScore: save file");
       try {
-            QString suffix  = score->fileInfo()->suffix().toLower();
+            QString suffix  = score->masterScore()->fileInfo()->suffix().toLower();
             if (suffix == "mscz")
-                  score->saveCompressedFile(*score->fileInfo(), false);
+                  score->saveCompressedFile(*score->masterScore()->fileInfo(), false);
             else if (suffix == "mscx")
-                  score->saveFile(*score->fileInfo());
+                  score->Score::saveFile(*score->masterScore()->fileInfo());
             }
       catch (QString s) {
+            delete score;
             return false;
             }
+      delete score;
       return true;
       }
 
@@ -175,7 +246,7 @@ bool Album::read(const QString& p)
             return false;
             }
 
-      XmlReader e(&f);
+      XmlReader e(gscore, &f);
       while (e.readNextStartElement()) {
             if (e.name() == "museScore") {
                   QString version = e.attribute("version");
@@ -205,7 +276,6 @@ void Album::load(XmlReader& e)
             const QStringRef& tag(e.name());
             if (tag == "Score") {
                   AlbumItem* i = new AlbumItem;
-                  i->score = 0;
                   while (e.readNextStartElement()) {
                         const QStringRef& tag(e.name());
                         if (tag == "name")
@@ -231,8 +301,8 @@ void Album::load(XmlReader& e)
 
 void Album::loadScores()
       {
-      foreach(AlbumItem* item, _scores) {
-            if (item->path.isEmpty())
+      for (AlbumItem* item : _scores) {
+            if (item->score || item->path.isEmpty())
                   continue;
             QString ip = item->path;
             if (ip[0] != '/') {
@@ -240,7 +310,7 @@ void Album::loadScores()
                   QFileInfo f(_path);
                   ip = f.path() + "/" + item->path;
                   }
-            Score* score = new Score(MScore::baseStyle());  // start with built-in style
+            MasterScore* score = new MasterScore(MScore::baseStyle());  // start with built-in style
             score->loadMsc(item->path, false);
             item->score = score;
             }
@@ -250,11 +320,11 @@ void Album::loadScores()
 //   save
 //---------------------------------------------------------
 
-void Album::save(Xml& xml)
+void Album::save(XmlWriter& xml)
       {
       xml.stag("Album");
       xml.tag("name", _name);
-      foreach(AlbumItem* item, _scores) {
+      for (AlbumItem* item : _scores) {
             xml.stag("Score");
             xml.tag("name", item->name);
             xml.tag("path", item->path);
@@ -268,7 +338,7 @@ void Album::save(Xml& xml)
 //   write
 //---------------------------------------------------------
 
-void Album::write(Xml& xml)
+void Album::write(XmlWriter& xml)
       {
       xml.header();
       xml.stag("museScore version=\"" MSC_VERSION "\"");
@@ -292,7 +362,7 @@ void Album::append(AlbumItem* item)
 
 void Album::remove(int idx)
       {
-      _scores.removeAt(idx);
+      delete _scores.takeAt(idx);
       _dirty = true;
       }
 

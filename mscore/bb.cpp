@@ -374,7 +374,7 @@ bool BBFile::read(const QString& name)
 //    return true on success
 //---------------------------------------------------------
 
-Score::FileError importBB(Score* score, const QString& name)
+Score::FileError importBB(MasterScore* score, const QString& name)
       {
       BBFile bb;
       if(!QFileInfo(name).exists())
@@ -429,7 +429,7 @@ Score::FileError importBB(Score* score, const QString& name)
                   Rest* rest = new Rest(score, TDuration(TDuration::DurationType::V_MEASURE));
                   rest->setDuration(measure->len());
                   rest->setTrack(0);
-                  Segment* s = measure->getSegment(rest, measure->tick());
+                  Segment* s = measure->getSegment(Segment::Type::ChordRest, measure->tick());
                   s->add(rest);
                   }
             }
@@ -448,7 +448,7 @@ Score::FileError importBB(Score* score, const QString& name)
                   Rest* rest = new Rest(score, TDuration(TDuration::DurationType::V_MEASURE));
                   rest->setDuration(measure->len());
                   rest->setTrack(0);
-                  Segment* s = measure->getSegment(rest, measure->tick());
+                  Segment* s = measure->getSegment(Segment::Type::ChordRest, measure->tick());
                   s->add(rest);
                   }
             }
@@ -462,7 +462,7 @@ Score::FileError importBB(Score* score, const QString& name)
       Text* text = new Text(score);
 //      text->setSubtype(TEXT_TITLE);
       text->setTextStyleType(TextStyleType::TITLE);
-      text->setText(bb.title());
+      text->setPlainText(bb.title());
 
       MeasureBase* measure = score->first();
       if (measure->type() != Element::Type::VBOX) {
@@ -522,9 +522,9 @@ Score::FileError importBB(Score* score, const QString& name)
                   measure->add(lb);
                   }
             if (startChorus == n)
-                  measure->setRepeatFlags(Repeat::START);
+                  measure->setRepeatStart(true);
             else if (endChorus == n) {
-                  measure->setRepeatFlags(Repeat::END);
+                  measure->setRepeatEnd(true);
                   measure->setRepeatCount(bb.repeats());
                   }
             ++n;
@@ -539,7 +539,7 @@ Score::FileError importBB(Score* score, const QString& name)
             keysig->setTrack((score->staffIdx(staff->part()) + staff->rstaff()) * VOICES);
             keysig->setKey(Key(bb.key()));
             Measure* mks = score->tick2measure(tick);
-            Segment* sks = mks->getSegment(keysig, tick);
+            Segment* sks = mks->getSegment(Segment::Type::KeySig, tick);
             sks->add(keysig);
             }
       score->fixTicks();
@@ -552,10 +552,11 @@ Score::FileError importBB(Score* score, const QString& name)
 
 int BBFile::processPendingNotes(Score* score, QList<MNote*>* notes, int len, int track)
       {
-      Staff* cstaff          = score->staff(track/VOICES);
-      const Drumset* drumset = cstaff->part()->instr()->drumset();
-      bool useDrumset        = cstaff->part()->instr()->useDrumset();
-      int tick               = notes->at(0)->mc.ontime();
+      Staff* cstaff                = score->staff(track/VOICES);
+      const Instrument* instrument = cstaff->part()->instrument();
+      const Drumset* drumset       = instrument->drumset();
+      bool useDrumset              = instrument->useDrumset();
+      int tick                     = notes->at(0)->mc.ontime();
 
       //
       // look for len of shortest note
@@ -582,7 +583,8 @@ int BBFile::processPendingNotes(Score* score, QList<MNote*>* notes, int len, int
       TDuration d;
       d.setVal(len);
       chord->setDurationType(d);
-      Segment* s = measure->getSegment(chord, tick);
+      chord->setDuration(d.fraction());
+      Segment* s = measure->getSegment(Segment::Type::ChordRest, tick);
       s->add(chord);
 
       foreach (MNote* n, *notes) {
@@ -716,7 +718,7 @@ void BBFile::convertTrack(Score* score, BBTrack* track, int staffIdx)
                               Rest* rest = new Rest(score, d);
                               rest->setDuration(d.fraction());
                               rest->setTrack(staffIdx * VOICES);
-                              Segment* s = measure->getSegment(rest, ctick);
+                              Segment* s = measure->getSegment(Segment::Type::ChordRest, ctick);
                               s->add(rest);
 // qDebug("   add rest %d", len);
 

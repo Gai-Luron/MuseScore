@@ -24,7 +24,7 @@ namespace Ms {
 //---------------------------------------------------------
 
 enum class SpacerType : char {
-      UP, DOWN
+      UP, DOWN, FIXED
       };
 
 //-------------------------------------------------------------------
@@ -50,7 +50,7 @@ class Spacer : public Element {
       SpacerType spacerType() const    { return _spacerType; }
       void setSpacerType(SpacerType t) { _spacerType = t; }
 
-      virtual void write(Xml&) const;
+      virtual void write(XmlWriter&) const;
       virtual void read(XmlReader&);
       virtual void draw(QPainter*) const;
       virtual bool isEditable() const { return true; }

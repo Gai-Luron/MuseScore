@@ -3,7 +3,7 @@
 //  Linux Music Score Editor
 //  $Id:$
 //
-//  Copyright (C) 2011 Werner Schweer and others
+//  Copyright (C) 2011-2016 Werner Schweer and others
 //
 //  This program is free software; you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License version 2.
@@ -19,6 +19,7 @@
 //=============================================================================
 
 #include "pianotools.h"
+#include "preferences.h"
 
 namespace Ms {
 
@@ -49,7 +50,6 @@ HPiano::HPiano(QWidget* parent)
 
       _firstKey   = 21;
       _lastKey    = 108;   // 88 key piano
-      _currentKey = -1;
       qreal x = 0.0;
       for (int i = _firstKey; i <= _lastKey; ++i) {
             PianoKeyItem* k = new PianoKeyItem(this, i);
@@ -129,6 +129,48 @@ QSize HPiano::sizeHint() const
       }
 
 //---------------------------------------------------------
+//   pressKeys
+//---------------------------------------------------------
+
+void HPiano::setPressedPitches(QSet<int> pitches)
+      {
+      _pressedPitches = pitches;
+      updateAllKeys();
+      }
+
+//---------------------------------------------------------
+//   pressPitch
+//---------------------------------------------------------
+
+void HPiano::pressPitch(int pitch)
+      {
+      _pressedPitches.insert(pitch);
+      updateAllKeys();
+      }
+
+//---------------------------------------------------------
+//   releasePitch
+//---------------------------------------------------------
+
+void HPiano::releasePitch(int pitch)
+      {
+      _pressedPitches.remove(pitch);
+      updateAllKeys();
+      }
+
+//---------------------------------------------------------
+//   updateAllKeys
+//---------------------------------------------------------
+
+void HPiano::updateAllKeys()
+      {
+      for (PianoKeyItem* key : keys) {
+            key->setPressed(_pressedPitches.contains(key->pitch()));
+            key->update();
+            }
+      }
+
+//---------------------------------------------------------
 //   PianoKeyItem
 //---------------------------------------------------------
 
@@ -136,8 +178,8 @@ PianoKeyItem::PianoKeyItem(HPiano* _piano, int p)
    : QGraphicsPathItem()
       {
       piano = _piano;
-      pitch = p;
-      pressed = false;
+      _pitch = p;
+      _pressed = false;
       type = -1;
       }
 
@@ -247,10 +289,10 @@ void PianoKeyItem::setType(int val)
 
 void PianoKeyItem::mousePressEvent(QGraphicsSceneMouseEvent*)
       {
-      pressed = true;
+      _pressed = true;
       update();
       bool ctrl = qApp->keyboardModifiers() & Qt::ControlModifier;
-      emit piano->keyPressed(pitch, ctrl);
+      emit piano->keyPressed(_pitch, ctrl, 80);
       }
 
 //---------------------------------------------------------
@@ -259,8 +301,9 @@ void PianoKeyItem::mousePressEvent(QGraphicsSceneMouseEvent*)
 
 void PianoKeyItem::mouseReleaseEvent(QGraphicsSceneMouseEvent*)
       {
-      pressed = false;
+      _pressed = false;
       update();
+      emit piano->keyReleased(_pitch, false, 0);
       }
 
 //---------------------------------------------------------
@@ -271,12 +314,15 @@ void PianoKeyItem::paint(QPainter* p, const QStyleOptionGraphicsItem* /*o*/, QWi
       {
       p->setRenderHint(QPainter::Antialiasing, true);
       p->setPen(QPen(Qt::black, .8));
-      if (pressed)
-            p->setBrush(QColor(255, 255, 128));
+      if (_pressed) {
+            QColor c(preferences.pianoHlColor);
+            c.setAlpha(180);
+            p->setBrush(c);
+            }
       else
             p->setBrush(type >= 7 ? Qt::black : Qt::white);
       p->drawPath(path());
-      if (pitch == 60) {
+      if (_pitch == 60) {
             QFont f("FreeSerif", 8);
             p->setFont(f);
             p->drawText(QRectF(KEY_WIDTH / 2, KEY_HEIGHT - 8, 0, 0),
@@ -292,17 +338,48 @@ PianoTools::PianoTools(QWidget* parent)
    : QDockWidget(parent)
       {
       setObjectName("piano");
+      setAllowedAreas(Qt::DockWidgetAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea));
+
+      _piano = new HPiano;
+      _piano->setFocusPolicy(Qt::ClickFocus);
+      setWidget(_piano);
+
+      connect(_piano, SIGNAL(keyPressed(int, bool, int)), SIGNAL(keyPressed(int, bool, int)));
+      connect(_piano, SIGNAL(keyReleased(int, bool, int)), SIGNAL(keyReleased(int, bool, int)));
+      retranslate();
+      }
+
+//---------------------------------------------------------
+//   retranslate
+//---------------------------------------------------------
+
+void PianoTools::retranslate()
+      {
       setWindowTitle(tr("Piano Keyboard"));
-      setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
+      }
 
-      HPiano* piano = new HPiano;
-      piano->setFocusPolicy(Qt::ClickFocus);
-      setWidget(piano);
+//---------------------------------------------------------
+//   heartBeat
+//---------------------------------------------------------
 
-//      QWidget* w = new QWidget(this);
-//      setTitleBarWidget(w);
-//      titleBarWidget()->hide();
-      connect(piano, SIGNAL(keyPressed(int, bool)), SIGNAL(keyPressed(int, bool)));
+void PianoTools::heartBeat(QList<const Ms::Note *> notes)
+      {
+      QSet<int> pitches;
+      for (const Note* note : notes) {
+          pitches.insert(note->ppitch());
+          }
+      _piano->setPressedPitches(pitches);
+      }
+
+//---------------------------------------------------------
+//   changeEvent
+//---------------------------------------------------------
+
+void PianoTools::changeEvent(QEvent *event)
+      {
+      QDockWidget::changeEvent(event);
+      if (event->type() == QEvent::LanguageChange)
+            retranslate();
       }
 
 //---------------------------------------------------------

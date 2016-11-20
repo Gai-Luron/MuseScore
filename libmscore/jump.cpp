@@ -45,6 +45,7 @@ Jump::Jump(Score* s)
       setFlags(ElementFlag::MOVABLE | ElementFlag::SELECTABLE);
       setTextStyleType(TextStyleType::REPEAT_RIGHT);
       setLayoutToParentWidth(true);
+      _playRepeats = false;
       }
 
 //---------------------------------------------------------
@@ -55,7 +56,7 @@ void Jump::setJumpType(Type t)
       {
       for (const JumpTypeTable& p : jumpTypeTable) {
             if (p.type == t) {
-                  setText(p.text);
+                  setXmlText(p.text);
                   setJumpTo(p.jumpTo);
                   setPlayUntil(p.playUntil);
                   setContinueAt(p.continueAt);
@@ -81,9 +82,9 @@ Jump::Type Jump::jumpType() const
 QString Jump::jumpTypeUserName() const
       {
       int idx = static_cast<int>(this->jumpType());
-      if(idx < jumpTypeTableSize())
+      if (idx < jumpTypeTableSize())
             return qApp->translate("jumpType", jumpTypeTable[idx].userText.toUtf8().constData());
-      return QString("Custom");
+      return tr("Custom");
       }
 
 //---------------------------------------------------------
@@ -100,6 +101,8 @@ void Jump::read(XmlReader& e)
                   _playUntil = e.readElementText();
             else if (tag == "continueAt")
                   _continueAt = e.readElementText();
+            else if (tag == "playRepeats")
+                  _playRepeats = e.readBool();
             else if (!Text::readProperties(e))
                   e.unknown();
             }
@@ -110,13 +113,14 @@ void Jump::read(XmlReader& e)
 //   write
 //---------------------------------------------------------
 
-void Jump::write(Xml& xml) const
+void Jump::write(XmlWriter& xml) const
       {
       xml.stag(name());
       Text::writeProperties(xml);
       xml.tag("jumpTo", _jumpTo);
       xml.tag("playUntil", _playUntil);
       xml.tag("continueAt", _continueAt);
+      writeProperty(xml, P_ID::PLAY_REPEATS);
       xml.etag();
       }
 
@@ -126,7 +130,7 @@ void Jump::write(Xml& xml) const
 
 void Jump::undoSetJumpTo(const QString& s)
       {
-      score()->undoChangeProperty(this, P_ID::JUMP_TO, s);
+      undoChangeProperty(P_ID::JUMP_TO, s);
       }
 
 //---------------------------------------------------------
@@ -135,7 +139,7 @@ void Jump::undoSetJumpTo(const QString& s)
 
 void Jump::undoSetPlayUntil(const QString& s)
       {
-      score()->undoChangeProperty(this, P_ID::PLAY_UNTIL, s);
+      undoChangeProperty(P_ID::PLAY_UNTIL, s);
       }
 
 //---------------------------------------------------------
@@ -144,7 +148,7 @@ void Jump::undoSetPlayUntil(const QString& s)
 
 void Jump::undoSetContinueAt(const QString& s)
       {
-      score()->undoChangeProperty(this, P_ID::CONTINUE_AT, s);
+      undoChangeProperty(P_ID::CONTINUE_AT, s);
       }
 
 //---------------------------------------------------------
@@ -160,6 +164,8 @@ QVariant Jump::getProperty(P_ID propertyId) const
                   return playUntil();
             case P_ID::CONTINUE_AT:
                   return continueAt();
+            case P_ID::PLAY_REPEATS:
+                  return playRepeats();
             default:
                   break;
             }
@@ -182,12 +188,16 @@ bool Jump::setProperty(P_ID propertyId, const QVariant& v)
             case P_ID::CONTINUE_AT:
                   setContinueAt(v.toString());
                   break;
+            case P_ID::PLAY_REPEATS:
+                  setPlayRepeats(v.toInt());
+                  break;
             default:
                   if (!Text::setProperty(propertyId, v))
                         return false;
                   break;
             }
-      score()->setLayoutAll(true);
+      triggerLayout();
+      score()->setPlaylistDirty();
       return true;
       }
 
@@ -202,6 +212,9 @@ QVariant Jump::propertyDefault(P_ID propertyId) const
             case P_ID::PLAY_UNTIL:
             case P_ID::CONTINUE_AT:
                   return QString("");
+
+            case P_ID::PLAY_REPEATS:
+                  return false;
 
             default:
                   break;
@@ -232,7 +245,7 @@ Element* Jump::prevElement()
 //   accessibleInfo
 //---------------------------------------------------------
 
-QString Jump::accessibleInfo()
+QString Jump::accessibleInfo() const
       {
       return QString("%1: %2").arg(Element::accessibleInfo()).arg(this->jumpTypeUserName());
       }

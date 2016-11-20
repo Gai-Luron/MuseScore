@@ -21,6 +21,8 @@
 #include "staff.h"
 #include "chord.h"
 #include "score.h"
+#include "part.h"
+#include "utils.h"
 
 namespace Ms {
 
@@ -525,7 +527,7 @@ static int penalty(int lof1, int lof2, int k)
       }
 
 static const int WINDOW       = 9;
-#if 1 // yet(?) unused
+#if 0 // yet(?) unused
 static const int WINDOW_SHIFT = 3;
 static const int ASIZE        = 1024;   // 2 ** WINDOW
 #endif
@@ -534,7 +536,7 @@ static const int ASIZE        = 1024;   // 2 ** WINDOW
 //   computeWindow
 //---------------------------------------------------------
 
-static int computeWindow(const QList<Event>& notes, int start, int end, int keyIdx)
+static int computeWindow(const std::vector<Event>& notes, int start, int end, int keyIdx)
       {
       int p   = 10000;
       int idx = -1;
@@ -606,7 +608,7 @@ int tpc(int idx, int pitch, int opt)
 //   computeWindow
 //---------------------------------------------------------
 
-int computeWindow(const QList<Note*>& notes, int start, int end)
+int computeWindow(const std::vector<Note*>& notes, int start, int end)
       {
       int p   = 10000;
       int idx = -1;
@@ -682,7 +684,7 @@ int computeWindow(const QList<Note*>& notes, int start, int end)
 //   spell
 //---------------------------------------------------------
 
-void spell(QList<Event>& notes, int key)
+void spell(std::vector<Event>& notes, int key)
       {
       key += 7;
 
@@ -738,10 +740,27 @@ void spell(QList<Event>& notes, int key)
       }
 
 //---------------------------------------------------------
+//   changeAllTpcs
+//---------------------------------------------------------
+
+void changeAllTpcs(Note* n, int tpc1)
+      {
+      Interval v;
+      int tick = n && n->chord() ? n->chord()->tick() : -1;
+      if (n && n->part() && n->part()->instrument()) {
+            v = n->part()->instrument(tick)->transpose();
+            v.flip();
+            }
+      int tpc2 = Ms::transposeTpc(tpc1, v, true);
+      n->undoChangeProperty(P_ID::TPC1, tpc1);
+      n->undoChangeProperty(P_ID::TPC2, tpc2);
+      }
+
+//---------------------------------------------------------
 //   spell
 //---------------------------------------------------------
 
-void Score::spellNotelist(QList<Note*>& notes)
+void Score::spellNotelist(std::vector<Note*>& notes)
       {
       int n = notes.size();
 
@@ -760,16 +779,16 @@ void Score::spellNotelist(QList<Note*>& notes)
                   tab = tab1;
 
             if (start == 0) {
-                  undoChangeTpc(notes[0], tab[(notes[0]->pitch() % 12) * 2 + (opt & 1)]);
+                  changeAllTpcs(notes[0], tab[(notes[0]->pitch() % 12) * 2 + (opt & 1)]);
                   if (n > 1)
-                        undoChangeTpc(notes[1], tab[(notes[1]->pitch() % 12) * 2 + ((opt & 2)>>1)]);
+                        changeAllTpcs(notes[1], tab[(notes[1]->pitch() % 12) * 2 + ((opt & 2)>>1)]);
                   if (n > 2)
-                        undoChangeTpc(notes[2], tab[(notes[2]->pitch() % 12) * 2 + ((opt & 4)>>2)]);
+                        changeAllTpcs(notes[2], tab[(notes[2]->pitch() % 12) * 2 + ((opt & 4)>>2)]);
                   }
             if ((end - start) >= 6) {
-                  undoChangeTpc(notes[start+3], tab[(notes[start+3]->pitch() % 12) * 2 + ((opt &  8) >> 3)]);
-                  undoChangeTpc(notes[start+4], tab[(notes[start+4]->pitch() % 12) * 2 + ((opt & 16) >> 4)]);
-                  undoChangeTpc(notes[start+5], tab[(notes[start+5]->pitch() % 12) * 2 + ((opt & 32) >> 5)]);
+                  changeAllTpcs(notes[start+3], tab[(notes[start+3]->pitch() % 12) * 2 + ((opt &  8) >> 3)]);
+                  changeAllTpcs(notes[start+4], tab[(notes[start+4]->pitch() % 12) * 2 + ((opt & 16) >> 4)]);
+                  changeAllTpcs(notes[start+5], tab[(notes[start+5]->pitch() % 12) * 2 + ((opt & 32) >> 5)]);
                   }
             if (end == n) {
                   int n = end - start;
@@ -777,13 +796,13 @@ void Score::spellNotelist(QList<Note*>& notes)
                   switch(n - 6) {
                         case 3:
                               k = end - start - 3;
-                              undoChangeTpc(notes[end-3], tab[(notes[end-3]->pitch() % 12) * 2 + ((opt & (1<<k)) >> k)]);
+                              changeAllTpcs(notes[end-3], tab[(notes[end-3]->pitch() % 12) * 2 + ((opt & (1<<k)) >> k)]);
                         case 2:
                               k = end - start - 2;
-                              undoChangeTpc(notes[end-2], tab[(notes[end-2]->pitch() % 12) * 2 + ((opt & (1<<k)) >> k)]);
+                              changeAllTpcs(notes[end-2], tab[(notes[end-2]->pitch() % 12) * 2 + ((opt & (1<<k)) >> k)]);
                         case 1:
                               k = end - start - 1;
-                              undoChangeTpc(notes[end-1], tab[(notes[end-1]->pitch() % 12) * 2 + ((opt & (1<<k)) >> k)]);
+                              changeAllTpcs(notes[end-1], tab[(notes[end-1]->pitch() % 12) * 2 + ((opt & (1<<k)) >> k)]);
                         }
                   break;
                   }
@@ -881,6 +900,20 @@ int absStep2pitchByKey(int step, Key key)
       int octave = step / STEP_DELTA_OCTAVE;
       int deltaPitch = step2deltaPitchByKey(step % STEP_DELTA_OCTAVE, key);
       return octave * PITCH_DELTA_OCTAVE + deltaPitch;
+      }
+
+//---------------------------------------------------------
+//   tpc2degree
+//    the scale degree of a TPC for a given Key
+//---------------------------------------------------------
+
+int tpc2degree(int tpc, Key key)
+      {
+      const QString names("CDEFGAB");
+      const QString scales("CGDAEBFCGDAEBFC");
+      QString scale = scales[int(key)+7];
+      QString stepName = tpc2stepName(tpc);
+      return (names.indexOf(stepName) - names.indexOf(scale) +28) % 7;
       }
 
 }

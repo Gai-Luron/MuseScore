@@ -37,6 +37,8 @@ class TestSplitStaff : public QObject, public MTest
       void splitstaff01() { splitstaff(1, 0); } //single notes
       void splitstaff02() { splitstaff(2, 0); } //chord
       void splitstaff03() { splitstaff(3, 1); } //non-top staff
+      void splitstaff04() { splitstaff(4, 0); } //slur up
+      void splitstaff05() { splitstaff(5, 0); } //slur down
       };
 
 //---------------------------------------------------------
@@ -54,10 +56,10 @@ void TestSplitStaff::initTestCase()
 
 void TestSplitStaff::splitstaff(int idx, int staffIdx)
       {
-      Score* score = readScore(DIR + QString("splitstaff0%1.mscx").arg(idx));
-      score->doLayout();
+      MasterScore* score = readScore(DIR + QString("splitstaff0%1.mscx").arg(idx));
+      score->startCmd();
       score->splitStaff(staffIdx, 60);
-      score->doLayout();
+      score->endCmd();
 
       QVERIFY(saveCompareScore(score, QString("splitstaff0%1.mscx").arg(idx),
          DIR + QString("splitstaff0%1-ref.mscx").arg(idx)));

@@ -32,6 +32,7 @@ namespace Ms {
 ShortcutCaptureDialog::ShortcutCaptureDialog(Shortcut* _s, QMap<QString, Shortcut*> ls, QWidget* parent)
    : QDialog(parent)
       {
+      setObjectName("ShortcutCaptureDialog");
       setupUi(this);
       setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
       localShortcuts = ls;
@@ -48,6 +49,7 @@ ShortcutCaptureDialog::ShortcutCaptureDialog(Shortcut* _s, QMap<QString, Shortcu
       clearClicked();
 
       nshrtLabel->installEventFilter(this);
+      MuseScore::restoreGeometry(this);
       }
 
 //---------------------------------------------------------
@@ -134,12 +136,23 @@ void ShortcutCaptureDialog::keyPress(QKeyEvent* e)
       bool conflict = false;
       QString msgString;
 
-      foreach (Shortcut* ss, localShortcuts) {
+      for (Shortcut* ss : localShortcuts) {
             if (s == ss)
                   continue;
-//            if (!(s->state() & ss->state()))    // no conflict if states do not overlap
-//                  continue;
-            foreach(const QKeySequence& ks, ss->keys()) {
+            if (!(s->state() & ss->state()))    // no conflict if states do not overlap
+                  continue;
+
+            QList<QKeySequence> skeys = QKeySequence::keyBindings(ss->standardKey());
+
+            for (const QKeySequence& ks : skeys) {
+                  if (ks == key) {
+                        msgString = tr("Shortcut conflicts with ") + ss->descr();
+                        conflict = true;
+                        break;
+                        }
+                  }
+
+            for (const QKeySequence& ks : ss->keys()) {
                   if (ks == key) {
                         msgString = tr("Shortcut conflicts with ") + ss->descr();
                         conflict = true;
@@ -194,5 +207,16 @@ void ShortcutCaptureDialog::clearClicked()
       nshrtLabel->setText("");
       key = 0;
       }
+
+//---------------------------------------------------------
+//   hideEvent
+//---------------------------------------------------------
+
+void ShortcutCaptureDialog::hideEvent(QHideEvent* event)
+      {
+      MuseScore::saveGeometry(this);
+      QWidget::hideEvent(event);
+      }
+
 }
 

@@ -58,7 +58,7 @@ static void addText(Ms::VBox*& vbx, Ms::Score* s, QString strTxt, Ms::TextStyleT
       if (!strTxt.isEmpty()) {
             Ms::Text* text = new Ms::Text(s);
             text->setTextStyleType(stl);
-            text->setText(strTxt);
+            text->setPlainText(strTxt);
             if (vbx == 0)
                   vbx = new Ms::VBox(s);
             vbx->add(text);
@@ -113,7 +113,7 @@ static void setTempo(Ms::Score* score, int tempo)
       tt->setTrack(0);
       QString tempoText = Ms::TempoText::duration2tempoTextString(Ms::TDuration::DurationType::V_QUARTER);
       tempoText += QString(" = %1").arg(tempo);
-      tt->setText(tempoText);
+      tt->setPlainText(tempoText);
       Ms::Measure* measure = score->firstMeasure();
       Ms::Segment* segment = measure->getSegment(Ms::Segment::Type::ChordRest, 0);
       segment->add(tt);
@@ -219,7 +219,7 @@ void MsScWriter::beginMeasure(const Bww::MeasureBeginFlags mbf)
       score->measures()->add(currentMeasure);
 
       if (mbf.repeatBegin)
-            currentMeasure->setRepeatFlags(Ms::Repeat::START);
+            currentMeasure->setRepeatStart(true);
 
       if (mbf.irregular)
             currentMeasure->setIrregular(true);
@@ -249,7 +249,7 @@ void MsScWriter::beginMeasure(const Bww::MeasureBeginFlags mbf)
             Ms::Clef* clef = new Ms::Clef(score);
             clef->setClefType(Ms::ClefType::G);
             clef->setTrack(0);
-            Ms::Segment* s = currentMeasure->getSegment(clef, tick);
+            Ms::Segment* s = currentMeasure->getSegment(Ms::Segment::Type::Clef, tick);
             s->add(clef);
             // keysig
             Ms::KeySigEvent key;
@@ -257,13 +257,13 @@ void MsScWriter::beginMeasure(const Bww::MeasureBeginFlags mbf)
             Ms::KeySig* keysig = new Ms::KeySig(score);
             keysig->setKeySigEvent(key);
             keysig->setTrack(0);
-            s = currentMeasure->getSegment(keysig, tick);
+            s = currentMeasure->getSegment(Ms::Segment::Type::KeySig, tick);
             s->add(keysig);
             // timesig
             Ms::TimeSig* timesig = new Ms::TimeSig(score);
             timesig->setSig(Ms::Fraction(beats, beat));
             timesig->setTrack(0);
-            s = currentMeasure->getSegment(timesig, tick);
+            s = currentMeasure->getSegment(Ms::Segment::Type::TimeSig, tick);
             s->add(timesig);
             qDebug("tempo %d", tempo);
             }
@@ -277,7 +277,7 @@ void MsScWriter::endMeasure(const Bww::MeasureEndFlags mef)
       {
       qDebug() << "MsScWriter::endMeasure()";
       if (mef.repeatEnd)
-            currentMeasure->setRepeatFlags(Ms::Repeat::END);
+            currentMeasure->setRepeatEnd(true);
 
       if (mef.endingEnd) {
             if (lastVolta) {
@@ -302,10 +302,10 @@ void MsScWriter::endMeasure(const Bww::MeasureEndFlags mef)
             }
 
       if (mef.lastOfPart && !mef.repeatEnd) {
-            currentMeasure->setEndBarLineType(Ms::BarLineType::END, false, true);
+//TODO            currentMeasure->setEndBarLineType(Ms::BarLineType::END, false, true);
             }
       else if (mef.doubleBarLine) {
-            currentMeasure->setEndBarLineType(Ms::BarLineType::DOUBLE, false, true);
+//TODO            currentMeasure->setEndBarLineType(Ms::BarLineType::DOUBLE, false, true);
             }
       // BarLine* barLine = new BarLine(score);
       // bool visible = true;
@@ -346,7 +346,7 @@ void MsScWriter::note(const QString pitch, const QVector<Bww::BeamType> beamList
       if (triplet != ST_NONE) ticks = 2 * ticks / 3;
 
       Ms::Beam::Mode bm  = (beamList.at(0) == Bww::BM_BEGIN) ? Ms::Beam::Mode::BEGIN : Ms::Beam::Mode::AUTO;
-      Ms::MScore::Direction sd = Ms::MScore::Direction::AUTO;
+      Ms::Direction sd = Ms::Direction::AUTO;
 
       // create chord
       Ms::Chord* cr = new Ms::Chord(score);
@@ -356,13 +356,13 @@ void MsScWriter::note(const QString pitch, const QVector<Bww::BeamType> beamList
       if (grace) {
             cr->setNoteType(Ms::NoteType::GRACE32);
             cr->setDurationType(Ms::TDuration::DurationType::V_32ND);
-            sd = Ms::MScore::Direction::UP;
+            sd = Ms::Direction::UP;
             }
       else {
             if (durationType.type() == Ms::TDuration::DurationType::V_INVALID)
                   durationType.setType(Ms::TDuration::DurationType::V_QUARTER);
             cr->setDurationType(durationType);
-            sd = Ms::MScore::Direction::DOWN;
+            sd = Ms::Direction::DOWN;
             }
       cr->setDuration(durationType.fraction());
       cr->setDots(dots);
@@ -380,7 +380,7 @@ void MsScWriter::note(const QString pitch, const QVector<Bww::BeamType> beamList
       cr->add(note);
       // add chord to measure
       if (!grace) {
-            Ms::Segment* s = currentMeasure->getSegment(cr, tick);
+            Ms::Segment* s = currentMeasure->getSegment(Ms::Segment::Type::ChordRest, tick);
             s->add(cr);
             if (!currentGraceNotes.isEmpty()) {
                   for (int i = currentGraceNotes.size() - 1; i >=0; i--)
@@ -444,9 +444,9 @@ void MsScWriter::header(const QString title, const QString type,
             score->style()->set(Ms::StyleIdx::oddFooterC, footer);
 
       Ms::Part* part = score->staff(0)->part();
-      part->setLongName(instrumentName());
+      part->setPlainLongName(instrumentName());
       part->setPartName(instrumentName());
-      part->instr()->setTrackName(instrumentName());
+      part->instrument()->setTrackName(instrumentName());
       part->setMidiProgram(midiProgram() - 1);
       }
 
@@ -527,7 +527,7 @@ namespace Ms {
 //   importBww
 //---------------------------------------------------------
 
-Score::FileError importBww(Score* score, const QString& path)
+Score::FileError importBww(MasterScore* score, const QString& path)
       {
       qDebug("Score::importBww(%s)", qPrintable(path));
 

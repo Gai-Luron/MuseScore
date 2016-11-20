@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<museScore version="2.00">
+<museScore version="3.00">
   <Score>
     <LayerTag id="0" tag="default"></LayerTag>
     <currentLayer>0</currentLayer>
@@ -53,8 +53,8 @@
         </Staff>
       <trackName>Flute</trackName>
       <Instrument>
-        <longName pos="0">Flute</longName>
-        <shortName pos="0">Fl.</shortName>
+        <longName>Flute</longName>
+        <shortName>Fl.</shortName>
         <trackName>Flute</trackName>
         <minPitchP>59</minPitchP>
         <maxPitchP>98</maxPitchP>
@@ -104,19 +104,19 @@
         </Staff>
       <trackName>Drumset</trackName>
       <Instrument>
-        <longName pos="0">Drumset</longName>
-        <shortName pos="0">Drs.</shortName>
+        <longName>Drumset</longName>
+        <shortName>Drs.</shortName>
         <trackName>Drumset</trackName>
         <useDrumset>1</useDrumset>
         <Drum pitch="35">
-          <head>0</head>
+          <head>normal</head>
           <line>7</line>
           <voice>1</voice>
           <name>Acoustic Bass Drum</name>
           <stem>2</stem>
           </Drum>
         <Drum pitch="36">
-          <head>0</head>
+          <head>normal</head>
           <line>7</line>
           <voice>1</voice>
           <name>Bass Drum 1</name>
@@ -124,14 +124,14 @@
           <shortcut>B</shortcut>
           </Drum>
         <Drum pitch="37">
-          <head>1</head>
+          <head>cross</head>
           <line>3</line>
           <voice>0</voice>
           <name>Side Stick</name>
           <stem>1</stem>
           </Drum>
         <Drum pitch="38">
-          <head>0</head>
+          <head>normal</head>
           <line>3</line>
           <voice>0</voice>
           <name>Acoustic Snare</name>
@@ -139,21 +139,21 @@
           <shortcut>A</shortcut>
           </Drum>
         <Drum pitch="40">
-          <head>0</head>
+          <head>normal</head>
           <line>3</line>
           <voice>0</voice>
           <name>Electric Snare</name>
           <stem>1</stem>
           </Drum>
         <Drum pitch="41">
-          <head>0</head>
+          <head>normal</head>
           <line>5</line>
           <voice>0</voice>
           <name>Low Floor Tom</name>
           <stem>1</stem>
           </Drum>
         <Drum pitch="42">
-          <head>1</head>
+          <head>cross</head>
           <line>-1</line>
           <voice>0</voice>
           <name>Closed Hi-Hat</name>
@@ -161,21 +161,22 @@
           <shortcut>G</shortcut>
           </Drum>
         <Drum pitch="43">
-          <head>0</head>
+          <head>normal</head>
           <line>5</line>
           <voice>1</voice>
           <name>High Floor Tom</name>
           <stem>2</stem>
           </Drum>
         <Drum pitch="44">
-          <head>1</head>
+          <head>cross</head>
           <line>9</line>
           <voice>1</voice>
           <name>Pedal Hi-Hat</name>
           <stem>2</stem>
+          <shortcut>F</shortcut>
           </Drum>
         <Drum pitch="45">
-          <head>0</head>
+          <head>normal</head>
           <line>2</line>
           <voice>0</voice>
           <name>Low Tom</name>
@@ -183,28 +184,28 @@
           <shortcut>F</shortcut>
           </Drum>
         <Drum pitch="46">
-          <head>1</head>
+          <head>cross</head>
           <line>1</line>
           <voice>0</voice>
           <name>Open Hi-Hat</name>
           <stem>1</stem>
           </Drum>
         <Drum pitch="47">
-          <head>0</head>
+          <head>normal</head>
           <line>1</line>
           <voice>0</voice>
           <name>Low-Mid Tom</name>
           <stem>1</stem>
           </Drum>
         <Drum pitch="48">
-          <head>0</head>
+          <head>normal</head>
           <line>0</line>
           <voice>0</voice>
           <name>Hi-Mid Tom</name>
           <stem>1</stem>
           </Drum>
         <Drum pitch="49">
-          <head>1</head>
+          <head>cross</head>
           <line>-2</line>
           <voice>0</voice>
           <name>Crash Cymbal 1</name>
@@ -212,7 +213,7 @@
           <shortcut>C</shortcut>
           </Drum>
         <Drum pitch="50">
-          <head>0</head>
+          <head>normal</head>
           <line>0</line>
           <voice>0</voice>
           <name>High Tom</name>
@@ -220,7 +221,7 @@
           <shortcut>E</shortcut>
           </Drum>
         <Drum pitch="51">
-          <head>1</head>
+          <head>cross</head>
           <line>0</line>
           <voice>0</voice>
           <name>Ride Cymbal 1</name>
@@ -228,63 +229,63 @@
           <shortcut>D</shortcut>
           </Drum>
         <Drum pitch="52">
-          <head>1</head>
+          <head>cross</head>
           <line>-3</line>
           <voice>0</voice>
           <name>Chinese Cymbal</name>
           <stem>1</stem>
           </Drum>
         <Drum pitch="53">
-          <head>2</head>
+          <head>diamond</head>
           <line>0</line>
           <voice>0</voice>
           <name>Ride Bell</name>
           <stem>1</stem>
           </Drum>
         <Drum pitch="54">
-          <head>2</head>
+          <head>diamond</head>
           <line>2</line>
           <voice>0</voice>
           <name>Tambourine</name>
           <stem>1</stem>
           </Drum>
         <Drum pitch="55">
-          <head>1</head>
+          <head>cross</head>
           <line>-3</line>
           <voice>0</voice>
           <name>Splash Cymbal</name>
           <stem>1</stem>
           </Drum>
         <Drum pitch="56">
-          <head>3</head>
+          <head>triangle-down</head>
           <line>1</line>
           <voice>0</voice>
           <name>Cowbell</name>
           <stem>1</stem>
           </Drum>
         <Drum pitch="57">
-          <head>1</head>
+          <head>cross</head>
           <line>-3</line>
           <voice>0</voice>
           <name>Crash Cymbal 2</name>
           <stem>1</stem>
           </Drum>
         <Drum pitch="59">
-          <head>1</head>
+          <head>cross</head>
           <line>2</line>
           <voice>0</voice>
           <name>Ride Cymbal 2</name>
           <stem>1</stem>
           </Drum>
         <Drum pitch="63">
-          <head>1</head>
+          <head>cross</head>
           <line>4</line>
           <voice>0</voice>
           <name>Open Hi Conga</name>
           <stem>1</stem>
           </Drum>
         <Drum pitch="64">
-          <head>1</head>
+          <head>cross</head>
           <line>6</line>
           <voice>0</voice>
           <name>Low Conga</name>
@@ -336,11 +337,11 @@
           <durationType>quarter</durationType>
           <Note>
             <Accidental>
-              <subtype>sharp</subtype>
+              <subtype>accidentalSharp</subtype>
               </Accidental>
             <pitch>73</pitch>
             <tpc>21</tpc>
-            <head>5</head>
+            <head>slash</head>
             <play>0</play>
             <fixed>1</fixed>
             <fixedLine>4</fixedLine>
@@ -355,11 +356,11 @@
           <Beam>1</Beam>
           <Note>
             <Accidental>
-              <subtype>natural</subtype>
+              <subtype>accidentalNatural</subtype>
               </Accidental>
             <pitch>72</pitch>
             <tpc>14</tpc>
-            <head>5</head>
+            <head>slash</head>
             <play>0</play>
             <fixed>1</fixed>
             <fixedLine>4</fixedLine>
@@ -370,13 +371,13 @@
           <Beam>1</Beam>
           <Note>
             <Accidental>
-              <subtype>sharp</subtype>
+              <subtype>accidentalSharp</subtype>
               </Accidental>
             <Tie id="2">
               </Tie>
             <pitch>73</pitch>
             <tpc>21</tpc>
-            <head>5</head>
+            <head>slash</head>
             <play>0</play>
             <fixed>1</fixed>
             <fixedLine>4</fixedLine>
@@ -393,7 +394,7 @@
             <endSpanner id="2"/>
             <pitch>73</pitch>
             <tpc>21</tpc>
-            <head>5</head>
+            <head>slash</head>
             <play>0</play>
             <fixed>1</fixed>
             <fixedLine>4</fixedLine>
@@ -404,11 +405,11 @@
           <Beam>2</Beam>
           <Note>
             <Accidental>
-              <subtype>natural</subtype>
+              <subtype>accidentalNatural</subtype>
               </Accidental>
             <pitch>72</pitch>
             <tpc>14</tpc>
-            <head>5</head>
+            <head>slash</head>
             <play>0</play>
             <fixed>1</fixed>
             <fixedLine>4</fixedLine>
@@ -418,11 +419,11 @@
           <durationType>quarter</durationType>
           <Note>
             <Accidental>
-              <subtype>sharp</subtype>
+              <subtype>accidentalSharp</subtype>
               </Accidental>
             <pitch>73</pitch>
             <tpc>21</tpc>
-            <head>5</head>
+            <head>slash</head>
             <play>0</play>
             <fixed>1</fixed>
             <fixedLine>4</fixedLine>
@@ -432,9 +433,9 @@
       <Measure number="2">
         <Rest>
           <durationType>measure</durationType>
-          <duration z="4" n="4"/>
+          <duration>4/4</duration>
           </Rest>
-        <tick>1920</tick>
+        <move>0/1</move>
         <Chord>
           <track>1</track>
           <durationType>quarter</durationType>
@@ -442,7 +443,7 @@
             <track>1</track>
             <pitch>72</pitch>
             <tpc>14</tpc>
-            <head>5</head>
+            <head>slash</head>
             <play>0</play>
             <fixed>1</fixed>
             <fixedLine>4</fixedLine>
@@ -461,7 +462,7 @@
             <track>1</track>
             <pitch>72</pitch>
             <tpc>14</tpc>
-            <head>5</head>
+            <head>slash</head>
             <play>0</play>
             <fixed>1</fixed>
             <fixedLine>4</fixedLine>
@@ -478,7 +479,7 @@
               </Tie>
             <pitch>72</pitch>
             <tpc>14</tpc>
-            <head>5</head>
+            <head>slash</head>
             <play>0</play>
             <fixed>1</fixed>
             <fixedLine>4</fixedLine>
@@ -498,7 +499,7 @@
             <endSpanner id="3"/>
             <pitch>72</pitch>
             <tpc>14</tpc>
-            <head>5</head>
+            <head>slash</head>
             <play>0</play>
             <fixed>1</fixed>
             <fixedLine>4</fixedLine>
@@ -512,7 +513,7 @@
             <track>1</track>
             <pitch>72</pitch>
             <tpc>14</tpc>
-            <head>5</head>
+            <head>slash</head>
             <play>0</play>
             <fixed>1</fixed>
             <fixedLine>4</fixedLine>
@@ -525,7 +526,7 @@
             <track>1</track>
             <pitch>72</pitch>
             <tpc>14</tpc>
-            <head>5</head>
+            <head>slash</head>
             <play>0</play>
             <fixed>1</fixed>
             <fixedLine>4</fixedLine>
@@ -535,11 +536,10 @@
       <Measure number="3">
         <Rest>
           <durationType>measure</durationType>
-          <duration z="4" n="4"/>
+          <duration>4/4</duration>
           </Rest>
-        <tick>3840</tick>
+        <move>0/1</move>
         <Rest>
-          <offset x="0" y="-1.32"/>
           <track>2</track>
           <small>1</small>
           <durationType>quarter</durationType>
@@ -550,7 +550,6 @@
           <l2>-15</l2>
           </Beam>
         <Chord>
-          <offset x="0" y="-0.5"/>
           <track>2</track>
           <small>1</small>
           <durationType>eighth</durationType>
@@ -559,14 +558,13 @@
             <track>2</track>
             <pitch>72</pitch>
             <tpc>14</tpc>
-            <head>5</head>
+            <head>slash</head>
             <play>0</play>
             <fixed>1</fixed>
             <fixedLine>-1</fixedLine>
             </Note>
           </Chord>
         <Chord>
-          <offset x="0" y="-0.5"/>
           <track>2</track>
           <small>1</small>
           <durationType>eighth</durationType>
@@ -578,7 +576,7 @@
               </Tie>
             <pitch>72</pitch>
             <tpc>14</tpc>
-            <head>5</head>
+            <head>slash</head>
             <play>0</play>
             <fixed>1</fixed>
             <fixedLine>-1</fixedLine>
@@ -590,7 +588,6 @@
           <l2>-15</l2>
           </Beam>
         <Chord>
-          <offset x="0" y="-0.5"/>
           <track>2</track>
           <small>1</small>
           <durationType>eighth</durationType>
@@ -600,14 +597,13 @@
             <endSpanner id="4"/>
             <pitch>72</pitch>
             <tpc>14</tpc>
-            <head>5</head>
+            <head>slash</head>
             <play>0</play>
             <fixed>1</fixed>
             <fixedLine>-1</fixedLine>
             </Note>
           </Chord>
         <Chord>
-          <offset x="0" y="-0.5"/>
           <track>2</track>
           <small>1</small>
           <durationType>eighth</durationType>
@@ -616,14 +612,13 @@
             <track>2</track>
             <pitch>72</pitch>
             <tpc>14</tpc>
-            <head>5</head>
+            <head>slash</head>
             <play>0</play>
             <fixed>1</fixed>
             <fixedLine>-1</fixedLine>
             </Note>
           </Chord>
         <Chord>
-          <offset x="0" y="-0.5"/>
           <track>2</track>
           <small>1</small>
           <durationType>quarter</durationType>
@@ -631,7 +626,7 @@
             <track>2</track>
             <pitch>72</pitch>
             <tpc>14</tpc>
-            <head>5</head>
+            <head>slash</head>
             <play>0</play>
             <fixed>1</fixed>
             <fixedLine>-1</fixedLine>
@@ -641,19 +636,17 @@
       <Measure number="4">
         <LayoutBreak>
           <subtype>line</subtype>
-          <pause>3</pause>
           </LayoutBreak>
         <Rest>
           <durationType>measure</durationType>
-          <duration z="4" n="4"/>
+          <duration>4/4</duration>
           </Rest>
         <BarLine>
           <subtype>end</subtype>
           <span>1</span>
           </BarLine>
-        <tick>5760</tick>
+        <move>0/1</move>
         <Chord>
-          <offset x="0" y="0.5"/>
           <track>3</track>
           <small>1</small>
           <durationType>quarter</durationType>
@@ -661,7 +654,7 @@
             <track>3</track>
             <pitch>72</pitch>
             <tpc>14</tpc>
-            <head>5</head>
+            <head>slash</head>
             <play>0</play>
             <fixed>1</fixed>
             <fixedLine>9</fixedLine>
@@ -673,7 +666,6 @@
           <l2>31</l2>
           </Beam>
         <Chord>
-          <offset x="0" y="0.5"/>
           <track>3</track>
           <small>1</small>
           <durationType>eighth</durationType>
@@ -682,14 +674,13 @@
             <track>3</track>
             <pitch>72</pitch>
             <tpc>14</tpc>
-            <head>5</head>
+            <head>slash</head>
             <play>0</play>
             <fixed>1</fixed>
             <fixedLine>9</fixedLine>
             </Note>
           </Chord>
         <Chord>
-          <offset x="0" y="0.5"/>
           <track>3</track>
           <small>1</small>
           <durationType>eighth</durationType>
@@ -701,7 +692,7 @@
               </Tie>
             <pitch>72</pitch>
             <tpc>14</tpc>
-            <head>5</head>
+            <head>slash</head>
             <play>0</play>
             <fixed>1</fixed>
             <fixedLine>9</fixedLine>
@@ -713,7 +704,6 @@
           <l2>31</l2>
           </Beam>
         <Chord>
-          <offset x="0" y="0.5"/>
           <track>3</track>
           <small>1</small>
           <durationType>eighth</durationType>
@@ -723,14 +713,13 @@
             <endSpanner id="5"/>
             <pitch>72</pitch>
             <tpc>14</tpc>
-            <head>5</head>
+            <head>slash</head>
             <play>0</play>
             <fixed>1</fixed>
             <fixedLine>9</fixedLine>
             </Note>
           </Chord>
         <Chord>
-          <offset x="0" y="0.5"/>
           <track>3</track>
           <small>1</small>
           <durationType>eighth</durationType>
@@ -739,14 +728,13 @@
             <track>3</track>
             <pitch>72</pitch>
             <tpc>14</tpc>
-            <head>5</head>
+            <head>slash</head>
             <play>0</play>
             <fixed>1</fixed>
             <fixedLine>9</fixedLine>
             </Note>
           </Chord>
         <Chord>
-          <offset x="0" y="0.5"/>
           <track>3</track>
           <small>1</small>
           <durationType>quarter</durationType>
@@ -754,7 +742,7 @@
             <track>3</track>
             <pitch>72</pitch>
             <tpc>14</tpc>
-            <head>5</head>
+            <head>slash</head>
             <play>0</play>
             <fixed>1</fixed>
             <fixedLine>9</fixedLine>
@@ -774,7 +762,7 @@
           <Note>
             <pitch>38</pitch>
             <tpc>16</tpc>
-            <head>5</head>
+            <head>slash</head>
             <play>0</play>
             <fixed>1</fixed>
             <fixedLine>4</fixedLine>
@@ -790,7 +778,7 @@
           <Note>
             <pitch>38</pitch>
             <tpc>16</tpc>
-            <head>5</head>
+            <head>slash</head>
             <play>0</play>
             <fixed>1</fixed>
             <fixedLine>4</fixedLine>
@@ -804,7 +792,7 @@
               </Tie>
             <pitch>38</pitch>
             <tpc>16</tpc>
-            <head>5</head>
+            <head>slash</head>
             <play>0</play>
             <fixed>1</fixed>
             <fixedLine>4</fixedLine>
@@ -821,7 +809,7 @@
             <endSpanner id="6"/>
             <pitch>38</pitch>
             <tpc>16</tpc>
-            <head>5</head>
+            <head>slash</head>
             <play>0</play>
             <fixed>1</fixed>
             <fixedLine>4</fixedLine>
@@ -833,7 +821,7 @@
           <Note>
             <pitch>38</pitch>
             <tpc>16</tpc>
-            <head>5</head>
+            <head>slash</head>
             <play>0</play>
             <fixed>1</fixed>
             <fixedLine>4</fixedLine>
@@ -844,7 +832,7 @@
           <Note>
             <pitch>38</pitch>
             <tpc>16</tpc>
-            <head>5</head>
+            <head>slash</head>
             <play>0</play>
             <fixed>1</fixed>
             <fixedLine>4</fixedLine>
@@ -854,9 +842,9 @@
       <Measure number="2">
         <Rest>
           <durationType>measure</durationType>
-          <duration z="4" n="4"/>
+          <duration>4/4</duration>
           </Rest>
-        <tick>1920</tick>
+        <move>0/1</move>
         <Chord>
           <track>5</track>
           <durationType>quarter</durationType>
@@ -864,7 +852,7 @@
             <track>5</track>
             <pitch>38</pitch>
             <tpc>16</tpc>
-            <head>5</head>
+            <head>slash</head>
             <play>0</play>
             <fixed>1</fixed>
             <fixedLine>4</fixedLine>
@@ -883,7 +871,7 @@
             <track>5</track>
             <pitch>38</pitch>
             <tpc>16</tpc>
-            <head>5</head>
+            <head>slash</head>
             <play>0</play>
             <fixed>1</fixed>
             <fixedLine>4</fixedLine>
@@ -900,7 +888,7 @@
               </Tie>
             <pitch>38</pitch>
             <tpc>16</tpc>
-            <head>5</head>
+            <head>slash</head>
             <play>0</play>
             <fixed>1</fixed>
             <fixedLine>4</fixedLine>
@@ -920,7 +908,7 @@
             <endSpanner id="7"/>
             <pitch>38</pitch>
             <tpc>16</tpc>
-            <head>5</head>
+            <head>slash</head>
             <play>0</play>
             <fixed>1</fixed>
             <fixedLine>4</fixedLine>
@@ -934,7 +922,7 @@
             <track>5</track>
             <pitch>38</pitch>
             <tpc>16</tpc>
-            <head>5</head>
+            <head>slash</head>
             <play>0</play>
             <fixed>1</fixed>
             <fixedLine>4</fixedLine>
@@ -947,7 +935,7 @@
             <track>5</track>
             <pitch>38</pitch>
             <tpc>16</tpc>
-            <head>5</head>
+            <head>slash</head>
             <play>0</play>
             <fixed>1</fixed>
             <fixedLine>4</fixedLine>
@@ -957,11 +945,10 @@
       <Measure number="3">
         <Rest>
           <durationType>measure</durationType>
-          <duration z="4" n="4"/>
+          <duration>4/4</duration>
           </Rest>
-        <tick>3840</tick>
+        <move>0/1</move>
         <Rest>
-          <offset x="0" y="-1.32"/>
           <track>6</track>
           <small>1</small>
           <durationType>quarter</durationType>
@@ -1053,13 +1040,13 @@
       <Measure number="4">
         <Rest>
           <durationType>measure</durationType>
-          <duration z="4" n="4"/>
+          <duration>4/4</duration>
           </Rest>
         <BarLine>
           <subtype>end</subtype>
           <span>1</span>
           </BarLine>
-        <tick>5760</tick>
+        <move>0/1</move>
         <Chord>
           <track>7</track>
           <small>1</small>

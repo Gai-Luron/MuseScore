@@ -128,6 +128,7 @@ void ChordLine::layout()
             }
       else
             setPos(0.0, 0.0);
+      adjustReadPos();
       QRectF r(path.boundingRect());
       int x1, y1, width, height = 0;
 
@@ -207,7 +208,7 @@ void ChordLine::read(XmlReader& e)
 //   write
 //---------------------------------------------------------
 
-void ChordLine::write(Xml& xml) const
+void ChordLine::write(XmlWriter& xml) const
       {
       xml.stag(name());
       xml.tag("subtype", int(_chordLineType));
@@ -391,7 +392,7 @@ int ChordLine::grips() const
 //   accessibleInfo
 //---------------------------------------------------------
 
-QString ChordLine::accessibleInfo()
+QString ChordLine::accessibleInfo() const
       {
       QString rez = Element::accessibleInfo();
       if(chordLineType() != ChordLineType::NOTYPE)

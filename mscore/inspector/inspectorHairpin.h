@@ -25,15 +25,15 @@ namespace Ms {
 //   InspectorHairpin
 //---------------------------------------------------------
 
-class InspectorHairpin : public InspectorBase {
+class InspectorHairpin : public InspectorElementBase {
       Q_OBJECT
 
-      UiInspectorElement e;
       Ui::InspectorLine l;
       Ui::InspectorHairpin h;
 
    public:
       InspectorHairpin(QWidget* parent);
+      virtual void postInit() override;
       };
 
 

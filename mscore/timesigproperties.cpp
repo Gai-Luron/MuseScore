@@ -40,6 +40,7 @@ extern void populateIconPalette(Palette* p, const IconAction* a);
 TimeSigProperties::TimeSigProperties(TimeSig* t, QWidget* parent)
    : QDialog(parent)
       {
+      setObjectName("TimeSigProperties");
       setupUi(this);
       setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
       timesig = t;
@@ -96,7 +97,7 @@ TimeSigProperties::TimeSigProperties(TimeSig* t, QWidget* parent)
             SymId::mensuralProlation11,         // tempus inperf., prol. perfecta, reversed
             };
 
-      ScoreFont* scoreFont = t->score()->scoreFont();
+      ScoreFont* scoreFont = gscore->scoreFont();
       int idx = 0;
       for (SymId symId : prolatioSymbols) {
             const QString& str = scoreFont->toString(symId);
@@ -117,6 +118,8 @@ TimeSigProperties::TimeSigProperties(TimeSig* t, QWidget* parent)
       if (g.empty())
             g = Groups::endings(timesig->sig());     // initialize with default
       groups->setSig(timesig->sig(), g);
+
+      MuseScore::restoreGeometry(this);
       }
 
 //---------------------------------------------------------
@@ -155,6 +158,16 @@ void TimeSigProperties::accept()
       Groups g = groups->groups();
       timesig->setGroups(g);
       QDialog::accept();
+      }
+
+//---------------------------------------------------------
+//   hideEvent
+//---------------------------------------------------------
+
+void TimeSigProperties::hideEvent(QHideEvent* event)
+      {
+      MuseScore::saveGeometry(this);
+      QWidget::hideEvent(event);
       }
 }
 

@@ -140,7 +140,7 @@ void BasicDurationalObj::readCapx(XmlReader& e, unsigned int& fullm)
                   e.unknown();
             }
       qDebug("DurationObj ndots %d nodur %d postgr %d bsm %d inv %d notbl %d t %d hsh %d cnt %d trp %d ispro %d fullm %d",
-             nDots, noDuration, postGrace, bSmall, invisible, notBlack, t, horizontalShift, count, tripartite, isProlonging, fullm
+             nDots, noDuration, postGrace, bSmall, invisible, notBlack, int(t), horizontalShift, count, tripartite, isProlonging, fullm
              );
       }
 
@@ -169,6 +169,14 @@ void CapExplicitBarline::readCapx(XmlReader& e)
       else if (type == "dashed") _type = BarLineType::BROKEN;
       else _type = BarLineType::NORMAL; // default
       _barMode = 0;
+      while (e.readNextStartElement()) {
+            const QStringRef& tag(e.name());
+            if (tag == "drawObjects") {
+                  e.skipCurrentElement();
+                  }
+            else
+                  e.unknown();
+            }
       e.readNext();
       }
 
@@ -179,11 +187,27 @@ void CapExplicitBarline::readCapx(XmlReader& e)
 void CapClef::readCapx(XmlReader& e)
       {
       QString clef = e.attribute("clef");
-      if (clef == "G2-") { form = Form::G; line = ClefLine::L2; oct = Oct::OCT_BASSA; }
-      else if (clef == "treble") { form = Form::G; line = ClefLine::L2; oct = Oct::OCT_NULL; }
-      else if (clef == "bass") { form = Form::F; line = ClefLine::L4; oct = Oct::OCT_NULL; }
-      else { /* default */ form = Form::G; line = ClefLine::L2; oct = Oct::OCT_NULL; }
-      qDebug("Clef::read '%s' -> form %d line %d oct %d", qPrintable(clef), form, line, oct);
+      if (clef == "G2-") {
+            form = Form::G;
+            line = ClefLine::L2;
+            oct = Oct::OCT_BASSA;
+            }
+      else if (clef == "treble") {
+            form = Form::G;
+            line = ClefLine::L2;
+            oct = Oct::OCT_NULL;
+            }
+      else if (clef == "bass") {
+            form = Form::F;
+            line = ClefLine::L4;
+            oct = Oct::OCT_NULL;
+            }
+      else {
+            /* default */ form = Form::G;
+            line = ClefLine::L2;
+            oct = Oct::OCT_NULL;
+            }
+      qDebug("Clef::read '%s' -> form %d line %d oct %d", qPrintable(clef), int(form), int(line), int(oct));
       e.readNext();
       }
 
@@ -1158,7 +1182,7 @@ void Capella::readCapx(XmlReader& e)
 
 void convertCapella(Score* score, Capella* cap, bool capxMode);
 
-Score::FileError importCapXml(Score* score, const QString& name)
+Score::FileError importCapXml(MasterScore* score, const QString& name)
       {
       qDebug("importCapXml(score %p, name %s)", score, qPrintable(name));
       MQZipReader uz(name);
@@ -1168,7 +1192,7 @@ Score::FileError importCapXml(Score* score, const QString& name)
             }
 
       QByteArray dbuf = uz.fileData("score.xml");
-      XmlReader e(dbuf);
+      XmlReader e(score, dbuf);
       e.setDocName(name);
       Capella cf;
 

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<museScore version="2.00">
+<museScore version="3.00">
   <Score>
     <LayerTag id="0" tag="default"></LayerTag>
     <currentLayer>0</currentLayer>
@@ -44,6 +44,7 @@
       <Staff id="1">
         <StaffType group="pitched">
           </StaffType>
+        <defaultClef>F</defaultClef>
         <bracket type="1" span="2"/>
         <barLineSpan>2</barLineSpan>
         </Staff>
@@ -54,8 +55,8 @@
         </Staff>
       <trackName>Piano</trackName>
       <Instrument>
-        <longName pos="0">Piano</longName>
-        <shortName pos="0">Pno.</shortName>
+        <longName>Piano</longName>
+        <shortName>Pno.</shortName>
         <trackName>Piano</trackName>
         <minPitchP>21</minPitchP>
         <maxPitchP>108</maxPitchP>
@@ -98,10 +99,6 @@
       </Part>
     <Staff id="1">
       <Measure number="1">
-        <Clef>
-          <concertClefType>F</concertClefType>
-          <transposingClefType>F</transposingClefType>
-          </Clef>
         <TimeSig>
           <sigN>4</sigN>
           <sigD>4</sigD>
@@ -109,7 +106,7 @@
           </TimeSig>
         <Tempo>
           <tempo>2.08333</tempo>
-          <text><sym>unicodeNoteQuarterUp</sym> = 125</text>
+          <text><sym>metNoteQuarterUp</sym> = 125</text>
           </Tempo>
         <Rest>
           <durationType>half</durationType>
@@ -123,7 +120,7 @@
         <Chord>
           <durationType>eighth</durationType>
           <Articulation>
-            <subtype>staccato</subtype>
+            <subtype>articStaccatoAbove</subtype>
             </Articulation>
           <Note>
             <pitch>57</pitch>
@@ -142,10 +139,6 @@
       </Staff>
     <Staff id="2">
       <Measure number="1">
-        <Clef>
-          <concertClefType>F</concertClefType>
-          <transposingClefType>F</transposingClefType>
-          </Clef>
         <TimeSig>
           <sigN>4</sigN>
           <sigD>4</sigD>
@@ -163,7 +156,7 @@
         <Chord>
           <durationType>eighth</durationType>
           <Articulation>
-            <subtype>staccato</subtype>
+            <subtype>articStaccatoAbove</subtype>
             </Articulation>
           <Note>
             <pitch>41</pitch>

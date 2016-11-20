@@ -3,7 +3,7 @@
 //  Linux Music Score Editor
 //  $Id: debugger.cpp 5656 2012-05-21 15:36:47Z wschweer $
 //
-//  Copyright (C) 2002-2011 Werner Schweer and others
+//  Copyright (C) 2002-2016 Werner Schweer and others
 //
 //  This program is free software; you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License version 2.
@@ -21,7 +21,6 @@
 #include "debugger.h"
 #include "musescore.h"
 #include "icons.h"
-#include "textstyle.h"
 #include "globals.h"
 #include "libmscore/element.h"
 #include "libmscore/page.h"
@@ -47,7 +46,6 @@
 #include "libmscore/textline.h"
 #include "libmscore/system.h"
 #include "libmscore/arpeggio.h"
-//#include "libmscore/glissando.h"
 #include "libmscore/tremolo.h"
 #include "libmscore/articulation.h"
 #include "libmscore/ottava.h"
@@ -69,6 +67,7 @@
 #include "libmscore/bracket.h"
 #include "libmscore/trill.h"
 #include "libmscore/timesig.h"
+#include "libmscore/systemdivider.h"
 
 namespace Ms {
 
@@ -137,8 +136,9 @@ void ElementItem::init()
 //---------------------------------------------------------
 
 Debugger::Debugger(QWidget* parent)
-   : QDialog(parent)
+   : AbstractDialog(parent)
       {
+      setObjectName("Debugger");
       setupUi(this);
       setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
@@ -148,18 +148,12 @@ Debugger::Debugger(QWidget* parent)
       cs           = 0;
 
       connect(list, SIGNAL(itemClicked(QTreeWidgetItem*,int)), SLOT(itemClicked(QTreeWidgetItem*,int)));
+      connect(list, SIGNAL(itemActivated(QTreeWidgetItem*,int)), SLOT(itemClicked(QTreeWidgetItem*, int)));
       connect(list, SIGNAL(itemExpanded(QTreeWidgetItem*)), SLOT(itemExpanded(QTreeWidgetItem*)));
       connect(list, SIGNAL(itemCollapsed(QTreeWidgetItem*)), SLOT(itemExpanded(QTreeWidgetItem*)));
 
       list->resizeColumnToContents(0);
-      if (!useFactorySettings) {
-            QSettings settings;
-            settings.beginGroup("Debugger");
-            split->restoreState(settings.value("splitter").toByteArray());
-            resize(settings.value("size", QSize(1000, 500)).toSize());
-            move(settings.value("pos", QPoint(10, 10)).toPoint());
-            settings.endGroup();
-            }
+      readSettings();
       back->setEnabled(false);
       forward->setEnabled(false);
       connect(back,    SIGNAL(clicked()), SLOT(backClicked()));
@@ -176,6 +170,8 @@ Debugger::Debugger(QWidget* parent)
 
 void Debugger::selectElement()
       {
+      if (!curElement)
+            return;
       curElement->score()->select(curElement);
       }
 
@@ -185,6 +181,8 @@ void Debugger::selectElement()
 
 void Debugger::resetElement()
       {
+      if (!curElement)
+            return;
       curElement->reset();
       layout();
       }
@@ -195,8 +193,10 @@ void Debugger::resetElement()
 
 void Debugger::layout()
       {
-      curElement->score()->doLayout();
-      curElement->score()->end();
+      if (!curElement)
+            return;
+      curElement->score()->setLayoutAll();
+      curElement->score()->update();
       mscore->endCmd();
       }
 
@@ -207,11 +207,27 @@ void Debugger::layout()
 void Debugger::writeSettings()
       {
       QSettings settings;
-      settings.beginGroup("Debugger");
-      settings.setValue("size", size());
-      settings.setValue("pos", pos());
+      settings.beginGroup(objectName());
       settings.setValue("splitter", split->saveState());
       settings.endGroup();
+
+      MuseScore::saveGeometry(this);
+      }
+
+//---------------------------------------------------------
+//   readSettings
+//---------------------------------------------------------
+
+void Debugger::readSettings()
+      {
+      if (!useFactorySettings) {
+            QSettings settings;
+            settings.beginGroup(objectName());
+            split->restoreState(settings.value("splitter").toByteArray());
+            settings.endGroup();
+            }
+
+      MuseScore::restoreGeometry(this);
       }
 
 //---------------------------------------------------------
@@ -307,10 +323,8 @@ static void addChord(ElementItem* sei, Chord* chord)
                   else
                         new ElementItem(ni, f);
                   }
-            for (int i = 0; i < 3; ++i) {
-                  if (note->dot(i))
-                        new ElementItem(ni, note->dot(i));
-                  }
+            for (NoteDot* dot : note->dots())
+                  new ElementItem(ni, dot);
 
             if (note->tieFor()) {
                   Tie* tie = note->tieFor();
@@ -339,7 +353,7 @@ static void addChord(ElementItem* sei, Chord* chord)
 
       if (chord->beam() && chord->beam()->elements().front() == chord)
             new ElementItem(sei, chord->beam());
-      for (Lyrics* lyrics : chord->lyricsList()) {
+      for (Lyrics* lyrics : chord->lyrics()) {
             if (lyrics)
                   new ElementItem(sei, lyrics);
             }
@@ -358,7 +372,7 @@ void Debugger::addMeasure(ElementItem* mi, Measure* measure)
       {
       int staves = cs->nstaves();
       int tracks = staves * VOICES;
-      foreach (MStaff* ms, *measure->staffList()) {
+      foreach (MStaff* ms, measure->mstaves()) {
             if (ms->_vspacerUp)
                   new ElementItem(mi, ms->_vspacerUp);
             if (ms->_vspacerDown)
@@ -379,7 +393,7 @@ void Debugger::addMeasure(ElementItem* mi, Measure* measure)
                         ChordRest* cr = static_cast<ChordRest*>(e);
                         if (cr->beam() && cr->beam()->elements().front() == cr)
                               new ElementItem(sei, cr->beam());
-                        foreach(Lyrics* lyrics, cr->lyricsList()) {
+                        for (Lyrics* lyrics : cr->lyrics()) {
                               if (lyrics)
                                     new ElementItem(sei, lyrics);
                               }
@@ -438,16 +452,18 @@ void Debugger::updateList(Score* s)
       foreach (Page* page, cs->pages()) {
             ElementItem* pi = new ElementItem(list, page);
 
-            foreach (System* system, *page->systems()) {
+            foreach (System* system, page->systems()) {
                   ElementItem* si = new ElementItem(pi, system);
-                  if (system->barLine())
-                        new ElementItem(si, system->barLine());
                   for (Bracket* b : system->brackets())
                         new ElementItem(si, b);
+                  if (system->systemDividerLeft())
+                        new ElementItem(si, system->systemDividerLeft());
+                  if (system->systemDividerRight())
+                        new ElementItem(si, system->systemDividerRight());
                   for (SpannerSegment* ss : system->spannerSegments())
                         new ElementItem(si, ss);
-                  foreach(SysStaff* ss, *system->staves()) {
-                        foreach(InstrumentName* in, ss->instrumentNames)
+                  for (SysStaff* ss : *system->staves()) {
+                        for (InstrumentName* in : ss->instrumentNames)
                               new ElementItem(si, in);
                         }
 
@@ -579,7 +595,7 @@ void Debugger::updateElement(Element* el)
                   }
             }
       if (!found)
-            qDebug("Debugger: element not found %s\n", el->name());
+            qDebug("Debugger: element not found %s", el->name());
 
       setWindowTitle(QString("MuseScore: Debugger: ") + el->name());
 
@@ -591,6 +607,7 @@ void Debugger::updateElement(Element* el)
                   case Element::Type::MEASURE:          ew = new MeasureView;         break;
                   case Element::Type::CHORD:            ew = new ChordDebug;          break;
                   case Element::Type::NOTE:             ew = new ShowNoteWidget;      break;
+                  case Element::Type::REPEAT_MEASURE:
                   case Element::Type::REST:             ew = new RestView;            break;
                   case Element::Type::CLEF:             ew = new ClefView;            break;
                   case Element::Type::TIMESIG:          ew = new TimeSigView;         break;
@@ -749,7 +766,7 @@ void MeasureView::setElement(Element* e)
       ShowElementBase::setElement(e);
 
       mb.segments->setValue(m->size());
-      mb.staves->setValue(m->staffList()->size());
+      mb.staves->setValue(m->mstaves().size());
       mb.measureNo->setValue(m->no());
       mb.noOffset->setValue(m->noOffset());
       mb.stretch->setValue(m->userStretch());
@@ -757,17 +774,18 @@ void MeasureView::setElement(Element* e)
       mb.pageBreak->setChecked(m->pageBreak());
       mb.sectionBreak->setChecked(m->sectionBreak());
       mb.irregular->setChecked(m->irregular());
-      mb.endRepeat->setValue(m->repeatCount());
-      mb.repeatFlags->setText(QString("0x%1").arg(int(m->repeatFlags()), 6, 16, QChar('0')));
-      mb.breakMultiMeasureRest->setChecked(m->getBreakMultiMeasureRest());
-      mb.breakMMRest->setChecked(m->breakMMRest());
-      mb.endBarLineType->setValue(int(m->endBarLineType()));
-      mb.endBarLineGenerated->setChecked(m->endBarLineGenerated());
-      mb.endBarLineVisible->setChecked(m->endBarLineVisible());
+      mb.repeatCount->setValue(m->repeatCount());
+      mb.breakMultiMeasureRest->setChecked(m->breakMultiMeasureRest());
       mb.mmRestCount->setValue(m->mmRestCount());
       mb.timesig->setText(m->timesig().print());
       mb.len->setText(m->len().print());
       mb.tick->setValue(m->tick());
+      mb.startRepeat->setChecked(m->repeatStart());
+      mb.endRepeat->setChecked(m->repeatEnd());
+      mb.hasSystemHeader->setChecked(m->header());
+      mb.hasSystemTrailer->setChecked(m->trailer());
+      mb.hasCourtesyKeySig->setChecked(m->hasCourtesyKeySig());
+      mb.hasVoices->setChecked(m->hasVoices(0));
       mb.sel->clear();
       foreach(const Element* e, m->el()) {
             QTreeWidgetItem* item = new QTreeWidgetItem;
@@ -801,13 +819,8 @@ SegmentView::SegmentView()
       {
       sb.setupUi(addWidget());
       sb.segmentType->clear();
-      static std::vector<Segment::Type> segmentTypes = {
-            Segment::Type::Clef,    Segment::Type::KeySig, Segment::Type::TimeSig, Segment::Type::StartRepeatBarLine,
-            Segment::Type::BarLine, Segment::Type::ChordRest, Segment::Type::Breath, Segment::Type::EndBarLine,
-            Segment::Type::TimeSigAnnounce, Segment::Type::KeySigAnnounce
-            };
-      connect(sb.lyrics, SIGNAL(itemClicked(QListWidgetItem*)),      SLOT(gotoElement(QListWidgetItem*)));
-      connect(sb.spannerFor, SIGNAL(itemClicked(QListWidgetItem*)),  SLOT(gotoElement(QListWidgetItem*)));
+      connect(sb.lyrics,      SIGNAL(itemClicked(QListWidgetItem*)), SLOT(gotoElement(QListWidgetItem*)));
+      connect(sb.spannerFor,  SIGNAL(itemClicked(QListWidgetItem*)), SLOT(gotoElement(QListWidgetItem*)));
       connect(sb.spannerBack, SIGNAL(itemClicked(QListWidgetItem*)), SLOT(gotoElement(QListWidgetItem*)));
       connect(sb.annotations, SIGNAL(itemClicked(QListWidgetItem*)), SLOT(gotoElement(QListWidgetItem*)));
       }
@@ -822,12 +835,6 @@ void SegmentView::setElement(Element* e)
 
       Segment* s = (Segment*)e;
       ShowElementBase::setElement(e);
-      int st = int(s->segmentType());
-      int idx;
-      for (idx = 0; idx < 11; ++idx) {
-            if ((1 << idx) == st)
-                  break;
-            }
       int tick = s->tick();
       TimeSigMap* sm = s->score()->sigmap();
 
@@ -838,13 +845,14 @@ void SegmentView::setElement(Element* e)
       sb.ticks->setValue(ticks);
       sb.tick->setValue(s->tick());
       sb.rtick->setValue(s->rtick());
+      sb.ticks2->setValue(s->ticks());
       sb.segmentType->setText(s->subTypeName());
       sb.lyrics->clear();
 
 //      Score* cs = e->score();
 #if 0 // TODO
       for (int i = 0; i < cs->nstaves(); ++i) {
-            const LyricsList* ll = s->lyricsList(i);
+            const LyricsList* ll = s->lyrics(i);
             if (ll) {
                   foreach(Lyrics* l, *ll) {
                         QString s;
@@ -859,9 +867,7 @@ void SegmentView::setElement(Element* e)
       sb.spannerBack->clear();
       sb.annotations->clear();
       foreach(Element* sp, s->annotations()) {
-            QString s;
-            s.setNum(qptrdiff(sp), 16);
-            QListWidgetItem* item = new QListWidgetItem(s);
+            QListWidgetItem* item = new QListWidgetItem(QString("%1 %2").arg(qptrdiff(sp), 8, 16).arg(sp->name()));
             item->setData(Qt::UserRole, QVariant::fromValue<void*>((void*)sp));
             sb.annotations->addItem(item);
             }
@@ -931,8 +937,6 @@ void ChordDebug::setElement(Element* e)
       crb.durationType->setText(chord->durationType().name());
       crb.duration->setText(chord->duration().print());
       crb.move->setValue(chord->staffMove());
-      crb.spaceL->setValue(chord->space().lw());
-      crb.spaceR->setValue(chord->space().rw());
 
       cb.hookButton->setEnabled(chord->hook());
       cb.stemButton->setEnabled(chord->stem());
@@ -956,7 +960,7 @@ void ChordDebug::setElement(Element* e)
             crb.attributes->addItem(item);
             }
       crb.lyrics->clear();
-      foreach(Lyrics* lyrics, chord->lyricsList()) {
+      for (Lyrics* lyrics : chord->lyrics()) {
             QString s;
             s.setNum(qptrdiff(lyrics), 16);
             QListWidgetItem* item = new QListWidgetItem(s);
@@ -1069,7 +1073,7 @@ void ChordDebug::upChanged(bool val)
 void ChordDebug::beamModeChanged(int n)
       {
       ((Chord*)element())->setBeamMode(Beam::Mode(n));
-      element()->score()->setLayoutAll(true);
+      element()->score()->setLayoutAll();
       }
 
 //---------------------------------------------------------
@@ -1078,7 +1082,7 @@ void ChordDebug::beamModeChanged(int n)
 
 void ChordDebug::directionChanged(int val)
       {
-      ((Chord*)element())->setStemDirection(MScore::Direction(val));
+      ((Chord*)element())->setStemDirection(Direction(val));
       }
 
 //---------------------------------------------------------
@@ -1124,9 +1128,9 @@ void ShowNoteWidget::setElement(Element* e)
       nb.tieFor->setEnabled(note->tieFor());
       nb.tieBack->setEnabled(note->tieBack());
       nb.accidental->setEnabled(note->accidental());
-      nb.dot1->setEnabled(note->dot(0));
-      nb.dot2->setEnabled(note->dot(1));
-      nb.dot3->setEnabled(note->dot(2));
+      nb.dot1->setEnabled(note->dots().size() > 0);
+      nb.dot2->setEnabled(note->dots().size() > 1);
+      nb.dot3->setEnabled(note->dots().size() > 2);
 
       nb.fingering->clear();
       for (Element* text : note->el()) {
@@ -1205,7 +1209,7 @@ void ShowNoteWidget::accidentalClicked()
 RestView::RestView()
    : ShowElementBase()
       {
-      // chort rest
+      // chord rest
       crb.setupUi(addWidget());
       crb.beamMode->addItem("auto");
       crb.beamMode->addItem("beam begin");
@@ -1216,10 +1220,10 @@ RestView::RestView()
 
       rb.setupUi(addWidget());
 
-      connect(crb.beamButton, SIGNAL(clicked()), SLOT(beamClicked()));
+      connect(crb.beamButton,   SIGNAL(clicked()), SLOT(beamClicked()));
       connect(crb.tupletButton, SIGNAL(clicked()), SLOT(tupletClicked()));
-      connect(crb.attributes, SIGNAL(itemClicked(QListWidgetItem*)), SLOT(gotoElement(QListWidgetItem*)));
-      connect(crb.lyrics, SIGNAL(itemClicked(QListWidgetItem*)), SLOT(gotoElement(QListWidgetItem*)));
+      connect(crb.attributes,   SIGNAL(itemClicked(QListWidgetItem*)), SLOT(gotoElement(QListWidgetItem*)));
+      connect(crb.lyrics,       SIGNAL(itemClicked(QListWidgetItem*)), SLOT(gotoElement(QListWidgetItem*)));
       }
 
 //---------------------------------------------------------
@@ -1228,7 +1232,7 @@ RestView::RestView()
 
 void RestView::setElement(Element* e)
       {
-      Rest* rest = (Rest*)e;
+      Rest* rest = toRest(e);
       ShowElementBase::setElement(e);
 
       crb.tick->setValue(rest->tick());
@@ -1242,11 +1246,9 @@ void RestView::setElement(Element* e)
       crb.durationType->setText(rest->durationType().name());
       crb.duration->setText(rest->duration().print());
       crb.move->setValue(rest->staffMove());
-      crb.spaceL->setValue(rest->space().lw());
-      crb.spaceR->setValue(rest->space().rw());
 
       crb.attributes->clear();
-      foreach(Articulation* a, rest->articulations()) {
+      for (Articulation* a : rest->articulations()) {
             QString s;
             s.setNum(qptrdiff(a), 16);
             QListWidgetItem* item = new QListWidgetItem(s);
@@ -1254,7 +1256,7 @@ void RestView::setElement(Element* e)
             crb.attributes->addItem(item);
             }
       crb.lyrics->clear();
-      foreach(Lyrics* lyrics, rest->lyricsList()) {
+      for (Lyrics* lyrics : rest->lyrics()) {
             QString s;
             s.setNum(qptrdiff(lyrics), 16);
             QListWidgetItem* item = new QListWidgetItem(s);
@@ -1262,22 +1264,10 @@ void RestView::setElement(Element* e)
             crb.lyrics->addItem(item);
             }
 
-      Measure* m = rest->measure();
-      int seg = 0;
-      int tracks = 0; // TODO cs->nstaves() * VOICES;
-      for (Segment* s = m->first(); s; s = s->next(), ++seg) {
-            int track;
-            for (track = 0; track < tracks; ++track) {
-                  Element* e = s->element(track);
-                  if (e == rest)
-                        break;
-                  }
-            if (track < tracks)
-                  break;
-            }
       rb.sym->setValue(int(rest->sym()));
       rb.dotline->setValue(rest->getDotline());
       rb.mmWidth->setValue(rest->mmWidth());
+      rb.gap->setChecked(rest->isGap());
       }
 
 //---------------------------------------------------------
@@ -1369,7 +1359,7 @@ void TextView::setElement(Element* e)
 
       TextStyle ts = te->textStyle();
       ShowElementBase::setElement(e);
-      tb.text->setPlainText(te->text());
+      tb.text->setPlainText(te->xmlText());
       tb.xoffset->setValue(ts.offset().x());
       tb.yoffset->setValue(ts.offset().y());
       tb.offsetType->setCurrentIndex(int(ts.offsetType()));
@@ -1405,7 +1395,7 @@ void HarmonyView::setElement(Element* e)
 
       const TextStyle& ts = harmony->textStyle();
       ShowElementBase::setElement(e);
-      tb.text->setPlainText(harmony->text());
+      tb.text->setPlainText(harmony->xmlText());
       tb.xoffset->setValue(ts.offset().x());
       tb.yoffset->setValue(ts.offset().y());
       tb.offsetType->setCurrentIndex(int(ts.offsetType()));
@@ -1566,8 +1556,8 @@ void BarLineView::setElement(Element* e)
       bl.span->setValue(barline->span());
       bl.spanFrom->setValue(barline->spanFrom());
       bl.spanTo->setValue(barline->spanTo());
-      bl.customSubtype->setChecked(barline->customSubtype());
-      bl.customSpan->setChecked(barline->customSpan());
+//      bl.customSubtype->setChecked(barline->customSubtype());
+//      bl.customSpan->setChecked(barline->customSpan());
       }
 
 //---------------------------------------------------------
@@ -1594,7 +1584,7 @@ void DynamicView::setElement(Element* e)
             tb.textStyle->addItem(e->score()->textStyle(TextStyleType(i)).name());
 
       const TextStyle& ts = dynamic->textStyle();
-      tb.text->setPlainText(dynamic->text());
+      tb.text->setPlainText(dynamic->xmlText());
       tb.xoffset->setValue(ts.offset().x());
       tb.yoffset->setValue(ts.offset().y());
       tb.offsetType->setCurrentIndex(int(ts.offsetType()));
@@ -1617,6 +1607,7 @@ TupletView::TupletView()
       tb.direction->addItem("Auto", 0);
       tb.direction->addItem("Up",   1);
       tb.direction->addItem("Down", 2);
+
 
       connect(tb.number, SIGNAL(clicked()), SLOT(numberClicked()));
       connect(tb.tuplet, SIGNAL(clicked()), SLOT(tupletClicked()));
@@ -1664,8 +1655,10 @@ void TupletView::setElement(Element* e)
       tb.ratioN->setValue(tuplet->ratio().denominator());
       tb.number->setEnabled(tuplet->number());
       tb.tuplet->setEnabled(tuplet->tuplet());
+      tb.duration->setText(tuplet->duration().print());
+
       tb.elements->clear();
-      foreach(DurationElement* e, tuplet->elements()) {
+      for (DurationElement* e : tuplet->elements()) {
             QTreeWidgetItem* item = new QTreeWidgetItem;
             item->setText(0, e->name());
             item->setText(1, QString("%1").arg(e->tick()));
@@ -1782,6 +1775,9 @@ void ShowElementBase::setElement(Element* e)
       eb.droptarget->setChecked(e->dropTarget());
       eb.generated->setChecked(e->generated());
       eb.visible->setChecked(e->visible());
+      eb.enabled->setChecked(e->enabled());
+      eb.header->setChecked(e->header());
+      eb.trailer->setChecked(e->trailer());
       eb.track->setValue(e->track());
       eb.z->setValue(e->z());
       eb.posx->setValue(e->ipos().x());
@@ -1792,6 +1788,7 @@ void ShowElementBase::setElement(Element* e)
       eb.offsety->setValue(e->userOff().y());
       eb.readPosX->setValue(e->readPos().x());
       eb.readPosY->setValue(e->readPos().y());
+      eb.autoplace->setChecked(e->autoplace());
       eb.placement->setCurrentIndex(int(e->placement()));
 
       eb.bboxx->setValue(e->bbox().x());
@@ -2393,8 +2390,8 @@ void AccidentalView::setElement(Element* e)
       ShowElementBase::setElement(e);
 
       acc.hasBracket->setChecked(s->hasBracket());
-      acc.accAuto->setChecked(s->role() == Accidental::Role::AUTO);
-      acc.accUser->setChecked(s->role() == Accidental::Role::USER);
+      acc.accAuto->setChecked(s->role() == AccidentalRole::AUTO);
+      acc.accUser->setChecked(s->role() == AccidentalRole::USER);
       acc.small->setChecked(s->small());
       }
 
@@ -2473,6 +2470,7 @@ void KeySigView::setElement(Element* e)
       keysig.showCourtesySig->setChecked(ks->showCourtesy());
       keysig.accidentalType->setValue(int(ev.key()));
       keysig.custom->setChecked(ev.custom());
+      keysig.atonal->setChecked(ev.isAtonal());
       keysig.invalid->setChecked(!ev.isValid());
       }
 

@@ -1,9 +1,9 @@
 //=============================================================================
 //  MuseScore
 //  Music Composition & Notation
-//  $Id: palette.cpp 5576 2012-04-24 19:15:22Z wschweer $
+//  $Id: palettebox.cpp 5576 2012-04-24 19:15:22Z wschweer $
 //
-//  Copyright (C) 2011 Werner Schweer and others
+//  Copyright (C) 2011-2016 Werner Schweer and others
 //
 //  This program is free software; you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License version 2
@@ -27,26 +27,39 @@ namespace Ms {
 PaletteBox::PaletteBox(QWidget* parent)
    : QDockWidget(tr("Palettes"), parent)
       {
+      setContextMenuPolicy(Qt::ActionsContextMenu);
       setObjectName("palette-box");
       setAllowedAreas(Qt::DockWidgetAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea));
 
+      singlePaletteAction = new QAction(this);
+      singlePaletteAction->setCheckable(true);
+      singlePaletteAction->setChecked(preferences.singlePalette);
+      addAction(singlePaletteAction);
+      connect(singlePaletteAction, SIGNAL(toggled(bool)), SLOT(setSinglePalette(bool)));
+
       QWidget* w = new QWidget(this);
+      w->setContextMenuPolicy(Qt::NoContextMenu);
       QVBoxLayout* vl = new QVBoxLayout(w);
+      vl->setMargin(0);
       QHBoxLayout* hl = new QHBoxLayout;
-      hl->setContentsMargins(5,5,5,0);
+      hl->setContentsMargins(5,0,5,0);
 
       workspaceList = new QComboBox;
-      workspaceList->setToolTip(tr("Select workspace"));
-      updateWorkspaces();
       hl->addWidget(workspaceList);
-      QToolButton* nb = new QToolButton;
-      
-      nb->setMinimumHeight(27);
-      nb->setText(tr("+"));
-      nb->setToolTip(tr("Add new workspace"));
-      hl->addWidget(nb);
+      addWorkspaceButton = new QToolButton;
+
+      addWorkspaceButton->setMinimumHeight(24);
+      hl->addWidget(addWorkspaceButton);
 
       setWidget(w);
+
+      searchBox = new QLineEdit(this);
+      searchBox->setClearButtonEnabled(true);
+      searchBox->setPlaceholderText(tr("Filter"));
+      connect(searchBox, SIGNAL(textChanged(const QString&)), this, SLOT(filterPalettes(const QString&)));
+      QHBoxLayout* hlSearch = new QHBoxLayout;
+      hlSearch->setContentsMargins(5,0,5,0);
+      hlSearch->addWidget(searchBox);
 
       PaletteBoxScrollArea* sa = new PaletteBoxScrollArea;
       sa->setFocusPolicy(Qt::NoFocus);
@@ -57,8 +70,8 @@ PaletteBox::PaletteBox(QWidget* parent)
       sa->setWidgetResizable(true);
       sa->setFrameShape(QFrame::NoFrame);
       vl->addWidget(sa);
+      vl->addLayout(hlSearch);
       vl->addLayout(hl);
-      // setWidget(sa);
 
       QWidget* paletteList = new QWidget;
       sa->setWidget(paletteList);
@@ -69,8 +82,49 @@ PaletteBox::PaletteBox(QWidget* parent)
       vbox->addStretch();
       paletteList->show();
 
-      connect(nb, SIGNAL(clicked()), SLOT(newWorkspaceClicked()));
+      connect(addWorkspaceButton, SIGNAL(clicked()), SLOT(newWorkspaceClicked()));
       connect(workspaceList, SIGNAL(activated(int)), SLOT(workspaceSelected(int)));
+      retranslate();
+      }
+
+//---------------------------------------------------------
+//   retranslate
+//---------------------------------------------------------
+
+void PaletteBox::retranslate()
+      {
+      setWindowTitle(tr("Palettes"));
+      singlePaletteAction->setText(tr("Single Palette"));
+      workspaceList->setToolTip(tr("Select workspace"));
+      addWorkspaceButton->setText(tr("+"));
+      addWorkspaceButton->setToolTip(tr("Add new workspace"));
+      updateWorkspaces();
+      }
+
+//---------------------------------------------------------
+//   retransfilterPaletteslate
+//---------------------------------------------------------
+
+void PaletteBox::filterPalettes(const QString& text)
+      {
+      for (int i = 0; i < vbox->count(); i++) {
+            QWidgetItem* wi = static_cast<QWidgetItem*>(vbox->itemAt(i));
+            PaletteBoxButton* b = static_cast<PaletteBoxButton*>(wi->widget());
+            i++;
+            wi = static_cast<QWidgetItem*>(vbox->itemAt(i));
+            if (!wi) return;
+            Palette* p = static_cast<Palette*>(wi->widget());
+            bool f = p->filter(text);
+            b->setVisible(!f);
+            if (b->isVisible()) {
+                 if (text.isEmpty())
+                      b->showPalette(false);
+                 else
+                      b->showPalette(true);
+                 }
+            else
+                 b->showPalette(false);
+            }
       }
 
 //---------------------------------------------------------
@@ -105,7 +159,7 @@ void PaletteBox::updateWorkspaces()
       const QList<Workspace*> pl = Workspace::workspaces();
       int idx = 0;
       int curIdx = -1;
-      foreach (Workspace* p, pl) {
+      for (Workspace* p : pl) {
             workspaceList->addItem(qApp->translate("Ms::Workspace", p->name().toUtf8()), p->path());
             if (p->name() == preferences.workspace)
                   curIdx = idx;
@@ -182,21 +236,31 @@ void PaletteBox::paletteCmd(PaletteCommand cmd, int slot)
       switch(cmd) {
             case PaletteCommand::PDELETE:
                   {
-                  vbox->removeItem(item);
-                  b->deleteLater();      // this is the button widget
-                  delete item;
-                  item = vbox->itemAt(slot);
-                  vbox->removeItem(item);
-                  delete item->widget();
-                  delete item;
-                  for (int i = 0; i < (vbox->count() - 1) / 2; ++i)
-                        static_cast<PaletteBoxButton*>(vbox->itemAt(i * 2)->widget())->setId(i*2);
-                  emit changed();
+                  QMessageBox::StandardButton reply;
+                  reply = QMessageBox::question(0,
+                             QWidget::tr("Are you sure?"),
+                             QWidget::tr("Do you really want to delete the '%1' palette?").arg(palette->name()),
+                             QMessageBox::Yes | QMessageBox::No,
+                             QMessageBox::Yes
+                             );
+                  if (reply == QMessageBox::Yes) {
+                        vbox->removeItem(item);
+                        b->deleteLater();      // this is the button widget
+                        delete item;
+                        item = vbox->itemAt(slot);
+                        vbox->removeItem(item);
+                        delete item->widget();
+                        delete item;
+                        for (int i = 0; i < (vbox->count() - 1) / 2; ++i)
+                              static_cast<PaletteBoxButton*>(vbox->itemAt(i * 2)->widget())->setId(i*2);
+                        emit changed();
+                        }
                   }
                   break;
+
             case PaletteCommand::SAVE:
                   {
-                  QString path = mscore->getPaletteFilename(false);
+                  QString path = mscore->getPaletteFilename(false, palette->name());
                   if (!path.isEmpty())
                         palette->write(path);
                   }
@@ -207,7 +271,7 @@ void PaletteBox::paletteCmd(PaletteCommand cmd, int slot)
                   QString path = mscore->getPaletteFilename(true);
                   if (!path.isEmpty()) {
                         QFileInfo fi(path);
-                        Palette* palette = newPalette(fi.baseName(), slot);
+                        Palette* palette = newPalette(fi.completeBaseName(), slot);
                         palette->read(path);
                         }
                   }
@@ -284,7 +348,7 @@ void PaletteBox::closeAll()
 //   write
 //---------------------------------------------------------
 
-void PaletteBox::write(Xml& xml)
+void PaletteBox::write(XmlWriter& xml)
       {
       xml.stag("PaletteBox");
       for (int i = 0; i < (vbox->count() - 1); i += 2) {
@@ -321,22 +385,12 @@ bool PaletteBox::read(XmlReader& e)
                   p->setName(name);
                   p->read(e);
                   addPalette(p);
-                  connect(p, SIGNAL(displayMore(const QString&)),
-                     SLOT(displayMore(const QString&)));
+                  connect(p, SIGNAL(displayMore(const QString&)), mscore, SLOT(showMasterPalette(const QString&)));
                   }
             else
                   e.unknown();
             }
       return true;
-      }
-
-//---------------------------------------------------------
-//   displayMore
-//---------------------------------------------------------
-
-void PaletteBox::displayMore(const QString& s)
-      {
-      mscore->showMasterPalette(s);
       }
 
 //---------------------------------------------------------
@@ -348,5 +402,25 @@ QSize PaletteBoxScrollArea::sizeHint() const
       return QSize(170 * guiScaling, 170 * guiScaling);
       }
 
+//---------------------------------------------------------
+//   setSinglePalette
+//---------------------------------------------------------
+
+void PaletteBox::setSinglePalette(bool val)
+      {
+      preferences.singlePalette = val;
+      preferences.dirty = true;
+      }
+
+//---------------------------------------------------------
+//   changeEvent
+//---------------------------------------------------------
+
+void PaletteBox::changeEvent(QEvent *event)
+      {
+      QDockWidget::changeEvent(event);
+      if (event->type() == QEvent::LanguageChange)
+            retranslate();
+      }
 }
 

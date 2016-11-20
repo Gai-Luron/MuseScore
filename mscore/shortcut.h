@@ -3,7 +3,7 @@
 //  Music Composition & Notation
 //  $Id:$
 //
-//  Copyright (C) 2011 Werner Schweer and others
+//  Copyright (C) 2011-2016 Werner Schweer and others
 //
 //  This program is free software; you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License version 2
@@ -67,7 +67,7 @@ Shortcuts marked with the STATE_NEVER state should NEVER used directly as shortc
 
 namespace Ms {
 
-class Xml;
+class XmlWriter;
 class XmlReader;
 
 //---------------------------------------------------------
@@ -117,6 +117,7 @@ class Shortcut {
 
       static Shortcut _sc[];
       static QHash<QByteArray, Shortcut*> _shortcuts;
+      void translateAction(QAction* action) const;
 
    public:
 
@@ -143,6 +144,7 @@ class Shortcut {
       void reset();           //! reset to buildin
       void addShortcut(const QKeySequence&);
       int state() const                        { return _state; }
+      void setState(int v)                      { _state = v;     }
       bool needsScore() const                  { return _flags & ShortcutFlags::A_SCORE; }
       bool isCmd() const                       { return _flags & ShortcutFlags::A_CMD; }
       bool isCheckable() const                 { return _flags & ShortcutFlags::A_CHECKABLE; }
@@ -157,10 +159,11 @@ class Shortcut {
       QString keysToString() const;
       static QString getMenuShortcutString(const QMenu* menu);
 
-      void write(Ms::Xml&) const;
+      void write(Ms::XmlWriter&) const;
       void read(Ms::XmlReader&);
 
       static void init();
+      static void retranslate();
       static void load();
       static void save();
       static void resetToDefault();

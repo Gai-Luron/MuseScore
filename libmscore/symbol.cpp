@@ -30,7 +30,6 @@ Symbol::Symbol(Score* s)
    : BSymbol(s)
       {
       _sym = SymId::accidentalSharp;        // arbitrary valid default
-      setZ(int(Element::Type::SYMBOL) * 100);
       }
 
 Symbol::Symbol(const Symbol& s)
@@ -38,7 +37,15 @@ Symbol::Symbol(const Symbol& s)
       {
       _sym       = s._sym;
       _scoreFont = s._scoreFont;
-      setZ(int(Element::Type::SYMBOL) * 100);
+      }
+
+//---------------------------------------------------------
+//   symName
+//---------------------------------------------------------
+
+QString Symbol::symName() const
+      {
+      return Sym::id2name(_sym);
       }
 
 //---------------------------------------------------------
@@ -60,9 +67,9 @@ void Symbol::layout()
       {
       // foreach(Element* e, leafs())     done in BSymbol::layout() ?
       //      e->layout();
-      ElementLayout::layout(this);
-      BSymbol::layout();
       setbbox(_scoreFont ? _scoreFont->bbox(_sym, magS()) : symBbox(_sym));
+      ElementLayout::layout(this);
+      BSymbol::layout();      // adjustReadPos() happens here
       }
 
 //---------------------------------------------------------
@@ -84,7 +91,7 @@ void Symbol::draw(QPainter* p) const
 //   Symbol::write
 //---------------------------------------------------------
 
-void Symbol::write(Xml& xml) const
+void Symbol::write(XmlWriter& xml) const
       {
       xml.stag(name());
       xml.tag("name", Sym::id2name(_sym));
@@ -156,7 +163,7 @@ QLineF BSymbol::dragAnchor() const
       {
       if (parent() && parent()->type() == Element::Type::SEGMENT) {
             System* system = segment()->measure()->system();
-            qreal y        = system->staff(staffIdx())->y() + system->y();
+            qreal y        = system->staffCanvasYpage(staffIdx());
 //            QPointF anchor(segment()->pageX(), y);
             QPointF anchor(segment()->canvasPos().x(), y);
             return QLineF(canvasPos(), anchor);
@@ -235,7 +242,9 @@ FSymbol::FSymbol(const FSymbol& s)
 void FSymbol::draw(QPainter* painter) const
       {
       QString s;
-      painter->setFont(_font);
+      QFont f(_font);
+      f.setPointSizeF(f.pointSizeF() * MScore::pixelRatio);
+      painter->setFont(f);
       if (_code & 0xffff0000) {
             s = QChar(QChar::highSurrogate(_code));
             s += QChar(QChar::lowSurrogate(_code));
@@ -250,11 +259,11 @@ void FSymbol::draw(QPainter* painter) const
 //   write
 //---------------------------------------------------------
 
-void FSymbol::write(Xml& xml) const
+void FSymbol::write(XmlWriter& xml) const
       {
       xml.stag(name());
       xml.tag("font",     _font.family());
-      xml.tag("fontsize", _font.pixelSize());
+      xml.tag("fontsize", _font.pointSizeF());
       xml.tag("code",     _code);
       BSymbol::writeProperties(xml);
       xml.etag();
@@ -271,7 +280,7 @@ void FSymbol::read(XmlReader& e)
             if (tag == "font")
                   _font.setFamily(e.readElementText());
             else if (tag == "fontsize")
-                  _font.setPixelSize(e.readInt());
+                  _font.setPointSizeF(e.readDouble());
             else if (tag == "code")
                   _code = e.readInt();
             else if (!BSymbol::readProperties(e))
@@ -293,7 +302,7 @@ void FSymbol::layout()
             }
       else
             s = QChar(_code);
-      QFontMetricsF fm(_font);
+      QFontMetricsF fm(_font, MScore::paintDevice());
       setbbox(fm.boundingRect(s));
       adjustReadPos();
       }

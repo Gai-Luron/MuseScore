@@ -34,23 +34,23 @@ LoginManager::LoginManager(QObject* parent)
             this, SLOT(onAuthorizedRequestDone()));
       QByteArray ba;
       ba.resize(32);
-      ba[0] = 0x52; ba[1] = 0x61; ba[2] = 0x70; ba[3] = 0x33;
-      ba[4] = 0x74; ba[5] = 0x52; ba[6] = 0x58; ba[7] = 0x70;
-      ba[8] = 0x62; ba[9] = 0x43; ba[10] = 0x70; ba[11] = 0x39;
-      ba[12] = 0x36; ba[13] = 0x35; ba[14] = 0x46; ba[15] = 0x4a;
-      ba[16] = 0x64; ba[17] = 0x5a; ba[18] = 0x46; ba[19] = 0x75;
-      ba[20] = 0x54; ba[21] = 0x35; ba[22] = 0x5a; ba[23] = 0x63;
-      ba[24] = 0x42; ba[25] = 0x73; ba[26] = 0x4b; ba[27] = 0x67;
-      ba[28] = 0x4a; ba[29] = 0x7a; ba[30] = 0x4c; ba[31] = 0x44;
+      ba[0] = 0x68; ba[1] = 0x74; ba[2] = 0x55; ba[3] = 0x38;
+      ba[4] = 0x48; ba[5] = 0x45; ba[6] = 0x4c; ba[7] = 0x45;
+      ba[8] = 0x4d; ba[9] = 0x47; ba[10] = 0x43; ba[11] = 0x55;
+      ba[12] = 0x6e; ba[13] = 0x6f; ba[14] = 0x53; ba[15] = 0x54;
+      ba[16] = 0x38; ba[17] = 0x67; ba[18] = 0x6b; ba[19] = 0x78;
+      ba[20] = 0x34; ba[21] = 0x77; ba[22] = 0x33; ba[23] = 0x69;
+      ba[24] = 0x52; ba[25] = 0x63; ba[26] = 0x64; ba[27] = 0x6e;
+      ba[28] = 0x41; ba[29] = 0x6a; ba[30] = 0x37; ba[31] = 0x51;
       _consumerKey = QString(ba);
-      ba[0] = 0x35; ba[1] = 0x39; ba[2] = 0x33; ba[3] = 0x61; 
-      ba[4] = 0x57; ba[5] = 0x6f; ba[6] = 0x51; ba[7] = 0x73;
-      ba[8] = 0x77; ba[9] = 0x73; ba[10] = 0x50; ba[11] = 0x44;
-      ba[12] = 0x56; ba[13] = 0x48; ba[14] = 0x37; ba[15] = 0x4c;
-      ba[16] = 0x58; ba[17] = 0x76; ba[18] = 0x6e; ba[19] = 0x61;
-      ba[20] = 0x51; ba[21] = 0x71; ba[22] = 0x34; ba[23] = 0x4b;
-      ba[24] = 0x45; ba[25] = 0x5a; ba[26] = 0x42; ba[27] = 0x4a;
-      ba[28] = 0x64; ba[29] = 0x74; ba[30] = 0x4e; ba[31] = 0x74;
+      ba[0] = 0x52; ba[1] = 0x50; ba[2] = 0x75; ba[3] = 0x32; 
+      ba[4] = 0x79; ba[5] = 0x52; ba[6] = 0x69; ba[7] = 0x52;
+      ba[8] = 0x6f; ba[9] = 0x58; ba[10] = 0x53; ba[11] = 0x41;
+      ba[12] = 0x48; ba[13] = 0x6d; ba[14] = 0x4a; ba[15] = 0x6f;
+      ba[16] = 0x6b; ba[17] = 0x61; ba[18] = 0x62; ba[19] = 0x59;
+      ba[20] = 0x35; ba[21] = 0x37; ba[22] = 0x59; ba[23] = 0x74;
+      ba[24] = 0x66; ba[25] = 0x51; ba[26] = 0x5a; ba[27] = 0x36;
+      ba[28] = 0x77; ba[29] = 0x35; ba[30] = 0x69; ba[31] = 0x77;
       _consumerSecret  = QString(ba);
       load();
       }
@@ -102,11 +102,16 @@ void LoginManager::onAuthorizedRequestDone()
       if (_oauthManager->lastError() == KQOAuthManager::NetworkError)
             QMessageBox::critical(0, tr("Network error"), tr("Please check your Internet connection"));
       else if (_oauthManager->lastError() == KQOAuthManager::ContentOperationNotPermittedError)
-            QMessageBox::critical(0, tr("Please upgrade"), tr("Your MuseScore version is too old to use this feature.<br/> <a href=\"%1\">Please upgrade first</a>.").arg("http://musescore.org"));
-      else if (_oauthManager->lastError() == KQOAuthManager::RequestUnauthorized){
-            logout();
-            mscore->showLoginDialog();
-            }
+            QMessageBox::critical(0, tr("Please upgrade"), tr("Your MuseScore version is too old to use this feature.\n"
+                                                              "%1Please upgrade first%2.")
+                                  .arg("<a href=\"http://musescore.org\">")
+                                  .arg("</a>")
+                                  .replace("\n", "<br/>"));
+      // don't do that, it will logout user if score is private and already known
+      //else if (_oauthManager->lastError() == KQOAuthManager::RequestUnauthorized){
+      //      logout();
+      //      mscore->showLoginDialog();
+      //      }
       }
 
 /*------- TRY LOGIN ROUTINES ----------------------------*/
@@ -201,16 +206,22 @@ void LoginManager::onAccessTokenRequestReady(QByteArray ba)
                  if (o.value("code") != QJsonValue::Undefined) {
                  	   QString code = o["code"].toString();
                      if (code == "USER_AUTHENTICATION_FAILED") {
-                           message = tr("Sorry, wrong email address, username or password. Please check again. <a href=\"%1\">Have you forgotten your password</a>?").arg("https://musescore.com/user/password");
+                           message = tr("Sorry, wrong email address, username or password. Please check again. %1Have you forgotten your password%2?")
+                                       .arg("<a href=\"https://musescore.com/user/password\">")
+                                       .arg("</a>");
                            }
                      else if (code == "USER_DENIED") {
                            message = tr("This account has been blocked.");
                            }
                      else if (code == "USER_NOT_ACTIVATED") {
-                           message = tr("Your account has not been activated yet. Please check your mailbox to activate your account or <a href=\"%1\">request a new activation email</a>.").arg("https://musescore.com/user/resendregistrationpassword");
+                           message = tr("Your account has not been activated yet. Please check your mailbox to activate your account or %1request a new activation email%2.")
+                                       .arg("<a href=\"https://musescore.com/user/resendregistrationpassword\">")
+                                       .arg("</a>");
                            }
                      else if (code == "USER_TIMESTAMP_EXPIRED") {
-                           message = tr("The local time on your device is not set right. Please check it and adjust. It's advised to set the time/timezone to automatic. If you still can't log in, <a href=\"%1\">contact us</a>.").arg("https://musescore.com/contact?category=Login%20problems");
+                           message = tr("The local time on your device is not set right. Please check it and adjust. It's advised to set the time/timezone to automatic. If you still can't log in, %1contact us%2.")
+                                       .arg("<a href=\"https://musescore.com/contact?category=Login%20problems\">")
+                                       .arg("</a>");
                            }
                      }
                  }
@@ -220,7 +231,11 @@ void LoginManager::onAccessTokenRequestReady(QByteArray ba)
             QMessageBox::critical(0, tr("Network error"), tr("Please check your Internet connection"));
             }
       else if (_oauthManager->lastError() == KQOAuthManager::ContentOperationNotPermittedError) {
-            QMessageBox::critical(0, tr("Please upgrade"), tr("Your MuseScore version is too old to use this feature.<br/> <a href=\"%1\">Please upgrade first</a>.").arg("http://musescore.org"));
+            QMessageBox::critical(0, tr("Please upgrade"), tr("Your MuseScore version is too old to use this feature.\n"
+                                                              "%1Please upgrade first%2.")
+                                  .arg("<a href=\"http://musescore.org\">")
+                                  .arg("</a>")
+                                  .replace("\n", "<br/>"));
             }
       }
 
@@ -366,7 +381,8 @@ void LoginManager::upload(const QString &path, int nid, const QString &title, co
 
       QHttpPart filePart;
       filePart.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/octet-stream"));
-      filePart.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"score_data\"; filename=\"temp.mscz\""));
+      QString contentDisposition = QString("form-data; name=\"score_data\"; filename=\"temp_%1.mscz\"").arg(qrand() % 100000);
+      filePart.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant(contentDisposition));
       QFile *file = new QFile(path);
       file->open(QIODevice::ReadOnly);
       filePart.setBodyDevice(file);

@@ -22,8 +22,8 @@
   <property name="accessibleName">
    <string>MuseScore Preferences</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout_3">
-   <item row="3" column="0">
+  <layout class="QGridLayout" name="gridLayout_10">
+   <item row="1" column="0">
     <layout class="QHBoxLayout">
      <property name="spacing">
       <number>6</number>
@@ -106,69 +106,10 @@
        <string>General</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_2">
-       <item row="0" column="1">
-        <widget class="QGroupBox" name="groupBox_10">
-         <property name="title">
-          <string>Language</string>
-         </property>
-         <property name="flat">
-          <bool>false</bool>
-         </property>
-         <property name="checkable">
-          <bool>false</bool>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout">
-          <item>
-           <widget class="QComboBox" name="language">
-            <property name="accessibleName">
-             <string>Select language</string>
-            </property>
-            <property name="accessibleDescription">
-             <string>The language will be changed once you restart MuseScore.</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="restartWarningLanguage">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="font">
-             <font>
-              <italic>true</italic>
-             </font>
-            </property>
-            <property name="text">
-             <string notr="true">The language will be changed once you restart MuseScore.</string>
-            </property>
-            <property name="textFormat">
-             <enum>Qt::PlainText</enum>
-            </property>
-            <property name="wordWrap">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="updateTranslation">
-            <property name="text">
-             <string>Update translations</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
        <item row="0" column="0" rowspan="2">
         <widget class="QGroupBox" name="groupBox_5">
          <property name="title">
           <string>Program Start</string>
-         </property>
-         <property name="flat">
-          <bool>false</bool>
          </property>
          <layout class="QGridLayout" name="gridLayout">
           <item row="0" column="0">
@@ -221,7 +162,11 @@
                <string>Opens a file dialog for selecting the starting score</string>
               </property>
               <property name="text">
-               <string/>
+               <string notr="true"/>
+              </property>
+              <property name="icon">
+               <iconset resource="musescore.qrc">
+                <normaloff>:/data/icons/document-open.svg</normaloff>:/data/icons/document-open.svg</iconset>
               </property>
              </widget>
             </item>
@@ -290,266 +235,56 @@
          </layout>
         </widget>
        </item>
-       <item row="2" column="0" rowspan="3">
-        <widget class="QGroupBox" name="groupBox_6">
-         <property name="title">
-          <string>Folders</string>
+       <item row="4" column="1">
+        <widget class="QGroupBox" name="oscServer">
+         <property name="accessibleName">
+          <string>OSC remote control</string>
          </property>
-         <property name="flat">
+         <property name="title">
+          <string>OSC Remote Control</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="checked">
           <bool>false</bool>
          </property>
-         <layout class="QGridLayout">
-          <property name="leftMargin">
-           <number>3</number>
-          </property>
-          <property name="topMargin">
-           <number>3</number>
-          </property>
-          <property name="rightMargin">
-           <number>3</number>
-          </property>
-          <property name="bottomMargin">
-           <number>3</number>
-          </property>
-          <property name="horizontalSpacing">
-           <number>3</number>
-          </property>
-          <property name="verticalSpacing">
-           <number>0</number>
-          </property>
-          <item row="0" column="1">
-           <widget class="QLineEdit" name="myScores">
-            <property name="accessibleName">
-             <string>Score folder</string>
-            </property>
-            <property name="accessibleDescription">
-             <string>Insert path to score folder.</string>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="0">
-           <widget class="QLabel" name="label_9">
+         <layout class="QHBoxLayout" name="horizontalLayout_9">
+          <item>
+           <widget class="QLabel" name="label">
             <property name="text">
-             <string>Images:</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-            <property name="indent">
-             <number>5</number>
+             <string extracomment="The UDP port number on which the MuseScore OSC server will listen on">Port number:</string>
             </property>
            </widget>
           </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_86">
-            <property name="text">
-             <string>Scores:</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-            <property name="indent">
-             <number>5</number>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_88">
-            <property name="text">
-             <string>Styles:</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-            <property name="indent">
-             <number>5</number>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QLineEdit" name="myStyles">
+          <item>
+           <widget class="QSpinBox" name="oscPort">
             <property name="accessibleName">
-             <string>Style folder</string>
+             <string>Port number</string>
             </property>
-            <property name="accessibleDescription">
-             <string>Insert path for style folder</string>
+            <property name="minimum">
+             <number>1</number>
             </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_2">
-            <property name="text">
-             <string>Templates:</string>
+            <property name="maximum">
+             <number>65535</number>
             </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-            <property name="indent">
-             <number>5</number>
+            <property name="value">
+             <number>5282</number>
             </property>
            </widget>
           </item>
-          <item row="0" column="2">
-           <widget class="QToolButton" name="myScoresButton">
-            <property name="focusPolicy">
-             <enum>Qt::StrongFocus</enum>
+          <item>
+           <spacer name="horizontalSpacer_15">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
             </property>
-            <property name="accessibleName">
-             <string>Choose score folder</string>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
             </property>
-            <property name="accessibleDescription">
-             <string>Opens a folder dialog for selecting the score folder</string>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="2">
-           <widget class="QToolButton" name="myStylesButton">
-            <property name="focusPolicy">
-             <enum>Qt::StrongFocus</enum>
-            </property>
-            <property name="accessibleName">
-             <string>Choose style folder</string>
-            </property>
-            <property name="accessibleDescription">
-             <string>Opens a folder dialog for selecting the style folder</string>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="label_89">
-            <property name="text">
-             <string>Plugins:</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-            <property name="indent">
-             <number>5</number>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QLineEdit" name="myTemplates">
-            <property name="accessibleName">
-             <string>Template folder</string>
-            </property>
-            <property name="accessibleDescription">
-             <string>Insert path to Template folder</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="1">
-           <widget class="QLineEdit" name="myPlugins">
-            <property name="accessibleName">
-             <string>Plugin folder</string>
-            </property>
-            <property name="accessibleDescription">
-             <string>Insert path to plugin folder</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="1">
-           <widget class="QLineEdit" name="sfPath">
-            <property name="accessibleName">
-             <string>SoundFont folders</string>
-            </property>
-            <property name="accessibleDescription">
-             <string>Insert path to SoundFont folders</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="2">
-           <widget class="QToolButton" name="myPluginsButton">
-            <property name="focusPolicy">
-             <enum>Qt::StrongFocus</enum>
-            </property>
-            <property name="accessibleName">
-             <string>Choose plugin folder</string>
-            </property>
-            <property name="accessibleDescription">
-             <string>Opens a folder dialog for selecting the plugin folder</string>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="0">
-           <widget class="QLabel" name="label_5">
-            <property name="text">
-             <string>SoundFonts:</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-            <property name="indent">
-             <number>5</number>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="1">
-           <widget class="QLineEdit" name="myImages">
-            <property name="accessibleName">
-             <string>Image folder</string>
-            </property>
-            <property name="accessibleDescription">
-             <string>Insert path to image folder</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="2">
-           <widget class="QToolButton" name="myTemplatesButton">
-            <property name="focusPolicy">
-             <enum>Qt::StrongFocus</enum>
-            </property>
-            <property name="accessibleName">
-             <string>Choose template folder</string>
-            </property>
-            <property name="accessibleDescription">
-             <string>Opens a folder dialog for selecting the template folder</string>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="2">
-           <widget class="QToolButton" name="myImagesButton">
-            <property name="focusPolicy">
-             <enum>Qt::StrongFocus</enum>
-            </property>
-            <property name="accessibleName">
-             <string>Image folder</string>
-            </property>
-            <property name="accessibleDescription">
-             <string>Opens a folder dialog for selecting the image folder</string>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="2">
-           <widget class="QToolButton" name="mySoundfontsButton">
-            <property name="focusPolicy">
-             <enum>Qt::StrongFocus</enum>
-            </property>
-            <property name="accessibleName">
-             <string>SoundFont folders</string>
-            </property>
-            <property name="accessibleDescription">
-             <string>Opens a dialog for configuring the SoundFont folders</string>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-           </widget>
+           </spacer>
           </item>
          </layout>
         </widget>
@@ -561,9 +296,6 @@
          </property>
          <property name="title">
           <string>Auto Save</string>
-         </property>
-         <property name="flat">
-          <bool>false</bool>
          </property>
          <property name="checkable">
           <bool>true</bool>
@@ -627,62 +359,298 @@
          </layout>
         </widget>
        </item>
-       <item row="4" column="1">
-        <widget class="QGroupBox" name="oscServer">
-         <property name="accessibleName">
-          <string>OSC remote control</string>
-         </property>
+       <item row="0" column="1">
+        <widget class="QGroupBox" name="groupBox_10">
          <property name="title">
-          <string>OSC Remote Control</string>
-         </property>
-         <property name="flat">
-          <bool>false</bool>
+          <string>Language</string>
          </property>
          <property name="checkable">
-          <bool>true</bool>
-         </property>
-         <property name="checked">
           <bool>false</bool>
          </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_9">
+         <layout class="QVBoxLayout" name="verticalLayout">
           <item>
-           <widget class="QLabel" name="label">
+           <widget class="QComboBox" name="language">
+            <property name="accessibleName">
+             <string>Select language</string>
+            </property>
+            <property name="accessibleDescription">
+             <string>Select the language of the user interface</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="updateTranslation">
             <property name="text">
-             <string extracomment="The UDP port number on which the MuseScore OSC server will listen on">Port number:</string>
+             <string>Update Translations</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="2" column="0" rowspan="3">
+        <widget class="QGroupBox" name="groupBox_6">
+         <property name="title">
+          <string>Folders</string>
+         </property>
+         <layout class="QGridLayout">
+          <property name="leftMargin">
+           <number>3</number>
+          </property>
+          <property name="topMargin">
+           <number>3</number>
+          </property>
+          <property name="rightMargin">
+           <number>3</number>
+          </property>
+          <property name="bottomMargin">
+           <number>3</number>
+          </property>
+          <property name="horizontalSpacing">
+           <number>3</number>
+          </property>
+          <property name="verticalSpacing">
+           <number>0</number>
+          </property>
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="myScores">
+            <property name="accessibleName">
+             <string>Score folder</string>
+            </property>
+            <property name="accessibleDescription">
+             <string>Insert path to score folder.</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="label_9">
+            <property name="text">
+             <string>Images:</string>
             </property>
             <property name="alignment">
-             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
             </property>
            </widget>
           </item>
-          <item>
-           <widget class="QSpinBox" name="oscPort">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_86">
+            <property name="text">
+             <string>Scores:</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_88">
+            <property name="text">
+             <string>Styles:</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLineEdit" name="myStyles">
             <property name="accessibleName">
-             <string>Port number</string>
+             <string>Style folder</string>
             </property>
-            <property name="minimum">
-             <number>1</number>
-            </property>
-            <property name="maximum">
-             <number>65535</number>
-            </property>
-            <property name="value">
-             <number>5282</number>
+            <property name="accessibleDescription">
+             <string>Insert path for style folder</string>
             </property>
            </widget>
           </item>
-          <item>
-           <spacer name="horizontalSpacer_15">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Templates:</string>
             </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
             </property>
-           </spacer>
+           </widget>
+          </item>
+          <item row="0" column="2">
+           <widget class="QToolButton" name="myScoresButton">
+            <property name="focusPolicy">
+             <enum>Qt::StrongFocus</enum>
+            </property>
+            <property name="accessibleName">
+             <string>Choose score folder</string>
+            </property>
+            <property name="accessibleDescription">
+             <string>Opens a folder dialog for selecting the score folder</string>
+            </property>
+            <property name="text">
+             <string notr="true"/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/icons/document-open.svg</normaloff>:/data/icons/document-open.svg</iconset>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2">
+           <widget class="QToolButton" name="myStylesButton">
+            <property name="focusPolicy">
+             <enum>Qt::StrongFocus</enum>
+            </property>
+            <property name="accessibleName">
+             <string>Choose style folder</string>
+            </property>
+            <property name="accessibleDescription">
+             <string>Opens a folder dialog for selecting the style folder</string>
+            </property>
+            <property name="text">
+             <string notr="true"/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/icons/document-open.svg</normaloff>:/data/icons/document-open.svg</iconset>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_89">
+            <property name="text">
+             <string>Plugins:</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLineEdit" name="myTemplates">
+            <property name="accessibleName">
+             <string>Template folder</string>
+            </property>
+            <property name="accessibleDescription">
+             <string>Insert path to Template folder</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLineEdit" name="myPlugins">
+            <property name="accessibleName">
+             <string>Plugin folder</string>
+            </property>
+            <property name="accessibleDescription">
+             <string>Insert path to plugin folder</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QLineEdit" name="mySoundfonts">
+            <property name="accessibleName">
+             <string>SoundFont folders</string>
+            </property>
+            <property name="accessibleDescription">
+             <string>Insert path to SoundFont folders</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="2">
+           <widget class="QToolButton" name="myPluginsButton">
+            <property name="focusPolicy">
+             <enum>Qt::StrongFocus</enum>
+            </property>
+            <property name="accessibleName">
+             <string>Choose plugin folder</string>
+            </property>
+            <property name="accessibleDescription">
+             <string>Opens a folder dialog for selecting the plugin folder</string>
+            </property>
+            <property name="text">
+             <string notr="true"/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/icons/document-open.svg</normaloff>:/data/icons/document-open.svg</iconset>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_5">
+            <property name="text">
+             <string>SoundFonts:</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QLineEdit" name="myImages">
+            <property name="accessibleName">
+             <string>Image folder</string>
+            </property>
+            <property name="accessibleDescription">
+             <string>Insert path to image folder</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="2">
+           <widget class="QToolButton" name="myTemplatesButton">
+            <property name="focusPolicy">
+             <enum>Qt::StrongFocus</enum>
+            </property>
+            <property name="accessibleName">
+             <string>Choose template folder</string>
+            </property>
+            <property name="accessibleDescription">
+             <string>Opens a folder dialog for selecting the template folder</string>
+            </property>
+            <property name="text">
+             <string notr="true"/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/icons/document-open.svg</normaloff>:/data/icons/document-open.svg</iconset>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="2">
+           <widget class="QToolButton" name="myImagesButton">
+            <property name="focusPolicy">
+             <enum>Qt::StrongFocus</enum>
+            </property>
+            <property name="accessibleName">
+             <string>Image folder</string>
+            </property>
+            <property name="accessibleDescription">
+             <string>Opens a folder dialog for selecting the image folder</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/icons/document-open.svg</normaloff>:/data/icons/document-open.svg</iconset>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="2">
+           <widget class="QToolButton" name="mySoundfontsButton">
+            <property name="focusPolicy">
+             <enum>Qt::StrongFocus</enum>
+            </property>
+            <property name="accessibleName">
+             <string>SoundFont folders</string>
+            </property>
+            <property name="accessibleDescription">
+             <string>Opens a dialog for configuring the SoundFont folders</string>
+            </property>
+            <property name="text">
+             <string notr="true"/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/icons/edit.svg</normaloff>:/data/icons/edit.svg</iconset>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>
@@ -690,10 +658,10 @@
        <item row="1" column="1" rowspan="2">
         <widget class="QGroupBox" name="groupBox_12">
          <property name="title">
-          <string>Style</string>
+          <string>Theme</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_9">
-          <item row="0" column="0">
+          <item row="0" column="0" colspan="2">
            <widget class="QComboBox" name="styleName">
             <property name="accessibleName">
              <string>Select style</string>
@@ -708,29 +676,29 @@
               <string>Light</string>
              </property>
             </item>
+            <item>
+             <property name="text">
+              <string>Dark Fusion</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Light Fusion</string>
+             </property>
+            </item>
            </widget>
           </item>
-          <item row="2" column="2">
-           <widget class="QSpinBox" name="iconHeight">
+          <item row="0" column="2" colspan="2">
+           <widget class="QCheckBox" name="animations">
             <property name="accessibleName">
-             <string>Icon Height</string>
+             <string>Animations</string>
             </property>
-            <property name="minimum">
-             <number>5</number>
-            </property>
-            <property name="value">
-             <number>20</number>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_26">
             <property name="text">
-             <string>Icon size:</string>
+             <string>Animations</string>
             </property>
            </widget>
           </item>
-          <item row="2" column="1">
+          <item row="1" column="1">
            <widget class="QSpinBox" name="iconWidth">
             <property name="accessibleName">
              <string>Icon Width</string>
@@ -743,18 +711,48 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="1">
-           <widget class="QCheckBox" name="animations">
-            <property name="accessibleName">
-             <string>Animations</string>
-            </property>
+          <item row="1" column="2">
+           <widget class="QLabel" name="iconHeigthLabel">
             <property name="text">
-             <string>Animations</string>
+             <string>Icon height:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="iconWidthLabel">
+            <property name="text">
+             <string>Icon width:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="3">
+           <widget class="QSpinBox" name="iconHeight">
+            <property name="accessibleName">
+             <string>Icon Height</string>
+            </property>
+            <property name="minimum">
+             <number>5</number>
+            </property>
+            <property name="value">
+             <number>20</number>
             </property>
            </widget>
           </item>
          </layout>
         </widget>
+       </item>
+       <item row="5" column="0">
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </widget>
@@ -789,9 +787,6 @@
          <property name="title">
           <string>Background</string>
          </property>
-         <property name="flat">
-          <bool>false</bool>
-         </property>
          <layout class="QGridLayout">
           <property name="leftMargin">
            <number>9</number>
@@ -808,16 +803,6 @@
           <property name="spacing">
            <number>6</number>
           </property>
-          <item row="0" column="1">
-           <widget class="QRadioButton" name="bgWallpaperButton">
-            <property name="accessibleName">
-             <string>Background Wallpaper</string>
-            </property>
-            <property name="text">
-             <string>Wallpaper</string>
-            </property>
-           </widget>
-          </item>
           <item row="0" column="0">
            <widget class="QRadioButton" name="bgColorButton">
             <property name="accessibleName">
@@ -827,48 +812,6 @@
              <string>Color</string>
             </property>
            </widget>
-          </item>
-          <item row="1" column="1">
-           <layout class="QHBoxLayout">
-            <property name="spacing">
-             <number>6</number>
-            </property>
-            <property name="leftMargin">
-             <number>0</number>
-            </property>
-            <property name="topMargin">
-             <number>0</number>
-            </property>
-            <property name="rightMargin">
-             <number>0</number>
-            </property>
-            <property name="bottomMargin">
-             <number>0</number>
-            </property>
-            <item>
-             <widget class="QLineEdit" name="bgWallpaper">
-              <property name="accessibleName">
-               <string>Background wallpaper path</string>
-              </property>
-              <property name="accessibleDescription">
-               <string>Insert path to background wallpaper file</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QToolButton" name="bgWallpaperSelect">
-              <property name="accessibleName">
-               <string>Choose Background wallpaper file</string>
-              </property>
-              <property name="accessibleDescription">
-               <string>Opens a file dialog for selecting the wallpaper file</string>
-              </property>
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-            </item>
-           </layout>
           </item>
           <item row="1" column="0">
            <layout class="QHBoxLayout">
@@ -888,22 +831,78 @@
              <number>0</number>
             </property>
             <item>
-             <widget class="Awl::ColorLabel" name="bgColorLabel">
-              <property name="focusPolicy">
-               <enum>Qt::StrongFocus</enum>
-              </property>
+             <widget class="QRadioButton" name="bgWallpaperButton">
               <property name="accessibleName">
-               <string>Select background color</string>
+               <string>Background Wallpaper</string>
               </property>
-              <property name="accessibleDescription">
-               <string>Opens a dialog for selecting the background color</string>
-              </property>
-              <property name="frameShape">
-               <enum>QFrame::Box</enum>
+              <property name="text">
+               <string>Wallpaper</string>
               </property>
              </widget>
             </item>
            </layout>
+          </item>
+          <item row="1" column="3">
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>6</number>
+            </property>
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QToolButton" name="bgWallpaperSelect">
+              <property name="accessibleName">
+               <string>Choose Background wallpaper file</string>
+              </property>
+              <property name="accessibleDescription">
+               <string>Opens a file dialog for selecting the wallpaper file</string>
+              </property>
+              <property name="text">
+               <string notr="true"/>
+              </property>
+              <property name="icon">
+               <iconset resource="musescore.qrc">
+                <normaloff>:/data/icons/document-open.svg</normaloff>:/data/icons/document-open.svg</iconset>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLineEdit" name="bgWallpaper">
+            <property name="accessibleName">
+             <string>Background wallpaper path</string>
+            </property>
+            <property name="accessibleDescription">
+             <string>Insert path to background wallpaper file</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="Awl::ColorLabel" name="bgColorLabel">
+            <property name="focusPolicy">
+             <enum>Qt::StrongFocus</enum>
+            </property>
+            <property name="accessibleName">
+             <string>Select background color</string>
+            </property>
+            <property name="accessibleDescription">
+             <string>Opens a dialog for selecting the background color</string>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::Box</enum>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>
@@ -916,9 +915,6 @@
          <property name="title">
           <string>Paper</string>
          </property>
-         <property name="flat">
-          <bool>false</bool>
-         </property>
          <layout class="QGridLayout">
           <property name="leftMargin">
            <number>9</number>
@@ -935,48 +931,6 @@
           <property name="spacing">
            <number>6</number>
           </property>
-          <item row="1" column="1">
-           <layout class="QHBoxLayout">
-            <property name="spacing">
-             <number>6</number>
-            </property>
-            <property name="leftMargin">
-             <number>0</number>
-            </property>
-            <property name="topMargin">
-             <number>0</number>
-            </property>
-            <property name="rightMargin">
-             <number>0</number>
-            </property>
-            <property name="bottomMargin">
-             <number>0</number>
-            </property>
-            <item>
-             <widget class="QLineEdit" name="fgWallpaper">
-              <property name="accessibleName">
-               <string>Paper wallpaper path</string>
-              </property>
-              <property name="accessibleDescription">
-               <string>Insert path to paper wallpaper file</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QToolButton" name="fgWallpaperSelect">
-              <property name="accessibleName">
-               <string>Choose paper wallpaper file</string>
-              </property>
-              <property name="accessibleDescription">
-               <string>Opens a file dialog for selecting the wallpaper file</string>
-              </property>
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
           <item row="1" column="0">
            <layout class="QHBoxLayout">
             <property name="spacing">
@@ -995,32 +949,52 @@
              <number>0</number>
             </property>
             <item>
-             <widget class="Awl::ColorLabel" name="fgColorLabel">
-              <property name="focusPolicy">
-               <enum>Qt::StrongFocus</enum>
-              </property>
+             <widget class="QRadioButton" name="fgWallpaperButton">
               <property name="accessibleName">
-               <string>Select paper color</string>
+               <string>Paper Wallpaper</string>
               </property>
-              <property name="accessibleDescription">
-               <string>Opens a dialog for selecting the paper color</string>
-              </property>
-              <property name="frameShape">
-               <enum>QFrame::Box</enum>
+              <property name="text">
+               <string>Wallpaper</string>
               </property>
              </widget>
             </item>
            </layout>
           </item>
-          <item row="0" column="1">
-           <widget class="QRadioButton" name="fgWallpaperButton">
-            <property name="accessibleName">
-             <string>Paper Wallpaper</string>
+          <item row="1" column="2">
+           <layout class="QHBoxLayout">
+            <property name="spacing">
+             <number>6</number>
             </property>
-            <property name="text">
-             <string>Wallpaper</string>
+            <property name="leftMargin">
+             <number>0</number>
             </property>
-           </widget>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QToolButton" name="fgWallpaperSelect">
+              <property name="accessibleName">
+               <string>Choose paper wallpaper file</string>
+              </property>
+              <property name="accessibleDescription">
+               <string>Opens a file dialog for selecting the wallpaper file</string>
+              </property>
+              <property name="text">
+               <string notr="true"/>
+              </property>
+              <property name="icon">
+               <iconset resource="musescore.qrc">
+                <normaloff>:/data/icons/document-open.svg</normaloff>:/data/icons/document-open.svg</iconset>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
           <item row="0" column="0">
            <widget class="QRadioButton" name="fgColorButton">
@@ -1032,35 +1006,86 @@
             </property>
            </widget>
           </item>
+          <item row="0" column="1">
+           <widget class="Awl::ColorLabel" name="fgColorLabel">
+            <property name="focusPolicy">
+             <enum>Qt::StrongFocus</enum>
+            </property>
+            <property name="accessibleName">
+             <string>Select paper color</string>
+            </property>
+            <property name="accessibleDescription">
+             <string>Opens a dialog for selecting the paper color</string>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::Box</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLineEdit" name="fgWallpaper">
+            <property name="accessibleName">
+             <string>Paper wallpaper path</string>
+            </property>
+            <property name="accessibleDescription">
+             <string>Insert path to paper wallpaper file</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>
        <item>
-        <spacer name="verticalSpacer_3">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
+        <widget class="QGroupBox" name="groupBox_11">
+         <property name="title">
+          <string>Scroll pages</string>
          </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
+         <layout class="QGridLayout" name="gridLayout_12">
+          <item row="0" column="0">
+           <widget class="QRadioButton" name="pageHorizontal">
+            <property name="text">
+             <string>Horizontally</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QRadioButton" name="pageVertical">
+            <property name="text">
+             <string>Vertically</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
        </item>
        <item>
         <widget class="QGroupBox" name="groupBox_4">
          <property name="title">
           <string>Miscellaneous</string>
          </property>
-         <property name="flat">
-          <bool>false</bool>
-         </property>
          <layout class="QGridLayout">
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_24">
+          <item row="0" column="0">
+           <widget class="QCheckBox" name="drawAntialiased">
+            <property name="toolTip">
+             <string>Disable antialiased drawing</string>
+            </property>
+            <property name="whatsThis">
+             <string>Uncheck this to speed up drawing</string>
+            </property>
+            <property name="accessibleName">
+             <string>Draw antialiased</string>
+            </property>
+            <property name="accessibleDescription">
+             <string>Uncheck this to speed up drawing</string>
+            </property>
             <property name="text">
-             <string>Proximity for selecting elements:</string>
+             <string>Draw antialiased</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
@@ -1090,30 +1115,28 @@
             </property>
            </spacer>
           </item>
-          <item row="0" column="0">
-           <widget class="QCheckBox" name="drawAntialiased">
-            <property name="toolTip">
-             <string>Disable antialiased drawing</string>
-            </property>
-            <property name="whatsThis">
-             <string>Uncheck this to speed up drawing</string>
-            </property>
-            <property name="accessibleName">
-             <string>Draw antialiased</string>
-            </property>
-            <property name="accessibleDescription">
-             <string>Uncheck this to speed up drawing</string>
-            </property>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_24">
             <property name="text">
-             <string>Draw antialiased</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
+             <string>Proximity for selecting elements:</string>
             </property>
            </widget>
           </item>
          </layout>
         </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_3">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </widget>
@@ -1130,8 +1153,8 @@
          <property name="title">
           <string>Note Input</string>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_2">
-          <item>
+         <layout class="QGridLayout" name="gridLayout_13">
+          <item row="0" column="0">
            <widget class="QCheckBox" name="enableMidiInput">
             <property name="accessibleName">
              <string>Enable MIDI Input</string>
@@ -1141,80 +1164,7 @@
             </property>
            </widget>
           </item>
-          <item>
-           <widget class="QGroupBox" name="playNotes">
-            <property name="mouseTracking">
-             <bool>true</bool>
-            </property>
-            <property name="accessibleName">
-             <string>Play notes when editing</string>
-            </property>
-            <property name="title">
-             <string>Play notes when editing</string>
-            </property>
-            <property name="checkable">
-             <bool>true</bool>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-            <layout class="QGridLayout" name="gridLayout_4">
-             <item row="0" column="0">
-              <widget class="QLabel" name="label_37">
-               <property name="text">
-                <string>Default duration:</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="1">
-              <widget class="QSpinBox" name="defaultPlayDuration">
-               <property name="accessibleName">
-                <string>Default duration</string>
-               </property>
-               <property name="suffix">
-                <string>ms</string>
-               </property>
-               <property name="minimum">
-                <number>20</number>
-               </property>
-               <property name="maximum">
-                <number>2000</number>
-               </property>
-               <property name="singleStep">
-                <number>100</number>
-               </property>
-               <property name="value">
-                <number>300</number>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="0">
-              <widget class="QCheckBox" name="playChordOnAddNote">
-               <property name="accessibleName">
-                <string>Play whole chord when adding note</string>
-               </property>
-               <property name="text">
-                <string>Play whole chord when adding note</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="2">
-              <spacer name="horizontalSpacer_2">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item>
+          <item row="1" column="0">
            <widget class="QCheckBox" name="warnPitchRange">
             <property name="accessibleName">
              <string>Color notes outside of usable pitch range</string>
@@ -1224,15 +1174,117 @@
             </property>
            </widget>
           </item>
-          <item>
-           <spacer>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_56">
+            <property name="text">
+             <string>Delay between notes in automatic Real-time mode:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QSpinBox" name="realtimeDelay">
+            <property name="accessibleName">
+             <string>Delay between notes in automatic Real-time mode</string>
+            </property>
+            <property name="suffix">
+             <string>ms</string>
+            </property>
+            <property name="minimum">
+             <number>300</number>
+            </property>
+            <property name="maximum">
+             <number>3000</number>
+            </property>
+            <property name="singleStep">
+             <number>10</number>
+            </property>
+            <property name="value">
+             <number>750</number>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="2">
+           <spacer name="horizontalSpacer_4">
             <property name="orientation">
-             <enum>Qt::Vertical</enum>
+             <enum>Qt::Horizontal</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>20</width>
-              <height>40</height>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="playNotes">
+         <property name="mouseTracking">
+          <bool>true</bool>
+         </property>
+         <property name="accessibleName">
+          <string>Play notes when editing</string>
+         </property>
+         <property name="title">
+          <string>Play notes when editing</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_4">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_37">
+            <property name="text">
+             <string>Default duration:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QSpinBox" name="defaultPlayDuration">
+            <property name="accessibleName">
+             <string>Default duration</string>
+            </property>
+            <property name="suffix">
+             <string>ms</string>
+            </property>
+            <property name="minimum">
+             <number>20</number>
+            </property>
+            <property name="maximum">
+             <number>2000</number>
+            </property>
+            <property name="singleStep">
+             <number>100</number>
+            </property>
+            <property name="value">
+             <number>300</number>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QCheckBox" name="playChordOnAddNote">
+            <property name="accessibleName">
+             <string>Play whole chord when adding note</string>
+            </property>
+            <property name="text">
+             <string>Play whole chord when adding note</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2">
+           <spacer name="horizontalSpacer_2">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
              </size>
             </property>
            </spacer>
@@ -1250,9 +1302,6 @@
          </property>
          <property name="title">
           <string>MIDI Remote Control</string>
-         </property>
-         <property name="flat">
-          <bool>false</bool>
          </property>
          <property name="checkable">
           <bool>true</bool>
@@ -1295,7 +1344,12 @@
              <string>Rewind is active</string>
             </property>
             <property name="text">
-             <string notr="true">...</string>
+             <string notr="true"/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/darkgreendot.svg</normaloff>
+              <normalon>:/data/greendot.svg</normalon>:/data/darkgreendot.svg</iconset>
             </property>
            </widget>
           </item>
@@ -1311,7 +1365,12 @@
              <string>Rewind record</string>
             </property>
             <property name="text">
-             <string notr="true">...</string>
+             <string notr="true"/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/recordOff.svg</normaloff>
+              <normalon>:/data/recordOn.svg</normalon>:/data/recordOff.svg</iconset>
             </property>
            </widget>
           </item>
@@ -1334,7 +1393,12 @@
              <string>Is active</string>
             </property>
             <property name="text">
-             <string notr="true">...</string>
+             <string notr="true"/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/darkgreendot.svg</normaloff>
+              <normalon>:/data/greendot.svg</normalon>:/data/darkgreendot.svg</iconset>
             </property>
            </widget>
           </item>
@@ -1350,7 +1414,12 @@
              <string>Toggle play record</string>
             </property>
             <property name="text">
-             <string notr="true">...</string>
+             <string notr="true"/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/recordOff.svg</normaloff>
+              <normalon>:/data/recordOn.svg</normalon>:/data/recordOff.svg</iconset>
             </property>
            </widget>
           </item>
@@ -1396,7 +1465,12 @@
              <string>Whole note is active</string>
             </property>
             <property name="text">
-             <string notr="true">...</string>
+             <string notr="true"/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/darkgreendot.svg</normaloff>
+              <normalon>:/data/greendot.svg</normalon>:/data/darkgreendot.svg</iconset>
             </property>
            </widget>
           </item>
@@ -1409,7 +1483,12 @@
              <string>Half note is active</string>
             </property>
             <property name="text">
-             <string notr="true">...</string>
+             <string notr="true"/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/darkgreendot.svg</normaloff>
+              <normalon>:/data/greendot.svg</normalon>:/data/darkgreendot.svg</iconset>
             </property>
            </widget>
           </item>
@@ -1422,7 +1501,12 @@
              <string>Whole note record</string>
             </property>
             <property name="text">
-             <string notr="true">...</string>
+             <string notr="true"/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/recordOff.svg</normaloff>
+              <normalon>:/data/recordOn.svg</normalon>:/data/recordOff.svg</iconset>
             </property>
            </widget>
           </item>
@@ -1435,7 +1519,12 @@
              <string>Half note record</string>
             </property>
             <property name="text">
-             <string notr="true">...</string>
+             <string notr="true"/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/recordOff.svg</normaloff>
+              <normalon>:/data/recordOn.svg</normalon>:/data/recordOff.svg</iconset>
             </property>
            </widget>
           </item>
@@ -1478,7 +1567,12 @@
              <string>Rest is active</string>
             </property>
             <property name="text">
-             <string notr="true">...</string>
+             <string notr="true"/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/darkgreendot.svg</normaloff>
+              <normalon>:/data/greendot.svg</normalon>:/data/darkgreendot.svg</iconset>
             </property>
            </widget>
           </item>
@@ -1491,7 +1585,12 @@
              <string>Quarter note is active</string>
             </property>
             <property name="text">
-             <string notr="true">...</string>
+             <string notr="true"/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/darkgreendot.svg</normaloff>
+              <normalon>:/data/greendot.svg</normalon>:/data/darkgreendot.svg</iconset>
             </property>
            </widget>
           </item>
@@ -1504,7 +1603,12 @@
              <string>Quarter note record</string>
             </property>
             <property name="text">
-             <string notr="true">...</string>
+             <string notr="true"/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/recordOff.svg</normaloff>
+              <normalon>:/data/recordOn.svg</normalon>:/data/recordOff.svg</iconset>
             </property>
            </widget>
           </item>
@@ -1517,7 +1621,12 @@
              <string>Eighth note is active</string>
             </property>
             <property name="text">
-             <string notr="true">...</string>
+             <string notr="true"/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/darkgreendot.svg</normaloff>
+              <normalon>:/data/greendot.svg</normalon>:/data/darkgreendot.svg</iconset>
             </property>
            </widget>
           </item>
@@ -1530,7 +1639,12 @@
              <string>Eighth note record</string>
             </property>
             <property name="text">
-             <string notr="true">...</string>
+             <string notr="true"/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/recordOff.svg</normaloff>
+              <normalon>:/data/recordOn.svg</normalon>:/data/recordOff.svg</iconset>
             </property>
            </widget>
           </item>
@@ -1551,10 +1665,20 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="12">
+          <item row="4" column="8">
            <widget class="QLabel" name="label_47">
             <property name="text">
              <string>Tie</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="12">
+           <widget class="QLabel" name="label_54">
+            <property name="text">
+             <string>Real-time Advance</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1570,7 +1694,12 @@
              <string>Augmentation dot is active</string>
             </property>
             <property name="text">
-             <string notr="true">...</string>
+             <string notr="true"/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/darkgreendot.svg</normaloff>
+              <normalon>:/data/greendot.svg</normalon>:/data/darkgreendot.svg</iconset>
             </property>
            </widget>
           </item>
@@ -1583,7 +1712,12 @@
              <string>Augmentation dot record</string>
             </property>
             <property name="text">
-             <string notr="true">...</string>
+             <string notr="true"/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/recordOff.svg</normaloff>
+              <normalon>:/data/recordOn.svg</normalon>:/data/recordOff.svg</iconset>
             </property>
            </widget>
           </item>
@@ -1596,7 +1730,12 @@
              <string>Double augmentation dot is active</string>
             </property>
             <property name="text">
-             <string notr="true">...</string>
+             <string notr="true"/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/darkgreendot.svg</normaloff>
+              <normalon>:/data/greendot.svg</normalon>:/data/darkgreendot.svg</iconset>
             </property>
            </widget>
           </item>
@@ -1609,11 +1748,16 @@
              <string>Double augmentation dot record</string>
             </property>
             <property name="text">
-             <string notr="true">...</string>
+             <string notr="true"/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/recordOff.svg</normaloff>
+              <normalon>:/data/recordOn.svg</normalon>:/data/recordOff.svg</iconset>
             </property>
            </widget>
           </item>
-          <item row="2" column="13">
+          <item row="4" column="9">
            <widget class="Ms::GreendotButton" name="rca12">
             <property name="focusPolicy">
              <enum>Qt::StrongFocus</enum>
@@ -1622,11 +1766,16 @@
              <string>Tie is active</string>
             </property>
             <property name="text">
-             <string notr="true">...</string>
+             <string notr="true"/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/darkgreendot.svg</normaloff>
+              <normalon>:/data/greendot.svg</normalon>:/data/darkgreendot.svg</iconset>
             </property>
            </widget>
           </item>
-          <item row="2" column="14">
+          <item row="4" column="10">
            <widget class="Ms::RecordButton" name="rcr12">
             <property name="focusPolicy">
              <enum>Qt::StrongFocus</enum>
@@ -1635,7 +1784,48 @@
              <string>Tie record</string>
             </property>
             <property name="text">
-             <string notr="true">...</string>
+             <string notr="true"/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/recordOff.svg</normaloff>
+              <normalon>:/data/recordOn.svg</normalon>:/data/recordOff.svg</iconset>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="13">
+           <widget class="Ms::GreendotButton" name="realtimeAdvanceActive">
+            <property name="focusPolicy">
+             <enum>Qt::StrongFocus</enum>
+            </property>
+            <property name="accessibleName">
+             <string>Real-time Advance is active</string>
+            </property>
+            <property name="text">
+             <string notr="true"/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/darkgreendot.svg</normaloff>
+              <normalon>:/data/greendot.svg</normalon>:/data/darkgreendot.svg</iconset>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="14">
+           <widget class="Ms::RecordButton" name="recordRealtimeAdvance">
+            <property name="focusPolicy">
+             <enum>Qt::StrongFocus</enum>
+            </property>
+            <property name="accessibleName">
+             <string>Real-time Advance record</string>
+            </property>
+            <property name="text">
+             <string notr="true"/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/recordOff.svg</normaloff>
+              <normalon>:/data/recordOn.svg</normalon>:/data/recordOff.svg</iconset>
             </property>
            </widget>
           </item>
@@ -1648,7 +1838,12 @@
              <string>Rest record</string>
             </property>
             <property name="text">
-             <string notr="true">...</string>
+             <string notr="true"/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/recordOff.svg</normaloff>
+              <normalon>:/data/recordOn.svg</normalon>:/data/recordOff.svg</iconset>
             </property>
            </widget>
           </item>
@@ -1723,7 +1918,12 @@
              <string>Play is active</string>
             </property>
             <property name="text">
-             <string notr="true">...</string>
+             <string notr="true"/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/darkgreendot.svg</normaloff>
+              <normalon>:/data/greendot.svg</normalon>:/data/darkgreendot.svg</iconset>
             </property>
            </widget>
           </item>
@@ -1739,7 +1939,12 @@
              <string>Stop is active</string>
             </property>
             <property name="text">
-             <string notr="true">...</string>
+             <string notr="true"/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/darkgreendot.svg</normaloff>
+              <normalon>:/data/greendot.svg</normalon>:/data/darkgreendot.svg</iconset>
             </property>
            </widget>
           </item>
@@ -1755,7 +1960,12 @@
              <string>Play record</string>
             </property>
             <property name="text">
-             <string notr="true">...</string>
+             <string notr="true"/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/recordOff.svg</normaloff>
+              <normalon>:/data/recordOn.svg</normalon>:/data/recordOff.svg</iconset>
             </property>
            </widget>
           </item>
@@ -1771,7 +1981,12 @@
              <string>Stop record</string>
             </property>
             <property name="text">
-             <string notr="true">...</string>
+             <string notr="true"/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/recordOff.svg</normaloff>
+              <normalon>:/data/recordOn.svg</normalon>:/data/recordOff.svg</iconset>
             </property>
            </widget>
           </item>
@@ -1797,7 +2012,12 @@
              <string>Note input is active</string>
             </property>
             <property name="text">
-             <string notr="true">...</string>
+             <string notr="true"/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/darkgreendot.svg</normaloff>
+              <normalon>:/data/greendot.svg</normalon>:/data/darkgreendot.svg</iconset>
             </property>
            </widget>
           </item>
@@ -1813,7 +2033,12 @@
              <string>Note input record</string>
             </property>
             <property name="text">
-             <string notr="true">...</string>
+             <string notr="true"/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/recordOff.svg</normaloff>
+              <normalon>:/data/recordOn.svg</normalon>:/data/recordOff.svg</iconset>
             </property>
            </widget>
           </item>
@@ -1836,7 +2061,12 @@
              <string>16th note is active</string>
             </property>
             <property name="text">
-             <string notr="true">...</string>
+             <string notr="true"/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/darkgreendot.svg</normaloff>
+              <normalon>:/data/greendot.svg</normalon>:/data/darkgreendot.svg</iconset>
             </property>
            </widget>
           </item>
@@ -1849,7 +2079,12 @@
              <string>16th note record</string>
             </property>
             <property name="text">
-             <string notr="true">...</string>
+             <string notr="true"/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/recordOff.svg</normaloff>
+              <normalon>:/data/recordOn.svg</normalon>:/data/recordOff.svg</iconset>
             </property>
            </widget>
           </item>
@@ -1862,7 +2097,12 @@
              <string>32nd note is active</string>
             </property>
             <property name="text">
-             <string notr="true">...</string>
+             <string notr="true"/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/darkgreendot.svg</normaloff>
+              <normalon>:/data/greendot.svg</normalon>:/data/darkgreendot.svg</iconset>
             </property>
            </widget>
           </item>
@@ -1875,7 +2115,12 @@
              <string>32nd note record</string>
             </property>
             <property name="text">
-             <string notr="true">...</string>
+             <string notr="true"/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/recordOff.svg</normaloff>
+              <normalon>:/data/recordOn.svg</normalon>:/data/recordOff.svg</iconset>
             </property>
            </widget>
           </item>
@@ -1908,7 +2153,12 @@
              <string>64th note is active</string>
             </property>
             <property name="text">
-             <string notr="true">...</string>
+             <string notr="true"/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/darkgreendot.svg</normaloff>
+              <normalon>:/data/greendot.svg</normalon>:/data/darkgreendot.svg</iconset>
             </property>
            </widget>
           </item>
@@ -1921,7 +2171,12 @@
              <string>64th note record</string>
             </property>
             <property name="text">
-             <string notr="true">...</string>
+             <string notr="true"/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/recordOff.svg</normaloff>
+              <normalon>:/data/recordOn.svg</normalon>:/data/recordOff.svg</iconset>
             </property>
            </widget>
           </item>
@@ -1934,7 +2189,12 @@
              <string>Undo is active</string>
             </property>
             <property name="text">
-             <string notr="true">...</string>
+             <string notr="true"/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/darkgreendot.svg</normaloff>
+              <normalon>:/data/greendot.svg</normalon>:/data/darkgreendot.svg</iconset>
             </property>
            </widget>
           </item>
@@ -1947,7 +2207,12 @@
              <string>Undo record</string>
             </property>
             <property name="text">
-             <string notr="true">...</string>
+             <string notr="true"/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/recordOff.svg</normaloff>
+              <normalon>:/data/recordOn.svg</normalon>:/data/recordOff.svg</iconset>
             </property>
            </widget>
           </item>
@@ -1958,6 +2223,23 @@
             </property>
             <property name="alignment">
              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="12">
+           <widget class="QLabel" name="label_55">
+            <property name="text">
+             <string>Advance on release?</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="13" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+           <widget class="QCheckBox" name="advanceOnRelease">
+            <property name="accessibleName">
+             <string>Advance on release?</string>
             </property>
            </widget>
           </item>
@@ -1974,6 +2256,19 @@
          </layout>
         </widget>
        </item>
+       <item>
+        <spacer>
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
       </layout>
      </widget>
      <widget class="QWidget" name="tabScore">
@@ -1988,9 +2283,6 @@
         <widget class="QGroupBox" name="groupBox_19">
          <property name="title">
           <string>View</string>
-         </property>
-         <property name="flat">
-          <bool>false</bool>
          </property>
          <layout class="QGridLayout" name="gridLayout_7">
           <item row="0" column="1">
@@ -2044,6 +2336,13 @@
             </property>
            </spacer>
           </item>
+          <item row="1" column="0">
+           <widget class="QCheckBox" name="showMidiControls">
+            <property name="text">
+             <string>Show MIDI controls in Mixer</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>
@@ -2051,9 +2350,6 @@
         <widget class="QGroupBox" name="groupBox_39">
          <property name="title">
           <string>Default Files</string>
-         </property>
-         <property name="flat">
-          <bool>false</bool>
          </property>
          <layout class="QGridLayout" name="_23">
           <property name="leftMargin">
@@ -2097,6 +2393,10 @@
             </property>
             <property name="text">
              <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/icons/document-open.svg</normaloff>:/data/icons/document-open.svg</iconset>
             </property>
            </widget>
           </item>
@@ -2152,7 +2452,11 @@
              <string>Opens a file dialog for selecting a style file</string>
             </property>
             <property name="text">
-             <string/>
+             <string notr="true"/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/icons/document-open.svg</normaloff>:/data/icons/document-open.svg</iconset>
             </property>
            </widget>
           </item>
@@ -2188,7 +2492,11 @@
              <string>Opens a file dialog for selecting a style file for part</string>
             </property>
             <property name="text">
-             <string/>
+             <string notr="true"/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/icons/document-open.svg</normaloff>:/data/icons/document-open.svg</iconset>
             </property>
            </widget>
           </item>
@@ -2214,14 +2522,18 @@
              <string>Opens a file dialog for selecting a instrument list file</string>
             </property>
             <property name="text">
-             <string/>
+             <string notr="true"/>
+            </property>
+            <property name="icon">
+             <iconset resource="musescore.qrc">
+              <normaloff>:/data/icons/document-open.svg</normaloff>:/data/icons/document-open.svg</iconset>
             </property>
            </widget>
           </item>
          </layout>
         </widget>
        </item>
-       <item row="2" column="0">
+       <item row="3" column="0">
         <spacer name="verticalSpacer_7">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -2255,11 +2567,17 @@
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>30</height>
+          </size>
+         </property>
          <property name="title">
           <string>PulseAudio</string>
          </property>
          <property name="flat">
-          <bool>true</bool>
+          <bool>false</bool>
          </property>
          <property name="checkable">
           <bool>true</bool>
@@ -2279,9 +2597,6 @@
          </property>
          <property name="title">
           <string>PortAudio</string>
-         </property>
-         <property name="flat">
-          <bool>true</bool>
          </property>
          <property name="checkable">
           <bool>true</bool>
@@ -2397,9 +2712,6 @@
          </property>
          <property name="title">
           <string>ALSA audio</string>
-         </property>
-         <property name="flat">
-          <bool>true</bool>
          </property>
          <property name="checkable">
           <bool>true</bool>
@@ -2573,7 +2885,7 @@
              <string>Device</string>
             </property>
             <property name="text">
-             <string>default</string>
+             <string notr="true">default</string>
             </property>
            </widget>
           </item>
@@ -2593,9 +2905,6 @@
          </property>
          <property name="title">
           <string>JACK audio server</string>
-         </property>
-         <property name="flat">
-          <bool>true</bool>
          </property>
          <property name="checkable">
           <bool>true</bool>
@@ -2775,17 +3084,14 @@
          <property name="title">
           <string>Style Used for Import</string>
          </property>
-         <property name="flat">
-          <bool>false</bool>
-         </property>
          <layout class="QVBoxLayout">
           <item>
-           <widget class="QRadioButton" name="useImportBuildinStyle">
+           <widget class="QRadioButton" name="useImportBuiltinStyle">
             <property name="accessibleName">
-             <string>Build in style</string>
+             <string>Built-in style</string>
             </property>
             <property name="text">
-             <string>Built in style</string>
+             <string>Built-in style</string>
             </property>
            </widget>
           </item>
@@ -2820,7 +3126,11 @@
                <string>Opens a file dialog for selecting a style file</string>
               </property>
               <property name="text">
-               <string>Browse...</string>
+               <string notr="true"/>
+              </property>
+              <property name="icon">
+               <iconset resource="musescore.qrc">
+                <normaloff>:/data/icons/document-open.svg</normaloff>:/data/icons/document-open.svg</iconset>
               </property>
              </widget>
             </item>
@@ -2833,9 +3143,6 @@
         <widget class="QGroupBox" name="groupBox_20">
          <property name="title">
           <string>Character Set Used When Importing Binary Files</string>
-         </property>
-         <property name="flat">
-          <bool>false</bool>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_12">
           <item>
@@ -2892,9 +3199,6 @@
          </property>
          <property name="title">
           <string>MusicXML</string>
-         </property>
-         <property name="flat">
-          <bool>false</bool>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_13">
           <item>
@@ -3018,14 +3322,24 @@
       <attribute name="title">
        <string>Export</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_7">
-       <item>
+      <layout class="QGridLayout" name="gridLayout_3">
+       <item row="4" column="0">
+        <spacer>
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="0" column="0">
         <widget class="QGroupBox" name="groupBox_9">
          <property name="title">
           <string>PNG/SVG</string>
-         </property>
-         <property name="flat">
-          <bool>false</bool>
          </property>
          <layout class="QGridLayout" name="gridLayout_8">
           <item row="0" column="0">
@@ -3059,7 +3373,7 @@
            </spacer>
           </item>
           <item row="0" column="1">
-           <widget class="QDoubleSpinBox" name="pngResolution">
+           <widget class="QSpinBox" name="pngResolution">
             <property name="accessibleName">
              <string>Resolution DPI</string>
             </property>
@@ -3067,20 +3381,20 @@
              <string>Choose resolution DPI</string>
             </property>
             <property name="minimum">
-             <double>32.000000000000000</double>
+             <number>32</number>
             </property>
             <property name="maximum">
-             <double>5000.000000000000000</double>
+             <number>5000</number>
             </property>
             <property name="value">
-             <double>300.000000000000000</double>
+             <number>300</number>
             </property>
            </widget>
           </item>
          </layout>
         </widget>
        </item>
-       <item>
+       <item row="1" column="0">
         <widget class="QGroupBox" name="groupBox_8">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -3094,9 +3408,6 @@
          <property name="title">
           <string>MIDI</string>
          </property>
-         <property name="flat">
-          <bool>false</bool>
-         </property>
          <layout class="QHBoxLayout" name="horizontalLayout">
           <item>
            <widget class="QCheckBox" name="expandRepeats">
@@ -3108,10 +3419,17 @@
             </property>
            </widget>
           </item>
+          <item>
+           <widget class="QCheckBox" name="exportRPNs">
+            <property name="text">
+             <string>Export RPNs</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>
-       <item>
+       <item row="1" column="1">
         <widget class="QGroupBox" name="groupBox_16">
          <property name="accessibleName">
           <string>Audio</string>
@@ -3163,7 +3481,7 @@
          </layout>
         </widget>
        </item>
-       <item>
+       <item row="3" column="0" colspan="2">
         <widget class="QGroupBox" name="groupBox_22">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -3176,9 +3494,6 @@
          </property>
          <property name="title">
           <string>MusicXML</string>
-         </property>
-         <property name="flat">
-          <bool>false</bool>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_14">
           <item>
@@ -3232,18 +3547,53 @@
          </layout>
         </widget>
        </item>
-       <item>
-        <spacer>
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
+       <item row="0" column="1">
+        <widget class="QGroupBox" name="groupBox">
+         <property name="title">
+          <string>PDF</string>
          </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
+         <layout class="QGridLayout" name="gridLayout_11">
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_6">
+            <property name="text">
+             <string>Resolution DPI:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QSpinBox" name="exportPdfDpi">
+            <property name="accessibleName">
+             <string>Resolution DPI</string>
+            </property>
+            <property name="accessibleDescription">
+             <string>Choose resolution DPI</string>
+            </property>
+            <property name="minimum">
+             <number>75</number>
+            </property>
+            <property name="maximum">
+             <number>2400</number>
+            </property>
+            <property name="value">
+             <number>300</number>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2">
+           <spacer name="horizontalSpacer_3">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -3365,6 +3715,19 @@
           </widget>
          </item>
          <item>
+          <widget class="QLineEdit" name="filterShortcuts">
+           <property name="inputMask">
+            <string/>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="placeholderText">
+            <string>Search</string>
+           </property>
+          </widget>
+         </item>
+         <item>
           <spacer name="horizontalSpacer_18">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
@@ -3409,9 +3772,6 @@
          </property>
          <property name="title">
           <string>Automatic Update Check</string>
-         </property>
-         <property name="flat">
-          <bool>false</bool>
          </property>
          <layout class="QGridLayout" name="gridLayout_6">
           <item row="1" column="0">
@@ -3499,7 +3859,7 @@
   <tabstop>myTemplatesButton</tabstop>
   <tabstop>myPlugins</tabstop>
   <tabstop>myPluginsButton</tabstop>
-  <tabstop>sfPath</tabstop>
+  <tabstop>mySoundfonts</tabstop>
   <tabstop>mySoundfontsButton</tabstop>
   <tabstop>myImages</tabstop>
   <tabstop>myImagesButton</tabstop>
@@ -3514,17 +3874,16 @@
   <tabstop>oscServer</tabstop>
   <tabstop>oscPort</tabstop>
   <tabstop>bgColorButton</tabstop>
-  <tabstop>bgWallpaperButton</tabstop>
   <tabstop>bgColorLabel</tabstop>
+  <tabstop>bgWallpaperButton</tabstop>
   <tabstop>bgWallpaper</tabstop>
   <tabstop>bgWallpaperSelect</tabstop>
   <tabstop>fgColorButton</tabstop>
-  <tabstop>fgWallpaperButton</tabstop>
   <tabstop>fgColorLabel</tabstop>
+  <tabstop>fgWallpaperButton</tabstop>
   <tabstop>fgWallpaper</tabstop>
   <tabstop>fgWallpaperSelect</tabstop>
   <tabstop>enableMidiInput</tabstop>
-  <tabstop>playNotes</tabstop>
   <tabstop>defaultPlayDuration</tabstop>
   <tabstop>playChordOnAddNote</tabstop>
   <tabstop>warnPitchRange</tabstop>
@@ -3563,6 +3922,9 @@
   <tabstop>rcr11</tabstop>
   <tabstop>rca12</tabstop>
   <tabstop>rcr12</tabstop>
+  <tabstop>realtimeAdvanceActive</tabstop>
+  <tabstop>recordRealtimeAdvance</tabstop>
+  <tabstop>advanceOnRelease</tabstop>
   <tabstop>midiRemoteControlClear</tabstop>
   <tabstop>instrumentList1</tabstop>
   <tabstop>instrumentList1Button</tabstop>
@@ -3589,7 +3951,7 @@
   <tabstop>rememberLastMidiConnections</tabstop>
   <tabstop>useJackTransport</tabstop>
   <tabstop>becomeTimebaseMaster</tabstop>
-  <tabstop>useImportBuildinStyle</tabstop>
+  <tabstop>useImportBuiltinStyle</tabstop>
   <tabstop>useImportStyleFile</tabstop>
   <tabstop>importStyleFile</tabstop>
   <tabstop>styleFileButton</tabstop>
@@ -3600,7 +3962,6 @@
   <tabstop>shortestNote</tabstop>
   <tabstop>pngResolution</tabstop>
   <tabstop>pngTransparent</tabstop>
-  <tabstop>expandRepeats</tabstop>
   <tabstop>exportAudioSampleRate</tabstop>
   <tabstop>exportLayout</tabstop>
   <tabstop>exportAllBreaks</tabstop>
@@ -3616,6 +3977,8 @@
   <tabstop>drawAntialiased</tabstop>
   <tabstop>proximity</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="musescore.qrc"/>
+ </resources>
  <connections/>
 </ui>

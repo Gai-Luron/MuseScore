@@ -24,7 +24,7 @@ EffectGui* ZitaReverb::gui()
       {
       if (!_gui) {
             _gui = new ZitaEffectGui(this);
-            _gui->setGeometry(0, 0, 644, 79);
+            _gui->setGeometry(0, 0, 640, 79);
             }
       return _gui;
       }
@@ -122,6 +122,7 @@ void ZitaEffectGui::mouseMoveEvent(QMouseEvent* e)
       else if (v > 1.0)
             v = 1.0;
       rotary[r].value = v;
+
       valueChanged(rotary[r].id, v);
       update();
       }
@@ -147,7 +148,6 @@ void ZitaEffectGui::paintEvent(QPaintEvent*)
             p.restore();
             }
       }
-
 
 }
 

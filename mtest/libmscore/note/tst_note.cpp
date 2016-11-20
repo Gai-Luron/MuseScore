@@ -16,11 +16,15 @@
 #include "libmscore/mscore.h"
 #include "libmscore/score.h"
 #include "libmscore/note.h"
+#include "libmscore/accidental.h"
 #include "libmscore/chord.h"
 #include "libmscore/measure.h"
 #include "libmscore/segment.h"
 #include "libmscore/tremolo.h"
 #include "libmscore/articulation.h"
+#include "libmscore/sym.h"
+#include "libmscore/key.h"
+#include "libmscore/pitchspelling.h"
 #include "mtest/testutils.h"
 
 #define DIR QString("libmscore/note/")
@@ -42,6 +46,8 @@ class TestNote : public QObject, public MTest
       void tpc();
       void tpcTranspose();
       void tpcTranspose2();
+      void noteLimits();
+      void tpcDegrees();
       };
 
 //---------------------------------------------------------
@@ -106,19 +112,19 @@ void TestNote::note()
       delete n;
 
    // dot position
-      note->setUserDotPosition(MScore::Direction::UP);
+      note->setUserDotPosition(Direction::UP);
       n = static_cast<Note*>(writeReadElement(note));
-      QCOMPARE(n->userDotPosition(), MScore::Direction::UP);
+      QCOMPARE(int(n->userDotPosition()), int(Direction::UP));
       delete n;
 
-      note->setUserDotPosition(MScore::Direction::DOWN);
+      note->setUserDotPosition(Direction::DOWN);
       n = static_cast<Note*>(writeReadElement(note));
-      QCOMPARE(n->userDotPosition(), MScore::Direction::DOWN);
+      QCOMPARE(int(n->userDotPosition()), int(Direction::DOWN));
       delete n;
 
-      note->setUserDotPosition(MScore::Direction::AUTO);
+      note->setUserDotPosition(Direction::AUTO);
       n = static_cast<Note*>(writeReadElement(note));
-      QCOMPARE(n->userDotPosition(), MScore::Direction::AUTO);
+      QCOMPARE(int(n->userDotPosition()), int(Direction::AUTO));
       delete n;
   // headGroup
       for (int i = 0; i < int (NoteHead::Group::HEAD_GROUPS); ++i) {
@@ -227,19 +233,19 @@ void TestNote::note()
       delete n;
 
    // dot position
-      note->setProperty(P_ID::DOT_POSITION, int(MScore::Direction::UP));
+      note->setProperty(P_ID::DOT_POSITION, QVariant::fromValue(Direction(Direction::UP)));
       n = static_cast<Note*>(writeReadElement(note));
-      QCOMPARE(n->userDotPosition(), MScore::Direction::UP);
+      QCOMPARE(int(n->userDotPosition()), int(Direction::UP));
       delete n;
 
-      note->setProperty(P_ID::DOT_POSITION, int(MScore::Direction::DOWN));
+      note->setProperty(P_ID::DOT_POSITION, QVariant::fromValue(Direction(Direction::DOWN)));
       n = static_cast<Note*>(writeReadElement(note));
-      QCOMPARE(n->userDotPosition(), MScore::Direction::DOWN);
+      QCOMPARE(int(n->userDotPosition()), int(Direction::DOWN));
       delete n;
 
-      note->setProperty(P_ID::DOT_POSITION, int(MScore::Direction::AUTO));
+      note->setProperty(P_ID::DOT_POSITION, QVariant::fromValue(Direction(Direction::AUTO)));
       n = static_cast<Note*>(writeReadElement(note));
-      QCOMPARE(n->userDotPosition(), MScore::Direction::AUTO);
+      QCOMPARE(int(n->userDotPosition()), int(Direction::AUTO));
       delete n;
 
   // headGroup
@@ -313,15 +319,15 @@ void TestNote::note()
 
 void TestNote::grace()
       {
-      Score* score = readScore(DIR + "grace.mscx");
+      MasterScore* score = readScore(DIR + "grace.mscx");
       score->doLayout();
-      Chord* chord = score->firstMeasure()->findChord(0, 0);
+      Ms::Chord* chord = score->firstMeasure()->findChord(0, 0);
       Note* note = chord->upNote();
 
       // create
       score->setGraceNote(chord, note->pitch(), NoteType::APPOGGIATURA, MScore::division/2);
-      Chord* gc = chord->graceNotes().first();
-      Note* gn = gc->notes().first();
+      Ms::Chord* gc = chord->graceNotes().first();
+      Note* gn = gc->notes().front();
 //      Note* n = static_cast<Note*>(writeReadElement(gn));
 //      QCOMPARE(n->noteType(), NoteType::APPOGGIATURA);
 //      delete n;
@@ -341,24 +347,22 @@ void TestNote::grace()
       tr->setTrack(gc->track());
       score->undoAddElement(tr);
       score->endCmd();
-//      Chord* c = static_cast<Chord*>(writeReadElement(gc));
+//      Ms::Chord* c = static_cast<Ms::Chord*>(writeReadElement(gc));
 //      QVERIFY(c->tremolo() != 0);
 //      delete c;
 
       // articulation
       score->startCmd();
-      Articulation* ar = new Articulation(score);
-      ar->setArticulationType(ArticulationType::Sforzatoaccent);
+      Articulation* ar = new Articulation(SymId::articAccentAbove, score);
       ar->setParent(gc);
       ar->setTrack(gc->track());
       score->undoAddElement(ar);
       score->endCmd();
-//      c = static_cast<Chord*>(writeReadElement(gc));
+//      c = static_cast<Ms::Chord*>(writeReadElement(gc));
 //      QVERIFY(c->articulations().size() == 1);
 //      delete c;
 
       QVERIFY(saveCompareScore(score, "grace-test.mscx", DIR + "grace-ref.mscx"));
-
       }
 
 //---------------------------------------------------------
@@ -368,27 +372,25 @@ void TestNote::grace()
 
 void TestNote::tpc()
       {
-      Score* score = readScore(DIR + "tpc.mscx");
-      score->doLayout();
+      MasterScore* score = readScore(DIR + "tpc.mscx");
 
       score->inputState().setTrack(0);
       score->inputState().setSegment(score->tick2segment(0, false, Segment::Type::ChordRest));
       score->inputState().setDuration(TDuration::DurationType::V_QUARTER);
       score->inputState().setNoteEntryMode(true);
       int octave = 5 * 7;
-      score->cmdAddPitch(octave + 1, false);
-      score->cmdAddPitch(octave + 2, false);
-      score->cmdAddPitch(octave + 3, false);
-      score->cmdAddPitch(octave + 4, false);
-      score->cmdAddPitch(octave + 5, false);
-      score->cmdAddPitch(octave + 6, false);
-      score->cmdAddPitch(octave + 7, false);
-      score->cmdAddPitch(octave + 8, false);
+      score->cmdAddPitch(octave + 1, false, false);
+      score->cmdAddPitch(octave + 2, false, false);
+      score->cmdAddPitch(octave + 3, false, false);
+      score->cmdAddPitch(octave + 4, false, false);
+      score->cmdAddPitch(octave + 5, false, false);
+      score->cmdAddPitch(octave + 6, false, false);
+      score->cmdAddPitch(octave + 7, false, false);
+      score->cmdAddPitch(octave + 8, false, false);
 
       score->cmdConcertPitchChanged(true, true);
 
       QVERIFY(saveCompareScore(score, "tpc-test.mscx", DIR + "tpc-ref.mscx"));
-
       }
 
 //---------------------------------------------------------
@@ -398,13 +400,12 @@ void TestNote::tpc()
 
 void TestNote::tpcTranspose()
       {
-      Score* score = readScore(DIR + "tpc-transpose.mscx");
-      score->doLayout();
+      MasterScore* score = readScore(DIR + "tpc-transpose.mscx");
 
       score->startCmd();
       Measure* m = score->firstMeasure();
       score->select(m, SelectType::SINGLE, 0);
-      score->changeAccidental(Accidental::Type::FLAT);
+      score->changeAccidental(AccidentalType::FLAT);
       score->endCmd();
 
       score->startCmd();
@@ -426,21 +427,74 @@ void TestNote::tpcTranspose()
 ///   more tests of note tpc values & transposition
 //---------------------------------------------------------
 
-void TestNote::tpcTranspose2() {
-      Score* score = readScore(DIR + "tpc-transpose2.mscx");
-      score->doLayout();
+void TestNote::tpcTranspose2()
+      {
+      MasterScore* score = readScore(DIR + "tpc-transpose2.mscx");
 
       score->inputState().setTrack(0);
       score->inputState().setSegment(score->tick2segment(0, false, Segment::Type::ChordRest));
       score->inputState().setDuration(TDuration::DurationType::V_QUARTER);
       score->inputState().setNoteEntryMode(true);
       int octave = 5 * 7;
-      score->cmdAddPitch(octave + 3, false);
+      score->cmdAddPitch(octave + 3, false, false);
 
+      score->startCmd();
       score->cmdConcertPitchChanged(true, true);
+      score->endCmd();
+
+      printf("================\n");
 
       QVERIFY(saveCompareScore(score, "tpc-transpose2-test.mscx", DIR + "tpc-transpose2-ref.mscx"));
+      }
 
+//---------------------------------------------------------
+///   noteLimits
+//---------------------------------------------------------
+
+void TestNote::noteLimits()
+      {
+      MasterScore* score = readScore(DIR + "empty.mscx");
+
+      score->inputState().setTrack(0);
+      score->inputState().setSegment(score->tick2segment(0, false, Segment::Type::ChordRest));
+      score->inputState().setDuration(TDuration::DurationType::V_QUARTER);
+      score->inputState().setNoteEntryMode(true);
+
+      // over 127 shouldn't crash
+      score->cmdAddPitch(140, false, false);
+      // below 0 shouldn't crash
+      score->cmdAddPitch(-40, false, false);
+
+      // stack chords
+      score->cmdAddPitch(42, false, false);
+      for (int i = 1; i < 20; i++)
+            score->cmdAddPitch(42 + i * 7, true, false);
+
+      // interval below
+      score->cmdAddPitch(42, false, false);
+      for (int i = 0; i < 20; i++) {
+            std::vector<Note*> nl = score->selection().noteList();
+            score->cmdAddInterval(-8, nl);
+            }
+
+      // interval above
+      score->cmdAddPitch(42, false, false);
+      for (int i = 0; i < 20; i++) {
+            std::vector<Note*> nl = score->selection().noteList();
+            score->cmdAddInterval(8, nl);
+            }
+      QVERIFY(saveCompareScore(score, "notelimits-test.mscx", DIR + "notelimits-ref.mscx"));
+      }
+
+void TestNote::tpcDegrees()
+      {
+      QCOMPARE(tpc2degree(Tpc::TPC_C,   Key::C),   0);
+      //QCOMPARE(tpc2degree(Tpc::TPC_E_S, Key::C),   3);
+      QCOMPARE(tpc2degree(Tpc::TPC_B,   Key::C),   6);
+      QCOMPARE(tpc2degree(Tpc::TPC_F_S, Key::C_S), 3);
+      QCOMPARE(tpc2degree(Tpc::TPC_B,   Key::C_S), 6);
+      QCOMPARE(tpc2degree(Tpc::TPC_B_B, Key::C_S), 6);
+      //QCOMPARE(tpc2degree(Tpc::TPC_B_S, Key::C_S), 7);
       }
 
 QTEST_MAIN(TestNote)

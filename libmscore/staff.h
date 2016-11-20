@@ -26,18 +26,17 @@
 #include "stafftype.h"
 #include "groups.h"
 #include "scoreElement.h"
+#include "excerpt.h"
 
 namespace Ms {
 
-class Instrument;
 class InstrumentTemplate;
-class Xml;
+class XmlWriter;
 class Part;
 class Score;
 class KeyList;
 class StaffType;
 class Staff;
-class StringData;
 struct ClefTypeList;
 class Segment;
 class Clef;
@@ -59,7 +58,7 @@ class LinkedStaves {
       const QList<Staff*>& staves() const { return _staves; }
       void add(Staff*);
       void remove(Staff*);
-      bool isEmpty() const { return _staves.isEmpty(); }
+      bool empty() const { return _staves.empty(); }
       };
 
 //---------------------------------------------------------
@@ -97,7 +96,12 @@ struct SwingParameters {
 class Staff : public QObject, public ScoreElement {
       Q_OBJECT
 
+   public:
+      enum class HideMode { AUTO, ALWAYS, NEVER, INSTRUMENT };
+
+   private:
       Part* _part       { 0 };
+//      Excerpt* _excerpt { 0 };
 
       ClefList clefs;
       ClefTypeList _defaultClefType;
@@ -106,23 +110,26 @@ class Staff : public QObject, public ScoreElement {
       std::map<int,TimeSig*> timesigs;
 
       QList <BracketItem> _brackets;
-      int _barLineSpan   { 1     };    ///< 0 - no bar line, 1 - span this staff, ...
-      int _barLineFrom   { 0     };    ///< line of start staff to draw the barline from (0 = staff top line, ...)
-      int _barLineTo;                  ///< line of end staff to draw the bar line to (0= staff top line, ...)
-      bool _small        { false };
-      bool _invisible    { false };
-      bool _neverHide    { false };    ///< always show this staff, even if empty and hideEmptyStaves is true
-      bool _showIfEmpty  { false };    ///< show this staff if system is empty and hideEmptyStaves is true
-      bool _hideSystemBarLine  { false }; // no system barline if not preceeded by staff with barline
+      int _barLineSpan         { 1     };    ///< 0 - no bar line, 1 - span this staff, ...
+      int _barLineFrom         { 0     };    ///< line of start staff to draw the barline from (0 = staff top line, ...)
+      int _barLineTo;                        ///< line of end staff to draw the bar line to (0= staff top line, ...)
 
-      QColor _color      { MScore::defaultColor };
-      qreal _userDist    { 0.0   };        ///< user edited extra distance
-      qreal _userMag     { 1.0   };             // allowed 0.1 - 10.0
+      bool _small              { false };
+      bool _invisible          { false };
+      bool _cutaway            { false };
+      bool _showIfEmpty        { false };       ///< show this staff if system is empty and hideEmptyStaves is true
+      bool _hideSystemBarLine  { false };       // no system barline if not preceeded by staff with barline
+      HideMode _hideWhenEmpty  { HideMode::AUTO };    // hide empty staves
+
+      QColor _color            { MScore::defaultColor };
+      qreal _userDist          { 0.0   };       ///< user edited extra distance
+      qreal _userMag           { 1.0   };       // allowed 0.1 - 10.0
 
       StaffType _staffType;
       LinkedStaves* _linkedStaves { nullptr };
       QMap<int,int> _channelList[VOICES];
       QMap<int,SwingParameters> _swingList;
+      bool _playbackVoice[VOICES] { true, true, true, true };
 
       VeloList _velocities;         ///< cached value
       PitchList _pitchOffsets;      ///< cached value
@@ -136,15 +143,18 @@ class Staff : public QObject, public ScoreElement {
       void initFromStaffType(const StaffType* staffType);
       void init(const Staff*);
 
+      virtual const char* name() const override { return "Staff"; }
+
       bool isTop() const;
       QString partName() const;
       int rstaff() const;
       int idx() const;
       void read(XmlReader&);
-      void read114(XmlReader&);
-      void write(Xml& xml) const;
+      void write(XmlWriter& xml) const;
       Part* part() const             { return _part;        }
       void setPart(Part* p)          { _part = p;           }
+
+      Excerpt* excerpt() const;     //       { return score()->excerpt();     }
 
       BracketType bracket(int idx) const;
       int bracketSpan(int idx) const;
@@ -155,10 +165,12 @@ class Staff : public QObject, public ScoreElement {
       QList <BracketItem> brackets() const { return _brackets; }
       void cleanupBrackets();
 
+      ClefList& clefList()                           { return clefs;  }
       ClefTypeList clefType(int tick) const;
       ClefTypeList defaultClefType() const           { return _defaultClefType; }
       void setDefaultClefType(const ClefTypeList& l) { _defaultClefType = l; }
       ClefType clef(int tick) const;
+      int nextClefTick(int tick) const;
 
       void setClef(Clef*);
       void removeClef(Clef*);
@@ -168,6 +180,8 @@ class Staff : public QObject, public ScoreElement {
       void clearTimeSig();
       Fraction timeStretch(int tick) const;
       TimeSig* timeSig(int tick) const;
+      bool isLocalTimeSignature(int tick) { return timeStretch(tick) != Fraction(1, 1); }
+
       const Groups& group(int tick) const;
 
       KeyList* keyList()               { return &_keys;                  }
@@ -185,18 +199,24 @@ class Staff : public QObject, public ScoreElement {
       void setSmall(bool val)        { _small = val;        }
       bool invisible() const         { return _invisible;   }
       void setInvisible(bool val)    { _invisible = val;    }
-      bool neverHide() const         { return _neverHide;   }
-      void setNeverHide(bool val)    { _neverHide = val;    }
+      bool cutaway() const           { return _cutaway;     }
+      void setCutaway(bool val)      { _cutaway = val;      }
       bool showIfEmpty() const       { return _showIfEmpty; }
       void setShowIfEmpty(bool val)  { _showIfEmpty = val;  }
 
-      void setHideSystemBarLine(bool val) { _hideSystemBarLine = val;  }
       bool hideSystemBarLine() const      { return _hideSystemBarLine; }
+      void setHideSystemBarLine(bool val) { _hideSystemBarLine = val;  }
+      HideMode hideWhenEmpty() const      { return _hideWhenEmpty;     }
+      void setHideWhenEmpty(HideMode v)   { _hideWhenEmpty = v;        }
 
       void setSlashStyle(bool val);
       int lines() const;
       void setLines(int);
       qreal lineDistance() const;
+      qreal logicalLineDistance() const;
+      bool scaleNotesToLines() const;
+      int middleLine() const;
+      int bottomLine() const;
       int barLineSpan() const        { return _barLineSpan; }
       int barLineFrom() const        { return _barLineFrom; }
       int barLineTo() const          { return _barLineTo;   }
@@ -221,6 +241,8 @@ class Staff : public QObject, public ScoreElement {
       bool isDrumStaff() const         { return staffGroup() == StaffGroup::PERCUSSION; }
 
       VeloList& velocities()           { return _velocities;     }
+      PitchList& pitchOffsets()        { return _pitchOffsets;   }
+
       int pitchOffset(int tick)        { return _pitchOffsets.pitchOffset(tick);   }
       void updateOttava();
 
@@ -241,7 +263,6 @@ class Staff : public QObject, public ScoreElement {
       bool genKeySig();
       bool showLedgerLines();
 
-
       QColor color() const                { return _color; }
       void setColor(const QColor& val)    { _color = val;    }
       void undoSetColor(const QColor& val);
@@ -250,6 +271,11 @@ class Staff : public QObject, public ScoreElement {
       virtual QVariant getProperty(P_ID) const override;
       virtual bool setProperty(P_ID, const QVariant&) override;
       virtual QVariant propertyDefault(P_ID) const override;
+
+      BracketType innerBracket() const;
+
+      bool playbackVoice(int voice) const        { return _playbackVoice[voice]; }
+      void setPlaybackVoice(int voice, bool val) { _playbackVoice[voice] = val; }
 
 #ifndef NDEBUG
       void dumpClefs(const char* title) const;

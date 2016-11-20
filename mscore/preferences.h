@@ -3,7 +3,7 @@
 //  Linux Music Score Editor
 //  $Id: preferences.h 5660 2012-05-22 14:17:39Z wschweer $
 //
-//  Copyright (C) 2002-2011 Werner Schweer and others
+//  Copyright (C) 2002-2016 Werner Schweer and others
 //
 //  This program is free software; you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License version 2.
@@ -26,6 +26,8 @@
 #include "mscore/importmidi/importmidi_operations.h"
 
 namespace Ms {
+
+extern QString mscoreGlobalShare;
 
 enum class SessionStart : char {
       EMPTY, LAST, NEW, SCORE
@@ -50,12 +52,15 @@ enum {
       RMIDI_TIE,
       RMIDI_UNDO,
       RMIDI_NOTE_EDIT_MODE,
+      RMIDI_REALTIME_ADVANCE,
       MIDI_REMOTES
       };
 
 enum class MuseScoreStyleType : char {
-      DARK,
-      LIGHT
+      DARK_OXYGEN = 0,
+      LIGHT_OXYGEN,
+      DARK_FUSION,
+      LIGHT_FUSION
       };
 
 // MusicXML export break values
@@ -88,7 +93,9 @@ struct Preferences {
       QColor fgColor;
       int iconHeight, iconWidth;
       QColor dropColor;
+      QColor pianoHlColor;
       bool enableMidiInput;
+      int realtimeDelay;
       bool playNotes;         // play notes on click
       bool playChordOnAddNote;
       bool showNavigator;
@@ -120,8 +127,10 @@ struct Preferences {
 
       bool useMidiRemote;
       MidiRemote midiRemote[MIDI_REMOTES];
+      bool advanceOnRelease;
 
       bool midiExpandRepeats;
+      bool midiExportRPNs;
       QString instrumentList1; // file path of instrument templates
       QString instrumentList2;
 
@@ -139,6 +148,7 @@ struct Preferences {
       QString language;
 
       double mag;
+      bool showMidiControls;
 
       //update
       bool checkUpdateStartup;
@@ -153,7 +163,7 @@ struct Preferences {
       bool useOsc;
       int oscPort;
       bool singlePalette;
-      QString styleName;
+      //QString styleName;
       MuseScoreStyleType globalStyle;
       bool animations;
 
@@ -162,14 +172,14 @@ struct Preferences {
       QString myImagesPath;
       QString myTemplatesPath;
       QString myPluginsPath;
-
-      QString sfPath;
+      QString mySoundfontsPath;
 
       bool nativeDialogs;
 
       int exportAudioSampleRate;
 
       QString workspace;
+      int exportPdfDpi;
 
       bool dirty;
 
@@ -182,8 +192,11 @@ struct Preferences {
       Preferences();
       void write();
       void read();
+      QColor readColor(QString key, QColor def);
       void init();
       bool readDefaultStyle();
+      bool isThemeDark() { return globalStyle == MuseScoreStyleType::DARK_OXYGEN || globalStyle == MuseScoreStyleType::DARK_FUSION;}
+      bool isOxygen() { return globalStyle == MuseScoreStyleType::DARK_OXYGEN || globalStyle == MuseScoreStyleType::LIGHT_OXYGEN;}
       };
 
 //---------------------------------------------------------

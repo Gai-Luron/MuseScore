@@ -27,7 +27,7 @@ static QHash<void*, int> segs;
 //   saveMeasureEvents
 //---------------------------------------------------------
 
-static void saveMeasureEvents(Xml& xml, Measure* m, int offset)
+static void saveMeasureEvents(XmlWriter& xml, Measure* m, int offset)
       {
       for (Segment* s = m->first(Segment::Type::ChordRest); s; s = s->next(Segment::Type::ChordRest)) {
             int tick = s->tick() + offset;
@@ -53,13 +53,13 @@ bool savePositions(Score* score, const QString& name, bool segments)
             qDebug("Open <%s> failed", qPrintable(name));
             return false;
             }
-      Xml xml(&fp);
+      XmlWriter xml(score, &fp);
       xml.header();
       xml.stag("score");
       xml.stag("elements");
       int id = 0;
 
-      qreal ndpi = ((qreal)converterDpi / MScore::DPI) * 12.0;
+      qreal ndpi = ((qreal)converterDpi / DPI) * 12.0;
       if (segments) {
             for (Segment* s = score->firstMeasure()->first(Segment::Type::ChordRest);
                s; s = s->next1(Segment::Type::ChordRest)) {

@@ -19,6 +19,9 @@
 
 namespace Ms {
 
+#define MIN_TEMPO 5.0/60
+#define MAX_TEMPO 999.0/60
+
 //---------------------------------------------------------
 //   TempoText
 //---------------------------------------------------------
@@ -28,6 +31,8 @@ TempoText::TempoText(Score* s)
       {
       _tempo      = 2.0;      // propertyDefault(P_TEMPO).toDouble();
       _followText = false;
+      _relative = 1.0;
+      _isRelative = false;
       setPlacement(Element::Placement::ABOVE);
       setTextStyleType(TextStyleType::TEMPO);
       }
@@ -36,7 +41,7 @@ TempoText::TempoText(Score* s)
 //   write
 //---------------------------------------------------------
 
-void TempoText::write(Xml& xml) const
+void TempoText::write(XmlWriter& xml) const
       {
       xml.stag("Tempo");
       xml.tag("tempo", _tempo);
@@ -55,13 +60,13 @@ void TempoText::read(XmlReader& e)
       while (e.readNextStartElement()) {
             const QStringRef& tag(e.name());
             if (tag == "tempo")
-                  _tempo = e.readDouble();
+                  setTempo(e.readDouble());
             else if (tag == "followText")
                   _followText = e.readInt();
             else if (!Text::readProperties(e))
                   e.unknown();
             }
-      if (score()->mscVersion() < 119) {
+      if (score()->mscVersion() <= 114) {
             //
             // Reset text in old version to
             // style.
@@ -72,8 +77,8 @@ void TempoText::read(XmlReader& e)
 //                  }
             }
       // check sanity
-      if (text().isEmpty()) {
-            setText(QString("<sym>unicodeNoteQuarterUp</sym> = %1").arg(lrint(60 * _tempo)));
+      if (xmlText().isEmpty()) {
+            setXmlText(QString("<sym>metNoteQuarterUp</sym> = %1").arg(lrint(60 * _tempo)));
             setVisible(false);
             }
       }
@@ -92,15 +97,25 @@ struct TempoPattern {
 // note: findTempoDuration requires the longer patterns to be before the shorter patterns in tp
 
 static const TempoPattern tp[] = {
-      TempoPattern("<sym>unicodeNoteHalfUp</sym>\\s*<sym>unicodeAugmentationDot</sym>",    1.5/30.0,  TDuration::DurationType::V_HALF, 1),    // dotted 1/2
-      TempoPattern("<sym>unicodeNoteHalfUp</sym><sym>space</sym><sym>unicodeAugmentationDot</sym>",    1.5/30.0,  TDuration::DurationType::V_HALF, 1),    // dotted 1/2
-      TempoPattern("<sym>unicodeNoteQuarterUp</sym>\\s*<sym>unicodeAugmentationDot</sym>", 1.5/60.0,  TDuration::DurationType::V_QUARTER, 1), // dotted 1/4
-      TempoPattern("<sym>unicodeNoteQuarterUp</sym><sym>space</sym><sym>unicodeAugmentationDot</sym>", 1.5/60.0,  TDuration::DurationType::V_QUARTER, 1), // dotted 1/4
-      TempoPattern("<sym>unicodeNote8thUp</sym>\\s*<sym>unicodeAugmentationDot</sym>",     1.5/120.0, TDuration::DurationType::V_EIGHTH, 1),  // dotted 1/8
-      TempoPattern("<sym>unicodeNote8thUp</sym><sym>space</sym><sym>unicodeAugmentationDot</sym>",     1.5/120.0, TDuration::DurationType::V_EIGHTH, 1),  // dotted 1/8
-      TempoPattern("<sym>unicodeNoteHalfUp</sym>",                                      1.0/30.0,  TDuration::DurationType::V_HALF),       // 1/2
-      TempoPattern("<sym>unicodeNoteQuarterUp</sym>",                                   1.0/60.0,  TDuration::DurationType::V_QUARTER),    // 1/4
-      TempoPattern("<sym>unicodeNote8thUp</sym>",                                       1.0/120.0, TDuration::DurationType::V_EIGHTH),     // 1/8
+      TempoPattern("<sym>metNoteQuarterUp</sym>\\s*<sym>metAugmentationDot</sym>\\s*<sym>metAugmentationDot</sym>",                         1.75/60.0, TDuration::DurationType::V_QUARTER, 2), // double dotted 1/4
+      TempoPattern("<sym>metNoteQuarterUp</sym>\\s*<sym>metAugmentationDot</sym>",          1.5/60.0,  TDuration::DurationType::V_QUARTER, 1), // dotted 1/4
+      TempoPattern("<sym>metNoteQuarterUp</sym>",                                           1.0/60.0,  TDuration::DurationType::V_QUARTER),  // 1/4
+      TempoPattern("<sym>metNoteHalfUp</sym>\\s*<sym>metAugmentationDot</sym>\\s*<sym>metAugmentationDot</sym>",                         1.75/30.0, TDuration::DurationType::V_HALF, 2), // double dotted 1/2
+      TempoPattern("<sym>metNoteHalfUp</sym>\\s*<sym>metAugmentationDot</sym>",             1.5/30.0,  TDuration::DurationType::V_HALF, 1),    // dotted 1/2
+      TempoPattern("<sym>metNoteHalfUp</sym>",                                              1.0/30.0,  TDuration::DurationType::V_HALF),     // 1/2
+      TempoPattern("<sym>metNote8thUp</sym>\\s*<sym>metAugmentationDot</sym>\\s*<sym>metAugmentationDot</sym>",         1.75/120.0, TDuration::DurationType::V_EIGHTH, 2), // double dotted 1/8
+      TempoPattern("<sym>metNote8thUp</sym>\\s*<sym>metAugmentationDot</sym>",              1.5/120.0, TDuration::DurationType::V_EIGHTH, 1),  // dotted 1/8
+      TempoPattern("<sym>metNote8thUp</sym>",                                               1.0/120.0, TDuration::DurationType::V_EIGHTH),   // 1/8
+      TempoPattern("<sym>metNoteWhole</sym>\\s*<sym>metAugmentationDot</sym>",              1.5/15.0, TDuration::DurationType::V_WHOLE, 1),    // dotted whole
+      TempoPattern("<sym>metNoteWhole</sym>",                                               1.0/15.0,  TDuration::DurationType::V_WHOLE),    // whole
+      TempoPattern("<sym>metNote16thUp</sym>\\s*<sym>metAugmentationDot</sym>",             1.5/240.0, TDuration::DurationType::V_16TH, 1),  // dotted 1/16
+      TempoPattern("<sym>metNote16thUp</sym>",                                              1.0/240.0, TDuration::DurationType::V_16TH),     // 1/16
+      TempoPattern("<sym>metNote32ndUp</sym>\\s*<sym>metAugmentationDot</sym>",             1.5/480.0, TDuration::DurationType::V_32ND, 1),  // dotted 1/32
+      TempoPattern("<sym>metNote32ndUp</sym>",                                              1.0/480.0, TDuration::DurationType::V_32ND),     // 1/32
+      TempoPattern("<sym>metNoteDoubleWholeSquare</sym>",                                   1.0/7.5,   TDuration::DurationType::V_BREVE),    // longa
+      TempoPattern("<sym>metNoteDoubleWhole</sym>",                                         1.0/7.5,   TDuration::DurationType::V_BREVE),    // double whole
+      TempoPattern("<sym>metNote64thUp</sym>",                                              1.0/960.0, TDuration::DurationType::V_64TH),     // 1/64
+      TempoPattern("<sym>metNote128thUp</sym>",                                             1.0/1920.0,TDuration::DurationType::V_128TH),    // 1/128
       };
 
 //---------------------------------------------------------
@@ -134,14 +149,34 @@ int TempoText::findTempoDuration(const QString& s, int& len, TDuration& dur)
 
 QString TempoText::duration2tempoTextString(const TDuration dur)
       {
-      for (unsigned i = 0; i < sizeof(tp)/sizeof(*tp); ++i) {
-            if (tp[i].d == dur) {
-                  QString res = tp[i].pattern;
+      for (const TempoPattern& pa : tp) {
+            if (pa.d == dur) {
+                  QString res = pa.pattern;
                   res.remove("\\s*");
                   return res;
                   }
             }
       return "";
+      }
+
+//---------------------------------------------------------
+// updateScore
+//---------------------------------------------------------
+void TempoText::updateScore()
+      {
+      if (segment())
+            score()->setTempo(segment(), _tempo);
+      score()->fixTicks();
+      score()->setPlaylistDirty();
+      }
+
+//---------------------------------------------------------
+// updateRelative
+//---------------------------------------------------------
+void TempoText::updateRelative()
+      {
+      qreal tempoBefore = score()->tempo(tick() - 1);
+      setTempo(tempoBefore * _relative);
       }
 
 //---------------------------------------------------------
@@ -153,24 +188,50 @@ void TempoText::textChanged()
       {
       if (!_followText)
             return;
-      QString s = text();
-      s.replace(QString(","), QString("."));
-      for (unsigned i = 0; i < sizeof(tp)/sizeof(*tp); ++i) {
-            QRegExp re(QString(tp[i].pattern)+"\\s*=\\s*(\\d+[.]{0,1}\\d*)");
+      QString s = plainText();
+      s.replace(",", ".");
+      s.replace("<sym>space</sym>"," ");
+      for (const TempoPattern& pa : tp) {
+            QRegExp re(QString(pa.pattern)+"\\s*=\\s*(\\d+[.]{0,1}\\d*)\\s*");
             if (re.indexIn(s) != -1) {
                   QStringList sl = re.capturedTexts();
                   if (sl.size() == 2) {
-                        qreal nt = qreal(sl[1].toDouble()) * tp[i].f;
+                        qreal nt = qreal(sl[1].toDouble()) * pa.f;
                         if (nt != _tempo) {
-                              _tempo = qreal(sl[1].toDouble()) * tp[i].f;
-                              if(segment())
-                                    score()->setTempo(segment(), _tempo);
-                              score()->setPlaylistDirty();
+                              setTempo(qreal(sl[1].toDouble()) * pa.f);
+                              _relative = 1.0;
+                              _isRelative = false;
+                              updateScore();
                               }
                         break;
                         }
                   }
+            else {
+                 for (const TempoPattern& pa2 : tp) {
+                       QRegExp re(QString("%1\\s*=\\s*%2\\s*").arg(pa.pattern).arg(pa2.pattern));
+                       if (re.indexIn(s) != -1) {
+                             _relative = pa2.f / pa.f;
+                             _isRelative = true;
+                             updateRelative();
+                             updateScore();
+                             return;
+                             }
+                       }
+                  }
             }
+      }
+
+//---------------------------------------------------------
+//   setTempo
+//---------------------------------------------------------
+
+void TempoText::setTempo(qreal v)
+      {
+      if (v < MIN_TEMPO)
+            v = MIN_TEMPO;
+      else if (v > MAX_TEMPO)
+            v = MAX_TEMPO;
+      _tempo = v;
       }
 
 //---------------------------------------------------------
@@ -179,7 +240,7 @@ void TempoText::textChanged()
 
 void TempoText::undoSetTempo(qreal v)
       {
-      score()->undoChangeProperty(this, P_ID::TEMPO, v);
+      undoChangeProperty(P_ID::TEMPO, v);
       }
 
 //---------------------------------------------------------
@@ -188,7 +249,7 @@ void TempoText::undoSetTempo(qreal v)
 
 void TempoText::undoSetFollowText(bool v)
       {
-      score()->undoChangeProperty(this, P_ID::TEMPO_FOLLOW_TEXT, v);
+      undoChangeProperty(P_ID::TEMPO_FOLLOW_TEXT, v);
       }
 
 //---------------------------------------------------------
@@ -211,10 +272,11 @@ QVariant TempoText::getProperty(P_ID propertyId) const
 
 bool TempoText::setProperty(P_ID propertyId, const QVariant& v)
       {
-      switch(propertyId) {
+      switch (propertyId) {
             case P_ID::TEMPO:
-                  _tempo = v.toDouble();
+                  setTempo(v.toDouble());
                   score()->setTempo(segment(), _tempo);
+                  score()->fixTicks();
                   break;
             case P_ID::TEMPO_FOLLOW_TEXT:
                   _followText = v.toBool();
@@ -224,7 +286,7 @@ bool TempoText::setProperty(P_ID propertyId, const QVariant& v)
                         return false;
                   break;
             }
-      score()->setLayoutAll(true);
+      triggerLayout();
       return true;
       }
 
@@ -245,61 +307,94 @@ QVariant TempoText::propertyDefault(P_ID id) const
 
 //---------------------------------------------------------
 //   layout
+//    called after Measure->stretchMeasure()
 //---------------------------------------------------------
 
 void TempoText::layout()
       {
+      if (autoplace())
+            setUserOff(QPointF());
       setPos(textStyle().offset(spatium()));
       Text::layout1();
+
+      // tempo text on first chordrest of measure should align over time sig if present
+      //
       Segment* s = segment();
       if (s && !s->rtick()) {
-            // tempo text on first chordrest of measure should align over time sig if present
             Segment* p = segment()->prev(Segment::Type::TimeSig);
             if (p) {
                   rxpos() -= s->x() - p->x();
                   Element* e = p->element(staffIdx() * VOICES);
                   if (e)
                         rxpos() += e->x();
-                  // correct user offset in older scores
-                  if (score()->mscVersion() <= 114 && !userOff().isNull())
-                        rUserXoffset() += s->x() - p->x();
                   }
             }
-      if (placement() == Element::Placement::BELOW) {
+
+      if (placement() == Element::Placement::BELOW)
             rypos() = -rypos() + 4 * spatium();
-            // rUserYoffset() *= -1;
-            // text height ?
+
+      if (s && autoplace()) {
+            Shape s1 = s->staffShape(staffIdx()).translated(s->pos());
+            Shape s2 = shape().translated(s->pos());
+            qreal d  = s2.minVerticalDistance(s1);
+            if (d > 0)
+                  setUserOff(QPointF(0.0, -d));
             }
-      adjustReadPos();
+      if (!autoplace())
+            adjustReadPos();
+      }
+
+//---------------------------------------------------------
+//   duration2userName
+//---------------------------------------------------------
+
+QString TempoText::duration2userName(const TDuration t)
+      {
+      QString dots;
+      switch (t.dots()) {
+            case 1: dots = tr("Dotted %1").arg(t.durationTypeUserName());
+                  break;
+            case 2: dots = tr("Double dotted %1").arg(t.durationTypeUserName());
+                  break;
+            case 3: dots = tr("Triple dotted %1").arg(t.durationTypeUserName());
+                  break;
+            case 4: dots = tr("Quadruple dotted %1").arg(t.durationTypeUserName());
+                  break;
+            default:
+                  dots = t.durationTypeUserName();
+                  break;
+            }
+      return dots;
       }
 
 //---------------------------------------------------------
 //   accessibleInfo
 //---------------------------------------------------------
 
-QString TempoText::accessibleInfo()
+QString TempoText::accessibleInfo() const
       {
-      TDuration t;
-      int len;
-      int x = findTempoDuration(plainText(), len, t);
-      if (x != -1) {
-            QString dots;
+      TDuration t1;
+      TDuration t2;
+      int len1;
+      int len2;
+      QString text = plainText();
+      QString firstPart = text.split(" = ").first();
+      QString secondPart = text.split(" = ").back();
+      int x1 = findTempoDuration(firstPart, len1, t1);
+      int x2 = -1;
+      if (_relative)
+            x2 = findTempoDuration(secondPart, len2, t2);
 
-            switch (t.dots()) {
-                  case 1: dots = tr("Dotted %1").arg(t.durationTypeUserName());
-                        break;
-                  case 2: dots = tr("Double dotted %1").arg(t.durationTypeUserName());
-                        break;
-                  case 3: dots = tr("Triple dotted %1").arg(t.durationTypeUserName());
-                        break;
-                  default:
-                        dots = t.durationTypeUserName();
-                        break;
+      if (x1 != -1) {
+            QString dots1;
+            QString dots2;
+            dots1 = duration2userName(t1);
+            if (x2 != -1) {
+                  dots2 = duration2userName(t2);
+                  return QString("%1: %2 %3 = %4 %5").arg(Element::accessibleInfo()).arg(dots1).arg(tr("note")).arg(dots2).arg(tr("note"));
                   }
-
-            QString bpm = plainText().split(" = ").back();
-
-            return QString("%1: %2 %3").arg(Element::accessibleInfo()).arg(dots).arg(tr("note = %1").arg(bpm));
+            else
+                  return QString("%1: %2 %3 = %4").arg(Element::accessibleInfo()).arg(dots1).arg(tr("note")).arg(secondPart);
             }
       else
             return Text::accessibleInfo();

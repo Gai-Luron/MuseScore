@@ -25,6 +25,8 @@
 #include "note.h"
 #include "chord.h"
 #include "key.h"
+#include "sig.h"
+#include "tuplet.h"
 
 namespace Ms {
 
@@ -151,11 +153,11 @@ Segment* Score::tick2segmentEnd(int track, int tick) const
             }
       // loop over all segments
       for (Segment* segment = m->first(Segment::Type::ChordRest); segment; segment = segment->next(Segment::Type::ChordRest)) {
-            ChordRest* cr = static_cast<ChordRest*>(segment->element(track));
+            ChordRest* cr = toChordRest(segment->element(track));
             if (!cr)
                   continue;
             // TODO LVI: check if following is correct, see exceptions in
-            // ExportMusicXml::chord() and ExportMusicXml::rest()
+            // ExportMusicXmlchord() and ExportMusicXmlrest()
             int endTick = cr->tick() + cr->actualTicks();
             if (endTick < tick)
                   continue; // not found yet
@@ -214,6 +216,24 @@ Segment* Score::tick2rightSegment(int tick) const
                   return s;
             }
       return 0;
+      }
+
+//---------------------------------------------------------
+//   tick2beatType
+//---------------------------------------------------------
+
+BeatType Score::tick2beatType(int tick)
+      {
+      Measure* m = tick2measure(tick);
+      const int msrTick = m->tick();
+      TimeSigFrac timeSig = sigmap()->timesig(msrTick).nominal();
+
+      int rtick = tick - msrTick;
+
+      if (m->isAnacrusis()) // measure is incomplete (anacrusis)
+            rtick += timeSig.ticksPerMeasure() - m->ticks();
+
+      return timeSig.rtick2beatType(rtick);
       }
 
 //---------------------------------------------------------
@@ -287,6 +307,62 @@ Segment* prevSeg1(Segment* seg, int& track)
                   }
             }
       return 0;
+      }
+
+//---------------------------------------------------------
+// next/prevChordNote
+//
+//    returns the top note of the next/previous chord. If a chord exists in the same track as note,
+//    it is used. If not, the topmost existing chord is used.
+//    May return nullptr if there is no next/prev note
+//---------------------------------------------------------
+
+Note* nextChordNote(Note* note)
+      {
+      int         track       = note->track();
+      int         fromTrack   = (track / VOICES) * VOICES;
+      int         toTrack     = fromTrack + VOICES;
+      // TODO : limit to same instrument, not simply to same staff!
+      Segment*    seg   = note->chord()->segment()->nextCR(track, true);
+      while (seg) {
+            Element*    targetElement = seg->elementAt(track);
+            // if a chord exists in the same track, return its top note
+            if (targetElement && targetElement->isChord())
+                  return toChord(targetElement)->upNote();
+            // if not, return topmost chord in track range
+            for (int i = fromTrack ; i < toTrack; i++) {
+                  targetElement = seg->elementAt(i);
+                  if (targetElement && targetElement->isChord())
+                        return toChord(targetElement)->upNote();
+                  }
+            seg = seg->nextCR(track, true);
+            }
+      return nullptr;
+      }
+
+Note* prevChordNote(Note* note)
+      {
+      int         track       = note->track();
+      int         fromTrack   = (track / VOICES) * VOICES;
+      int         toTrack     = fromTrack + VOICES;
+      // TODO : limit to same instrument, not simply to same staff!
+      Segment*    seg   = note->chord()->segment()->prev1();
+      while (seg) {
+            if (seg->segmentType() == Segment::Type::ChordRest) {
+                  Element*    targetElement = seg->elementAt(track);
+                  // if a chord exists in the same track, return its top note
+                  if (targetElement && targetElement->isChord())
+                        return toChord(targetElement)->upNote();
+                  // if not, return topmost chord in track range
+                  for (int i = fromTrack ; i < toTrack; i++) {
+                        targetElement = seg->elementAt(i);
+                        if (targetElement && targetElement->isChord())
+                              return toChord(targetElement)->upNote();
+                        }
+                  }
+            seg = seg->prev1();
+            }
+      return nullptr;
       }
 
 //---------------------------------------------------------
@@ -624,23 +700,23 @@ int diatonicUpDown(Key k, int pitch, int steps)
       {
       static int ptab[15][7] = {
 //             c  c#   d  d#    e   f  f#   g  g#  a  a#   b
-            { -1,      1,       3,  4,      6,     8,      10 },     // Ces
-            { -1,      1,       3,  5,      6,     8,      10 },     // Ges
-            {  0,      1,       3,  5,      6,     8,      10 },     // Des
-            {  0,      1,       3,  5,      7,     8,      10 },     // As
-            {  0,      2,       3,  5,      7,     8,      10 },     // Es
-            {  0,      2,       3,  5,      7,     9,      10 },     // B
-            {  0,      2,       4,  5,      7,     9,      10 },     // F
+            { -1,      1,       3,  4,      6,     8,      10 },     // Cb Ces
+            { -1,      1,       3,  5,      6,     8,      10 },     // Gb Ges
+            {  0,      1,       3,  5,      6,     8,      10 },     // Db Des
+            {  0,      1,       3,  5,      7,     8,      10 },     // Ab As
+            {  0,      2,       3,  5,      7,     8,      10 },     // Eb Es
+            {  0,      2,       3,  5,      7,     9,      10 },     // Bb B
+            {  0,      2,       4,  5,      7,     9,      10 },     // F  F
 
-            {  0,      2,       4,  5,      7,     9,      11 },     // C
+            {  0,      2,       4,  5,      7,     9,      11 },     // C  C
 
-            {  0,      2,       4,  6,      7,     9,      11 },     // G
-            {  1,      2,       4,  6,      7,     9,      11 },     // D
-            {  1,      2,       4,  6,      8,     9,      11 },     // A
-            {  1,      3,       4,  6,      8,     9,      11 },     // E
-            {  1,      3,       4,  6,      8,    10,      11 },     // H
-            {  1,      3,       5,  6,      8,    10,      11 },     // Fis
-            {  1,      3,       5,  6,      8,    10,      12 },     // Cis
+            {  0,      2,       4,  6,      7,     9,      11 },     // G  G
+            {  1,      2,       4,  6,      7,     9,      11 },     // D  D
+            {  1,      2,       4,  6,      8,     9,      11 },     // A  A
+            {  1,      3,       4,  6,      8,     9,      11 },     // E  E
+            {  1,      3,       4,  6,      8,    10,      11 },     // B  H
+            {  1,      3,       5,  6,      8,    10,      11 },     // F# Fis
+            {  1,      3,       5,  6,      8,    10,      12 },     // C# Cis
             };
 
       int key    = int(k) + 7;
@@ -711,14 +787,14 @@ Note* searchTieNote(Note* note)
       Note* note2  = 0;
       Chord* chord = note->chord();
       Segment* seg = chord->segment();
-      Part* part   = chord->staff()->part();
+      Part* part   = chord->part();
       int strack   = part->staves()->front()->idx() * VOICES;
       int etrack   = strack + part->staves()->size() * VOICES;
 
       if (chord->isGraceBefore()) {
             // grace before
             // try to tie to note in parent chord
-            chord = static_cast<Chord*>(chord->parent());
+            chord = toChord(chord->parent());
             note2 = chord->findNote(note->pitch());
             if (note2)
                   return note2;
@@ -727,13 +803,13 @@ Note* searchTieNote(Note* note)
             // grace after
             // we will try to tie to note in next normal chord, below
             // meanwhile, set chord to parent chord so the endTick calculation will make sense
-            chord = static_cast<Chord*>(chord->parent());
+            chord = toChord(chord->parent());
             }
       else {
             // normal chord
             // try to tie to grace note after if present
-            QList<Chord*> gna = chord->graceNotesAfter();
-            if (!gna.isEmpty()) {
+            QVector<Chord*> gna = chord->graceNotesAfter();
+            if (!gna.empty()) {
                   Chord* gc = gna[0];
                   note2 = gc->findNote(note->pitch());
                   if (note2)
@@ -753,16 +829,17 @@ Note* searchTieNote(Note* note)
             if (seg->tick() < endTick  && !seg->element(chord->track()))
                   continue;
             for (int track = strack; track < etrack; ++track) {
-                  Chord* c = static_cast<Chord*>(seg->element(track));
-                  if (c == 0 || c->type() != Element::Type::CHORD)
+                  Element* e = seg->element(track);
+                  if (e == 0 || !e->isChord())
                         continue;
+                  Chord* c = toChord(e);
                   // if there are grace notes before, try to tie to first one
-                  QList<Chord*> gnb = c->graceNotesBefore();
-                  if (!gnb.isEmpty()) {
+                  QVector<Chord*> gnb = c->graceNotesBefore();
+                  if (!gnb.empty()) {
                         Chord* gc = gnb[0];
-                        note2 = gc->findNote(note->pitch());
-                        if (note2)
-                              return note2;
+                        Note* gn2 = gc->findNote(note->pitch());
+                        if (gn2)
+                              return gn2;
                         }
                   int staffIdx = c->staffIdx() + c->staffMove();
                   if (staffIdx != chord->staffIdx() + chord->staffMove())  // cannot happen?
@@ -791,14 +868,14 @@ Note* searchTieNote114(Note* note)
       Note* note2  = 0;
       Chord* chord = note->chord();
       Segment* seg = chord->segment();
-      Part* part   = chord->staff()->part();
+      Part* part   = chord->part();
       int strack   = part->staves()->front()->idx() * VOICES;
       int etrack   = strack + part->staves()->size() * VOICES;
 
       while ((seg = seg->next1(Segment::Type::ChordRest))) {
             for (int track = strack; track < etrack; ++track) {
-                  Chord* c = static_cast<Chord*>(seg->element(track));
-                  if (c == 0 || (c->type() != Element::Type::CHORD) || (c->track() != chord->track()))
+                  Chord* c = toChord(seg->element(track));
+                  if (c == 0 || (!c->isChord()) || (c->track() != chord->track()))
                         continue;
                   int staffIdx = c->staffIdx() + c->staffMove();
                   if (staffIdx != chord->staffIdx() + chord->staffMove())  // cannot happen?
@@ -865,16 +942,19 @@ int relStep(int pitch, int tpc, ClefType clef)
 
 //---------------------------------------------------------
 //   pitch2step
+//   returns one of { 0, 1, 2, 3, 4, 5, 6 }
 //---------------------------------------------------------
 
 int pitch2step(int pitch)
       {
+      //                            C  C# D  D# E  F  F# G  G# A  A# B
       static const char tab[12] = { 0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6 };
       return tab[pitch%12];
       }
 
 //---------------------------------------------------------
 //   step2pitch
+//   returns one of { 0, 2, 4, 5, 7, 9, 11 }
 //---------------------------------------------------------
 
 int step2pitch(int step)
@@ -883,5 +963,20 @@ int step2pitch(int step)
       return tab[step % 7];
       }
 
+//---------------------------------------------------------
+//   skipTuplet
+//    return segment of rightmost chord/rest in a
+//    (possible nested) tuplet
+//---------------------------------------------------------
+
+Segment* skipTuplet(Tuplet* tuplet)
+      {
+      DurationElement* nde = tuplet->elements().back();
+      while (nde->isTuplet()) {
+            tuplet = toTuplet(nde);
+            nde = tuplet->elements().back();
+            }
+      return toChordRest(nde)->segment();
+      }
 }
 

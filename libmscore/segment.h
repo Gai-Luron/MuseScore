@@ -19,7 +19,7 @@
 #define __SEGMENT_H__
 
 #include "element.h"
-
+#include "shape.h"
 class QPainter;
 
 namespace Ms {
@@ -27,7 +27,6 @@ namespace Ms {
 class Measure;
 class Segment;
 class ChordRest;
-class Lyrics;
 class Spanner;
 class System;
 
@@ -36,18 +35,18 @@ class System;
 ///    A segment holds all vertical aligned staff elements.
 ///    Segments are typed and contain only Elements of the same type.
 //
-//   @P next            Ms::Segment       the next segment in the whole score; null at last score segment (read-only)
-//   @P nextInMeasure   Ms::Segment       the next segment in measure; null at last measure segment (read-only)
-//   @P prev            Ms::Segment       the previous segment in the whole score; null at first score segment (read-only)
-//   @P prevInMeasure   Ms::Segment       the previous segment in measure; null at first measure segment (read-only)
-//   @P segmentType     Ms::Segment::Type (Invalid, Clef, KeySig, Ambitus, TimeSig, StartRepeatBarLine, BarLine, ChordRest, Breath, EndBarLine TimeSigAnnounce, KeySigAnnounce, All)
+//   @P annotations     array[Element]    the list of annotations (read only)
+//   @P next            Segment           the next segment in the whole score; null at last score segment (read-only)
+//   @P nextInMeasure   Segment           the next segment in measure; null at last measure segment (read-only)
+//   @P prev            Segment           the previous segment in the whole score; null at first score segment (read-only)
+//   @P prevInMeasure   Segment           the previous segment in measure; null at first measure segment (read-only)
+//   @P segmentType     enum (Segment.All, .Ambitus, .BarLine, .Breath, .ChordRest, .Clef, .EndBarLine, .Invalid, .KeySig, .KeySigAnnounce, .StartRepeatBarLine, .TimeSig, .TimeSigAnnounce)
 //   @P tick            int               midi tick position (read only)
-//   @P annotations     array[Ms::Element] the list of annotations (read only)
 //------------------------------------------------------------------------
 
 /**
  All Elements in a segment start at the same tick. The Segment can store one Element for
- each voice in each staff in the score. It also stores the lyrics for each staff.
+ each voice in each staff in the score.
  Some elements (Clef, KeySig, TimeSig etc.) are assumed to always have voice zero
  and can be found in _elist[staffIdx * VOICES];
 
@@ -57,53 +56,62 @@ class System;
 
 class Segment : public Element {
       Q_OBJECT
+      Q_PROPERTY(QQmlListProperty<Ms::Element> annotations READ qmlAnnotations)
       Q_PROPERTY(Ms::Segment*       next              READ next1)
       Q_PROPERTY(Ms::Segment*       nextInMeasure     READ next)
       Q_PROPERTY(Ms::Segment*       prev              READ prev1)
       Q_PROPERTY(Ms::Segment*       prevInMeasure     READ prev)
       Q_PROPERTY(Ms::Segment::Type  segmentType       READ segmentType WRITE setSegmentType)
       Q_PROPERTY(int                tick              READ tick)
-      Q_PROPERTY(QQmlListProperty<Ms::Element> annotations READ qmlAnnotations)
       Q_ENUMS(Type)
 
-public:
-   enum class Type {
-         Invalid            = 0x0,
-         Clef               = 0x1,        // type from Clef to TimeSig
-         KeySig             = 0x2,        // need to be in the order in which they
-         Ambitus            = 0x4,        // appear in a measure
-         TimeSig            = 0x8,
-         StartRepeatBarLine = 0x10,
-         BarLine            = 0x20,
-         Breath             = 0x40,
-         ChordRest          = 0x80,
-         EndBarLine         = 0x100,
-         KeySigAnnounce     = 0x200,
-         TimeSigAnnounce    = 0x400,
-         All                = -1
-         };
+   public:
+      //
+      // Type values determine the order of segments for a given tick
+      //
+      enum class Type {
+            Invalid            = 0x0,
+            BeginBarLine       = 0x1,
+            HeaderClef         = 0x2,
+            KeySig             = 0x4,
+            Ambitus            = 0x8,
+            TimeSig            = 0x10,
+            Clef               = 0x20,
+            StartRepeatBarLine = 0x40,
+            BarLine            = 0x80,
+            Breath             = 0x100,
+            //--
+            ChordRest          = 0x200,
+            //--
+            EndBarLine         = 0x400,
+            KeySigAnnounce     = 0x800,
+            TimeSigAnnounce    = 0x1000,
+            All                = -1
+            };
 
    private:
-      Segment* _next;               // linked list of segments inside a measure
+      Segment* _next;                     // linked list of segments inside a measure
       Segment* _prev;
 
-      mutable bool empty;           // cached value
-      mutable bool _written { false };        // used for write()
-
-      Type _segmentType { Type::Invalid };
-      int _tick;
-      Spatium _extraLeadingSpace;
-      Spatium _extraTrailingSpace;
-      QList<qreal>   _dotPosX;     ///< size = staves
-
       std::vector<Element*> _annotations;
-      QList<Element*> _qmlAnnotations;
+      std::vector<Element*> _elist;       // Element storage, size = staves * VOICES.
+      std::vector<Shape>    _shapes;      // size = staves
+      std::vector<qreal>    _dotPosX;     // size = staves
 
-      QList<Element*> _elist;      ///< Element storage, size = staves * VOICES.
+      Spatium _extraLeadingSpace;
+      qreal _stretch;
+      int _tick;                          // tick offset to measure
+      int _ticks;
+      Type _segmentType { Type::Invalid };
 
       void init();
       void checkEmpty() const;
       void checkElement(Element*, int track);
+
+      void setEmpty(bool val) const { setFlag(ElementFlag::EMPTY, val); }
+
+   protected:
+      Element* getElement(int staff);     //??
 
    public:
       Segment(Measure* m = 0);
@@ -111,25 +119,30 @@ public:
       Segment(const Segment&);
       ~Segment();
 
-      virtual Segment* clone() const     { return new Segment(*this); }
-      virtual Element::Type type() const { return Element::Type::SEGMENT; }
+      virtual Segment* clone() const      { return new Segment(*this); }
+      virtual Element::Type type() const  { return Element::Type::SEGMENT; }
 
       virtual void setScore(Score*);
 
-      Ms::Segment* next() const           { return _next;   }
+      Segment* next() const               { return _next;   }
       Segment* next(Type) const;
+      Segment* nextEnabled() const;
+      void setNext(Segment* e)            { _next = e;      }
 
-      void setNext(Segment* e)           { _next = e;      }
-      Ms::Segment* prev() const           { return _prev;   }
+      Segment* prev() const               { return _prev;   }
       Segment* prev(Type) const;
-      void setPrev(Segment* e)           { _prev = e;      }
+      Segment* prevEnabled() const;
+      void setPrev(Segment* e)            { _prev = e;      }
 
-      Ms::Segment* next1() const;
-      Ms::Segment* next1MM() const;
+      // dont stop at measure boundary:
+      Segment* next1() const;
+      Segment* next1enabled() const;
+      Segment* next1MM() const;
       Segment* next1(Type) const;
       Segment* next1MM(Type) const;
-      Ms::Segment* prev1() const;
-      Ms::Segment* prev1MM() const;
+
+      Segment* prev1() const;
+      Segment* prev1MM() const;
       Segment* prev1(Type) const;
       Segment* prev1MM(Type) const;
 
@@ -137,25 +150,23 @@ public:
 
       ChordRest* nextChordRest(int track, bool backwards = false) const;
 
-      Ms::Element* element(int track) const { return _elist.value(track);  }
+      Element* element(int track) const { return _elist[track];  }
+
       // a variant of the above function, specifically designed to be called from QML
+      //@ returns the element at track 'track' (null if none)
       Q_INVOKABLE Ms::Element* elementAt(int track) const;
-      ChordRest* cr(int track) const                    {
-            Q_ASSERT(_segmentType == Type::ChordRest);
-            return (ChordRest*)(_elist.value(track));
-            };
-      const QList<Element*>& elist() const { return _elist; }
-      QList<Element*>& elist()             { return _elist; }
+
+      const std::vector<Element*>& elist() const { return _elist; }
+      std::vector<Element*>& elist()             { return _elist; }
 
       void removeElement(int track);
       void setElement(int track, Element* el);
-      const QList<Lyrics*>* lyricsList(int track) const;
       virtual void scanElements(void* data, void (*func)(void*, Element*), bool all=true);
 
-      Measure* measure() const            { return (Measure*)parent(); }
-      System* system() const              { return (System*)parent()->parent(); }
-      qreal x() const                     { return ipos().x();         }
-      void setX(qreal v)                  { rxpos() = v;               }
+      Measure* measure() const                   { return (Measure*)parent(); }
+      System* system() const                     { return (System*)parent()->parent(); }
+      qreal x() const                            { return ipos().x();         }
+      void setX(qreal v)                         { rxpos() = v;               }
 
       void insertStaff(int staff);
       void removeStaff(int staff);
@@ -171,14 +182,21 @@ public:
       Type segmentType() const                   { return _segmentType; }
       void setSegmentType(Type t);
 
-      void removeGeneratedElements();
-      bool isEmpty() const                       { return empty; }
+      bool empty() const                         { return flag(ElementFlag::EMPTY); }
+      bool written() const                       { return flag(ElementFlag::WRITTEN); }
+      void setWritten(bool val) const            { setFlag(ElementFlag::WRITTEN, val); }
+
       void fixStaffIdx();
-      bool isChordRest() const                   { return _segmentType == Type::ChordRest; }
-      void setTick(int);
-      int tick() const;
-      int rtick() const                          { return _tick; } // tickposition relative to measure start
-      void setRtick(int val)                     { _tick = val; }
+
+      qreal stretch() const                      { return _stretch; }
+      void setStretch(qreal v)                   { _stretch = v;    }
+      void setTick(int t)                        { _tick = t - parent()->tick(); }
+      virtual int tick() const override          { return _tick + parent()->tick(); }
+      virtual int rtick() const override         { return _tick;  } // tickposition relative to measure start
+      Fraction fpos() const;
+      void setRtick(int val)                     { _tick = val;   }
+      int ticks() const                          { return _ticks; }
+      void setTicks(int val)                     { _ticks = val;  }
 
       bool splitsTuplet() const;
 
@@ -187,18 +205,15 @@ public:
       void removeAnnotation(Element* e);
       bool findAnnotationOrElement(Element::Type type, int minTrack, int maxTrack);
 
-      QQmlListProperty<Ms::Element> qmlAnnotations();
+      QQmlListProperty<Ms::Element> qmlAnnotations()  { return QmlListAccess<Ms::Element>(this, _annotations); }
 
       qreal dotPosX(int staffIdx) const          { return _dotPosX[staffIdx];  }
       void setDotPosX(int staffIdx, qreal val)   { _dotPosX[staffIdx] = val;   }
 
       Spatium extraLeadingSpace() const          { return _extraLeadingSpace;  }
       void setExtraLeadingSpace(Spatium v)       { _extraLeadingSpace = v;     }
-      Spatium extraTrailingSpace() const         { return _extraTrailingSpace; }
-      void setExtraTrailingSpace(Spatium v)      { _extraTrailingSpace = v;    }
-      bool written() const                       { return _written; }
-      void setWritten(bool val)                  { _written = val; }
-      virtual void write(Xml&) const;
+
+      virtual void write(XmlWriter&) const;
       virtual void read(XmlReader&);
 
       virtual QVariant getProperty(P_ID propertyId) const;
@@ -208,20 +223,73 @@ public:
       bool operator<(const Segment&) const;
       bool operator>(const Segment&) const;
 
-      virtual QString accessibleExtraInfo() override;
+      virtual QString accessibleExtraInfo() const override;
       Element* firstInNextSegments(int activeStaff); //<
       Element* lastInPrevSegments(int activeStaff);   //<
       Element* firstElement(int staff);              //<  These methods are used for navigation
       Element* lastElement(int staff);               //<  for next-element and prev-element
-protected:                                           //
-      Element* getElement(int staff);                //<
+
+      std::vector<Shape> shapes()                     { return _shapes; }
+      const std::vector<Shape>& shapes() const        { return _shapes; }
+      const Shape& staffShape(int staffIdx) const     { return _shapes[staffIdx]; }
+      Shape& staffShape(int staffIdx)                 { return _shapes[staffIdx]; }
+      void createShapes();
+      void createShape(int staffIdx);
+      qreal minRight() const;
+      qreal minLeft(const Shape&) const;
+      qreal minLeft() const;
+      qreal minHorizontalDistance(Segment*, bool isSystemGap) const;
+
+      // some helper function
+      ChordRest* cr(int track) const                    {
+            Q_ASSERT(_segmentType == Type::ChordRest);
+            return (ChordRest*)(_elist[track]);
+            };
+      bool isType(const Segment::Type t) const { return static_cast<int>(_segmentType) & static_cast<int>(t); }
+      bool isBeginBarLineType() const       { return _segmentType == Type::BeginBarLine; }
+      bool isClefType() const               { return _segmentType == Type::Clef; }
+      bool isHeaderClefType() const         { return _segmentType == Type::HeaderClef; }
+      bool isKeySigType() const             { return _segmentType == Type::KeySig; }
+      bool isAmbitusType() const            { return _segmentType == Type::Ambitus; }
+      bool isTimeSigType() const            { return _segmentType == Type::TimeSig; }
+      bool isStartRepeatBarLineType() const { return _segmentType == Type::StartRepeatBarLine; }
+      bool isBarLineType() const            { return _segmentType == Type::BarLine; }
+      bool isBreathType() const             { return _segmentType == Type::Breath; }
+      bool isChordRestType() const          { return _segmentType == Type::ChordRest; }
+      bool isEndBarLineType() const         { return _segmentType == Type::EndBarLine; }
+      bool isKeySigAnnounceType() const     { return _segmentType == Type::KeySigAnnounce; }
+      bool isTimeSigAnnounceType() const    { return _segmentType == Type::TimeSigAnnounce; }
       };
 
-constexpr Segment::Type operator| (Segment::Type t1, Segment::Type t2) {
+constexpr Segment::Type operator| (const Segment::Type t1, const Segment::Type t2) {
       return static_cast<Segment::Type>(static_cast<int>(t1) | static_cast<int>(t2));
       }
-constexpr bool operator& (Segment::Type t1, Segment::Type t2) {
+constexpr bool operator& (const Segment::Type t1, const Segment::Type t2) {
       return static_cast<int>(t1) & static_cast<int>(t2);
+      }
+
+//---------------------------------------------------------
+//   nextEnabled
+//---------------------------------------------------------
+
+inline Segment* Segment::nextEnabled() const
+      {
+      Segment* ps = next();
+      while (ps && !ps->enabled())
+            ps = ps->next();
+      return ps;
+      }
+
+//---------------------------------------------------------
+//   prevEnabled
+//---------------------------------------------------------
+
+inline Segment* Segment::prevEnabled() const
+      {
+      Segment* ps = prev();
+      while (ps && !ps->enabled())
+            ps = ps->prev();
+      return ps;
       }
 
 }     // namespace Ms

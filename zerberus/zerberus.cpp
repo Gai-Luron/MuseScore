@@ -74,6 +74,8 @@ Zerberus::~Zerberus()
                         globalInstruments.erase(it);
                   }
             }
+      for (Channel* c : _channel)
+            delete c;
       }
 
 //---------------------------------------------------------
@@ -90,20 +92,19 @@ void Zerberus::programChange(int channel, int program)
 //    gui
 //---------------------------------------------------------
 
-void Zerberus::trigger(Channel* channel, int key, int velo, Trigger trigger)
+void Zerberus::trigger(Channel* channel, int key, int velo, Trigger trigger, int cc, int ccVal, double durSinceNoteOn)
       {
       ZInstrument* i = channel->instrument();
+      double random = (double) rand() / (double) RAND_MAX;
       for (Zone* z : i->zones()) {
-            if (z->match(channel, key, velo, trigger)) {
+            if (z->match(channel, key, velo, trigger, random, cc, ccVal)) {
                   if (freeVoices.empty()) {
                         qDebug("Zerberus: out of voices...");
                         return;
                         }
                   Voice* voice = freeVoices.pop();
                   Q_ASSERT(voice->isOff());
-                  voice->start(channel, key, velo, z);
-                  if (trigger == Trigger::RELEASE)
-                        voice->stop();    // start voice in stop mode
+                  voice->start(channel, key, velo, z, durSinceNoteOn);
                   voice->setNext(activeVoices);
                   activeVoices = voice;
 
@@ -136,8 +137,10 @@ void Zerberus::processNoteOff(Channel* cp, int key)
                && (v->loopMode() != LoopMode::ONE_SHOT)
                ) {
                   if (cp->sustain() < 0x40) {
-                        v->stop();
-                        trigger(cp, key, v->velocity(), Trigger::RELEASE);
+                        if (!v->isStopped())
+                              v->stop();
+                        double durSinceNoteOn = v->getSamplesSinceStart() / sampleRate();
+                        trigger(cp, key, v->velocity(), Trigger::RELEASE, -1, -1, durSinceNoteOn);
                         }
                   else {
                         if (v->isPlaying())
@@ -162,7 +165,7 @@ void Zerberus::processNoteOn(Channel* cp, int key, int velo)
                         }
                   }
             }
-      trigger(cp, key, velo, Trigger::ATTACK);
+      trigger(cp, key, velo, Trigger::ATTACK, -1, -1, 0);
       }
 
 //---------------------------------------------------------
@@ -196,6 +199,7 @@ void Zerberus::play(const Ms::PlayEvent& event)
 
             case Ms::ME_CONTROLLER:
                   cp->controller(event.dataA(), event.dataB());
+                  trigger(cp, -1, -1, Trigger::CC, event.dataA(), event.dataB(), 0);
                   break;
 
             default:
@@ -369,12 +373,12 @@ Ms::SynthesizerGroup Zerberus::state() const
 //   setState
 //---------------------------------------------------------
 
-void Zerberus::setState(const Ms::SynthesizerGroup& sp)
+bool Zerberus::setState(const Ms::SynthesizerGroup& sp)
       {
       QStringList sfs;
       for (const Ms::IdValue& v : sp)
             sfs.append(v.data);
-      loadSoundFonts(sfs);
+      return loadSoundFonts(sfs);
       }
 
 //---------------------------------------------------------
@@ -401,13 +405,15 @@ bool Zerberus::loadInstrument(const QString& s)
       {
       if (s.isEmpty())
             return false;
+      QFileInfo fis(s);
+      QString fileName = fis.fileName();
       for (ZInstrument* instr : instruments) {
-            if (QFileInfo(instr->path()).fileName() == s) {   // already loaded?
+            if (QFileInfo(instr->path()).fileName() == fileName) {   // already loaded?
                   return true;
                   }
             }
       for (ZInstrument* instr : globalInstruments) {
-            if (QFileInfo(instr->path()).fileName() == s) {
+            if (QFileInfo(instr->path()).fileName() == fileName) {
                   instruments.push_back(instr);
                   instr->setRefCount(instr->refCount() + 1);
                   if (instruments.size() == 1) {
@@ -422,7 +428,7 @@ bool Zerberus::loadInstrument(const QString& s)
       QFileInfoList l = Zerberus::sfzFiles();
       QString path;
       foreach (const QFileInfo& fi, l) {
-            if (fi.fileName() == s) {
+            if (fi.fileName() == fileName) {
                   path = fi.absoluteFilePath();
                   break;
                   }
@@ -445,6 +451,9 @@ bool Zerberus::loadInstrument(const QString& s)
                   busy = false;
                   return true;
                   }
+            }
+      catch (std::bad_alloc& a) {
+            qDebug("Unable to allocate memory when loading Zerberus soundfont %s", qPrintable(s));
             }
       catch (...) {
             }

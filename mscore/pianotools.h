@@ -3,7 +3,7 @@
 //  Linux Music Score Editor
 //  $Id:$
 //
-//  Copyright (C) 2011 Werner Schweer and others
+//  Copyright (C) 2011-2016 Werner Schweer and others
 //
 //  This program is free software; you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License version 2.
@@ -21,6 +21,8 @@
 #ifndef __PIANOTOOLS_H__
 #define __PIANOTOOLS_H__
 
+#include "libmscore/note.h"
+
 namespace Ms {
 
 class HPiano;
@@ -31,8 +33,8 @@ class HPiano;
 
 class PianoKeyItem : public QGraphicsPathItem {
       int type;
-      int pitch;
-      bool pressed;
+      int _pitch;
+      bool _pressed;
       HPiano* piano;
 
       virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = 0);
@@ -40,8 +42,10 @@ class PianoKeyItem : public QGraphicsPathItem {
       virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent*);
 
    public:
-      PianoKeyItem(HPiano* , int pitch);
+      PianoKeyItem(HPiano* , int p);
       void setType(int val);
+      int pitch() { return _pitch; }
+      void setPressed(bool p) { _pressed = p; }
       };
 
 //---------------------------------------------------------
@@ -52,18 +56,23 @@ class HPiano : public QGraphicsView {
       Q_OBJECT
       int _firstKey;
       int _lastKey;
-      int _currentKey;
+      QSet<int> _pressedPitches;
       QList<PianoKeyItem*> keys;
       qreal scaleVal;
       virtual void wheelEvent(QWheelEvent*);
       void setScale(qreal);
 
    signals:
-      void keyPressed(int pitch, bool chord);
+      void keyPressed(int pitch, bool chord, int velo);
+      void keyReleased(int pitch, bool chord, int velo);
 
    public:
       HPiano(QWidget* parent = 0);
       friend class PianoKeyItem;
+      void setPressedPitches(QSet<int> pitches);
+      void pressPitch(int pitch);
+      void releasePitch(int pitch);
+      void updateAllKeys();
       virtual QSize sizeHint() const;
       };
 
@@ -74,11 +83,21 @@ class HPiano : public QGraphicsView {
 class PianoTools : public QDockWidget {
       Q_OBJECT
 
+      HPiano* _piano;
+
    signals:
-      void keyPressed(int pitch, bool ctrl);
+      void keyPressed(int pitch, bool ctrl, int vel);
+      void keyReleased(int pitch, bool ctrl, int vel);
+
+   protected:
+      virtual void changeEvent(QEvent *event);
+      void retranslate();
 
    public:
       PianoTools(QWidget* parent = 0);
+      void pressPitch(int pitch)    { _piano->pressPitch(pitch);   }
+      void releasePitch(int pitch)  { _piano->releasePitch(pitch); }
+      void heartBeat(QList<const Note*> notes);
       };
 
 

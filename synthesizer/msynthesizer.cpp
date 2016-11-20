@@ -68,7 +68,7 @@ void MasterSynthesizer::init()
             setState(defaultState);
             return;
             }
-      XmlReader e(&f);
+      XmlReader e(0, &f);
       while (e.readNextStartElement()) {
             if (e.name() == "Synthesizer")
                   state.read(e);
@@ -86,8 +86,11 @@ MasterSynthesizer::~MasterSynthesizer()
       {
       for (Synthesizer* s : _synthesizer)
             delete s;
-      for (int i = 0; i < MAX_EFFECTS; ++i)
-            delete _effect[i];
+      for (int i = 0; i < MAX_EFFECTS; ++i) {
+            for (Effect* e : _effectList[i])
+                  delete e;
+            // delete _effect[i];   // _effect takes from _effectList
+            }
       }
 
 //---------------------------------------------------------
@@ -316,8 +319,9 @@ int MasterSynthesizer::indexOfEffect(int ab)
 //   setState
 //---------------------------------------------------------
 
-void MasterSynthesizer::setState(const SynthesizerState& ss)
+bool MasterSynthesizer::setState(const SynthesizerState& ss)
       {
+      bool result = true;
       for (const SynthesizerGroup& g : ss) {
             if (g.name() == "master") {
                   for (const IdValue& v : g) {
@@ -343,8 +347,10 @@ void MasterSynthesizer::setState(const SynthesizerState& ss)
                   }
             else {
                   Synthesizer* s = synthesizer(g.name());
-                  if (s)
-                        s->setState(g);
+                  if (s) {
+                        bool r = s->setState(g);
+                        result = result && r;
+                        }
                   else {
                         if (effect(0) && effect(0)->name() == g.name())
                               effect(0)->setState(g);
@@ -355,7 +361,7 @@ void MasterSynthesizer::setState(const SynthesizerState& ss)
                         }
                   }
             }
-
+      return result;
       }
 
 //---------------------------------------------------------

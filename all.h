@@ -24,22 +24,26 @@
 #include <stdio.h>
 #include <limits.h>
 #include <map>
+#include <set>
 #include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <math.h>
 
 #include <QtGui>
+#include <QLoggingCategory>
 #include <QModelIndex>
 
-#include <QWebView>
-#include <QWebFrame>
+#ifndef Q_OS_WIN
+// no precompiled QtWebEngine in Qt 5.6 windows gcc
+#include <QWebEngineView>
+#endif
 
 #include <QtXml>
 #include <QAbstractMessageHandler>
 #include <QXmlSchema>
 #include <QXmlSchemaValidator>
-// #include <QXmlStreamReader>
+#include <QXmlStreamReader>
 
 #include <QPointF>
 #include <QVariant>
@@ -162,5 +166,18 @@
 #include <QWidgetAction>
 #include <QHelpIndexModel>
 #include <QTextBrowser>
+
+#include <QJsonDocument>
+
+
+// change Q_ASSERT to NOP if not debugging
+
+#ifdef QT_NO_DEBUG
+#undef Q_ASSERT_X
+#define Q_ASSERT_X(a,b,c)
+#undef Q_ASSERT
+#define Q_ASSERT(a)
+#endif
+
 #endif
 

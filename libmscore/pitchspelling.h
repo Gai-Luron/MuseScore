@@ -53,13 +53,13 @@ const int   STEP_DELTA_OCTAVE       = 7;  // the number of steps in an octave
 
 enum class Prefer : char { FLATS=8, NEAREST=11, SHARPS=13 };
 enum class NoteSpellingType : char { STANDARD = 0, GERMAN, GERMAN_PURE, SOLFEGGIO, FRENCH };
-enum class NoteCaseType : char { AUTO = -1, CAPITAL = 0, LOWER, UPPER };
+enum class NoteCaseType : signed char { AUTO = -1, CAPITAL = 0, LOWER, UPPER };
 
 extern int pitch2tpc(int pitch, Key, Prefer prefer);
 
 extern void spell(QList<Event>& notes, int);
 extern void spell(QList<Note*>& notes);
-extern int computeWindow(const QList<Note*>& notes, int start, int end);
+extern int computeWindow(const std::vector<Note*>& notes, int start, int end);
 extern int tpc(int idx, int pitch, int opt);
 extern QString tpc2name(int tpc, NoteSpellingType spelling, NoteCaseType noteCase, bool explicitAccidental = false);
 extern void tpc2name(int tpc, NoteSpellingType noteSpelling, NoteCaseType noteCase, QString& s, QString& acc, bool explicitAccidental = false);
@@ -74,6 +74,7 @@ extern int tpc2stepByKey(int tpc, Key, int* pAlter);
 extern int tpc2alterByKey(int tpc, Key);
 extern int pitch2absStepByKey(int pitch, int tpc, Key, int* pAlter);
 extern int absStep2pitchByKey(int step, Key);
+extern int tpc2degree(int tpc, Key key);
 
 //---------------------------------------------------------
 //   tpc2alter

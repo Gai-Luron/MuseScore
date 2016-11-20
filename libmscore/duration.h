@@ -13,6 +13,7 @@
 #ifndef __DURATION_H__
 #define __DURATION_H__
 
+#include "config.h"
 #include "element.h"
 #include "durationtype.h"
 
@@ -26,17 +27,23 @@ class Spanner;
 //   @@ DurationElement
 ///    Virtual base class for Chord, Rest and Tuplet.
 //
-//   @P duration  int  duration in ticks
+//   @P duration       Fraction  duration (as written)
+//   @P globalDuration Fraction  played duration
 //---------------------------------------------------------
 
 class DurationElement : public Element {
-      Q_OBJECT
-      Q_PROPERTY(int duration READ durationTicks WRITE setDuration)
-
       Fraction _duration;
       Tuplet* _tuplet;
-      void setDuration(int ticks)         { _duration = Fraction::fromTicks(ticks); }
-      int durationTicks() const           { return _duration.ticks(); }
+
+#ifdef SCRIPT_INTERFACE
+      Q_OBJECT
+      Q_PROPERTY(FractionWrapper* duration READ durationW WRITE setDurationW)
+      Q_PROPERTY(FractionWrapper* globalDuration READ globalDurW)
+
+      void setDurationW(FractionWrapper* f)  { _duration = f->fraction(); }
+      FractionWrapper* durationW() const     { return new FractionWrapper(_duration); }
+      FractionWrapper* globalDurW() const    { return new FractionWrapper(globalDuration()); }
+#endif
 
    public:
       DurationElement(Score* s);
@@ -46,13 +53,12 @@ class DurationElement : public Element {
       virtual Measure* measure() const    { return (Measure*)(parent()); }
 
       virtual bool readProperties(XmlReader& e);
-      virtual void writeProperties(Xml& xml) const;
-      void writeTuplet(Xml& xml);
+      virtual void writeProperties(XmlWriter& xml) const;
+      void writeTuplet(XmlWriter& xml);
 
       void setTuplet(Tuplet* t)           { _tuplet = t;      }
       Tuplet* tuplet() const              { return _tuplet;   }
       virtual Beam* beam() const          { return 0;         }
-      virtual int tick() const = 0;
       int actualTicks() const;
       Fraction actualFraction() const;
 

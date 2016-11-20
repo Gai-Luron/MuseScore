@@ -20,8 +20,8 @@
 
 #include "synthesizer/synthesizer.h"
 #include "synthesizer/event.h"
+#include "voice.h"
 
-class Voice;
 class Channel;
 class ZInstrument;
 enum class Trigger : char;
@@ -43,6 +43,10 @@ class VoiceFifo {
    public:
       VoiceFifo() {
             n = 0;
+            }
+      ~VoiceFifo() {
+            for (Voice* v : buffer)
+                  delete v;
             }
       void push(Voice* v) {
             buffer[writeIdx++] = v;
@@ -77,9 +81,10 @@ class Zerberus : public Ms::Synthesizer {
       VoiceFifo freeVoices;
       Voice* activeVoices = 0;
       int _loadProgress = 0;
+      bool _loadWasCanceled = false;
 
       void programChange(int channel, int program);
-      void trigger(Channel*, int key, int velo, Trigger);
+      void trigger(Channel*, int key, int velo, Trigger, int cc, int ccVal, double durSinceNoteOn);
       void processNoteOff(Channel*, int pitch);
       void processNoteOn(Channel* cp, int key, int velo);
 
@@ -97,6 +102,8 @@ class Zerberus : public Ms::Synthesizer {
       Channel* channel(int n)       { return _channel[n]; }
       int loadProgress()            { return _loadProgress; }
       void setLoadProgress(int val) { _loadProgress = val; }
+      bool loadWasCanceled()        { return _loadWasCanceled; }
+      void setLoadWasCanceled(bool status)     { _loadWasCanceled = status; }
 
       virtual void setMasterTuning(double val) { _masterTuning = val;  }
       virtual double masterTuning() const      { return _masterTuning; }
@@ -107,7 +114,7 @@ class Zerberus : public Ms::Synthesizer {
       virtual const QList<Ms::MidiPatch*>& getPatchInfo() const;
 
       virtual Ms::SynthesizerGroup state() const;
-      virtual void setState(const Ms::SynthesizerGroup&);
+      virtual bool setState(const Ms::SynthesizerGroup&);
 
       virtual void allSoundsOff(int channel);
       virtual void allNotesOff(int channel);
