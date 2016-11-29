@@ -3192,27 +3192,13 @@ void ScoreView::cmd(const QAction* a)
 #endif
       else if (cmd == "split-measure") {
             Element* e = _score->selection().element();
-            if (!(e && (e->type() == Element::Type::NOTE || e->type() == Element::Type::REST))) {
-                  QMessageBox::warning(0, "MuseScore",
-                     tr("No chord/rest selected:\n"
-                     "Please select a chord/rest and try again"));
-                  }
+            if (!(e && (e->isNote() || e->isRest())))
+                  MScore::setError(NO_CHORD_REST_SELECTED);
             else {
-                  if (e->type() == Element::Type::NOTE)
-                        e = static_cast<Note*>(e)->chord();
-                  ChordRest* cr = static_cast<ChordRest*>(e);
-                  if (cr->segment()->rtick() == 0) {
-                        QMessageBox::warning(0, "MuseScore",
-                           tr("Cannot split measure here:\n"
-                           "First beat of measure"));
-                        }
-                  else if (cr->segment()->splitsTuplet()) {
-                        QMessageBox::warning(0, "MuseScore",
-                           tr("Cannot split measure here:\n"
-                           "Cannot split tuplet"));
-                        }
-                  else
-                        _score->cmdSplitMeasure(cr);
+                  if (e->isNote())
+                        e = toNote(e)->chord();
+                  ChordRest* cr = toChordRest(e);
+                  _score->cmdSplitMeasure(cr);
                   }
             }
       else if (cmd == "join-measures") {
@@ -4837,7 +4823,6 @@ void ScoreView::cmdTuplet(int n, ChordRest* cr)
             }
 
       Fraction f(cr->duration());
-      int tick    = cr->tick();
       Tuplet* ot  = cr->tuplet();
 
       f.reduce();       //measure duration might not be reduced
@@ -4864,7 +4849,7 @@ void ScoreView::cmdTuplet(int n, ChordRest* cr)
       tuplet->setBaseLen(baseLen);
 
       tuplet->setTrack(cr->track());
-      tuplet->setTick(tick);
+      tuplet->setTick(cr->tick());
       Measure* measure = cr->measure();
       tuplet->setParent(measure);
 

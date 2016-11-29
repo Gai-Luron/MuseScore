@@ -167,6 +167,8 @@ void Score::endCmd(bool rollback)
             update();
             return;
             }
+      if (MScore::_error != MS_NO_ERROR)
+            rollback = true;
 
       if (rollback)
             undoStack()->current()->unwind();
@@ -2580,6 +2582,11 @@ void Score::cmd(const QAction* a)
             bool val = !styleB(StyleIdx::createMultiMeasureRests);
             deselectAll();
             undo(new ChangeStyleVal(this, StyleIdx::createMultiMeasureRests, val));
+            }
+      else if (cmd == "toggle-hide-empty") {
+            bool val = !styleB(StyleIdx::hideEmptyStaves);
+            deselectAll();
+            undo(new ChangeStyleVal(this, StyleIdx::hideEmptyStaves, val));
             }
       else if (cmd == "add-brackets")
             cmdAddBracket();

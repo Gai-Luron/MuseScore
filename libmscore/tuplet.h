@@ -29,13 +29,15 @@ class Spanner;
 //!       _actualNotes = 3
 //!       _normalNotes = 2     (3 notes played in the time of 2/8)
 //!
-//!    The tuplet has a len of _baseLen * _normalNotes.
+//!    The tuplet has a  len of _baseLen * _normalNotes.
 //!    A tuplet note has len of _baseLen * _normalNotes / _actualNotes.
 //------------------------------------------------------------------------
 
 class Tuplet : public DurationElement {
       Q_OBJECT
 
+      // the tick position of a tuplet is the tick position of its
+      // first element:
       int _tick;
 
    public:

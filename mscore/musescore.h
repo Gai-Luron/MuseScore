@@ -328,7 +328,6 @@ class MuseScore : public QMainWindow, public MuseScoreCore {
       void removeMenuEntry(PluginDescription*);
 
       QTimer* autoSaveTimer;
-      QList<QAction*> qmlPluginActions;
       QList<QAction*> pluginActions;
       QSignalMapper* pluginMapper        { 0 };
 
@@ -739,6 +738,8 @@ class MuseScore : public QMainWindow, public MuseScoreCore {
 
       void setNoteInputMenuEntries(std::list<const char*> l)         { _noteInputMenuEntries = l; }
       void populateNoteInputMenu();
+
+      void showError();
 
       static void saveGeometry(QWidget const*const qw);
       static void restoreGeometry(QWidget*const qw);
