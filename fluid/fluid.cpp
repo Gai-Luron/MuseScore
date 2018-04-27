@@ -191,9 +191,11 @@ void Fluid::play(const PlayEvent& event)
             int midiPitch = event.dataB() * 128 + event.dataA();  // msb * 128 + lsb
             cp->pitchBend(midiPitch);
             }
-      if (err)
-            qWarning("FluidSynth error: event 0x%2x channel %d: %s",
-               type, ch, qPrintable(error()));
+      if (err) {
+            // TODO: distinguish between types of error code.
+            // Lack of a soundfont should not produce qDebug messages, because user could deliberately be using MIDI out only.
+            //qWarning("FluidSynth error: event 0x%2x channel %d: %s", type, ch, qPrintable(error()));
+            }
       }
 
 //---------------------------------------------------------
@@ -335,8 +337,11 @@ void Fluid::program_change(int chan, int prognum)
 
       Preset* preset = find_preset(banknum, prognum);
       if (!preset) {
-            qDebug("Fluid::program_change: preset %d %d not found", banknum, prognum);
-            preset = find_preset(0, 0);
+            //Suppressing qDebug because might not have soundfont if using MIDI out only.
+            //qDebug("Fluid::program_change: preset %d %d not found", banknum, prognum);
+            preset = find_preset(0, prognum);
+            if (!preset)
+                  preset = find_preset(0, 0);
             }
 
       unsigned sfont_id = preset? preset->sfont->id() : 0;
@@ -608,13 +613,14 @@ bool Fluid::loadSoundFonts(const QStringList& sl)
             qDebug("Fluid:loadSoundFonts: already loaded");
             return true;
             }
-      mutex.lock();
+      QMutexLocker locker(&mutex);
       foreach(Voice* v, activeVoices)
             v->off();
       foreach(Channel* c, channel)
             c->reset();
       foreach (SFont* sf, sfonts)
             sfunload(sf->id());
+      locker.unlock();
       bool ok = true;
 
 
@@ -638,13 +644,14 @@ bool Fluid::loadSoundFonts(const QStringList& sl)
                   ok = false;
                   }
             else {
+                  locker.relock();
                   if (sfload(path) == -1) {
                         qDebug("loading sf failed: <%s>", qPrintable(path));
                         ok = false;
                         }
+                  locker.unlock();
                   }
             }
-      mutex.unlock();
       return ok;
       }
 
@@ -655,9 +662,8 @@ bool Fluid::loadSoundFonts(const QStringList& sl)
 
 bool Fluid::addSoundFont(const QString& s)
       {
-      mutex.lock();
+      QMutexLocker locker(&mutex);
       bool rv = (sfload(s) == -1) ? false : true;
-      mutex.unlock();
       return rv;
       }
 
@@ -668,12 +674,11 @@ bool Fluid::addSoundFont(const QString& s)
 
 bool Fluid::removeSoundFont(const QString& s)
       {
-      mutex.lock();
+      QMutexLocker locker(&mutex);
       foreach(Voice* v, activeVoices)
             v->off();
       SFont* sf = get_sfont_by_name(s);
       sfunload(sf->id());
-      mutex.unlock();
       return true;
       }
 
@@ -870,7 +875,7 @@ static void collectFiles(QFileInfoList* l, const QString& path)
             if (path == s.absoluteFilePath())
                   return;
 
-            if (s.isDir())
+            if (s.isDir() && !s.isHidden())
                   collectFiles(l, s.absoluteFilePath());
             else {
                   QString suffix = s.suffix().toLower();
@@ -888,7 +893,7 @@ QFileInfoList Fluid::sfFiles()
       {
       QFileInfoList l;
 
-      QStringList pl = preferences.mySoundfontsPath.split(";");
+      QStringList pl = preferences.getString(PREF_APP_PATHS_MYSOUNDFONTS).split(";");
       pl.prepend(QFileInfo(QString("%1%2").arg(mscoreGlobalShare).arg("sound")).absoluteFilePath());
 
       foreach (const QString& s, pl) {

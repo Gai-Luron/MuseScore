@@ -164,16 +164,16 @@ void PartEdit::playbackVoiceChanged()
                         switch (voice) {
                               case 0:
                               printf("undo\n");
-                                    score->undoChangeProperty(staff, P_ID::PLAYBACK_VOICE1, val);
+                                    staff->undoChangeProperty(Pid::PLAYBACK_VOICE1, val);
                                     break;
                               case 1:
-                                    score->undoChangeProperty(staff, P_ID::PLAYBACK_VOICE2, val);
+                                    staff->undoChangeProperty(Pid::PLAYBACK_VOICE2, val);
                                     break;
                               case 2:
-                                    score->undoChangeProperty(staff, P_ID::PLAYBACK_VOICE3, val);
+                                    staff->undoChangeProperty(Pid::PLAYBACK_VOICE3, val);
                                     break;
                               case 3:
-                                    score->undoChangeProperty(staff, P_ID::PLAYBACK_VOICE4, val);
+                                    staff->undoChangeProperty(Pid::PLAYBACK_VOICE4, val);
                                     break;
                               }
                         }
@@ -213,7 +213,7 @@ Mixer::Mixer(QWidget* parent)
 
 void Mixer::retranslate(bool firstTime)
       {
-      setWindowTitle(tr("MuseScore: Mixer"));
+      setWindowTitle(tr("Mixer"));
       if (!firstTime) {
             for (int i = 0; i < vb->count(); i++) {
                   PartEdit* p = partEdit(i);
@@ -559,7 +559,7 @@ void PartEdit::drumsetToggled(bool val, bool syncControls)
       Score* score = part->score();
       score->startCmd();
 
-      part->undoChangeProperty(P_ID::USE_DRUMSET, val);
+      part->undoChangeProperty(Pid::USE_DRUMSET, val);
       patch->clear();
       const QList<MidiPatch*> pl = synti->getPatchInfo();
       for (const MidiPatch* p : pl) {
@@ -796,7 +796,7 @@ void PartEdit::midiChannelChanged(int)
       // Update MIDI Out ports
       int maxPort = max(p, part->score()->masterScore()->midiPortCount());
       part->score()->masterScore()->setMidiPortCount(maxPort);
-      if (seq->driver() && (preferences.useJackMidi || preferences.useAlsaAudio))
+      if (seq->driver() && (preferences.getBool(PREF_IO_JACK_USEJACKMIDI) || preferences.getBool(PREF_IO_ALSA_USEALSAAUDIO)))
             seq->driver()->updateOutPortCount(maxPort + 1);
       }
 }

@@ -66,8 +66,12 @@ void UpdateChecker::onRequestFinished(QNetworkReply* reply)
                         version = parseText(reader);
                   else if (reader.name() == "revision")
                         upgradeRevision = parseText(reader);
-                  else if (reader.name() == "downloadUrl")
+                  else if (reader.name() == "downloadUrl") {
                         downloadUrl = parseText(reader);
+#if defined(FOR_WINSTORE)
+                        downloadUrl = QString("%1?package=appx&version=%2").arg(downloadUrl).arg(_currentVersion);
+#endif
+                        }
                   else if (reader.name() == "infoUrl")
                         infoUrl = parseText(reader);
                   else if (reader.name() == "description")
@@ -157,7 +161,7 @@ int UpdateChecker::defaultPeriod()
 
 bool UpdateChecker::hasToCheck()
       {
-      if (!preferences.checkUpdateStartup)
+      if (!preferences.getBool(PREF_UI_APP_STARTUP_CHECKUPDATE))
             return false;
       QSettings s;
       s.beginGroup("Update");
@@ -165,7 +169,7 @@ bool UpdateChecker::hasToCheck()
       QDateTime lastUpdate = s.value("lastUpdateDate", now).value<QDateTime>();
 
       if (MScore::debugMode) {
-            qDebug("preferences.checkUpdateStartup: %d" , preferences.checkUpdateStartup);
+            qDebug("preferences.checkUpdateStartup: %d" , preferences.getBool(PREF_UI_APP_STARTUP_CHECKUPDATE));
             qDebug("lastupdate: %s", qPrintable(lastUpdate.toString("dd.MM.yyyy hh:mm:ss.zzz")));
             }
       s.endGroup();

@@ -91,16 +91,16 @@ void EditStaff::setStaff(Staff* s)
       instrument        = *part->instrument(/*tick*/);
       Score* score      = part->score();
       staff             = new Staff(score);
-      staff->setSmall(orgStaff->small());
+      staff->setSmall(0, orgStaff->small(0));
       staff->setInvisible(orgStaff->invisible());
       staff->setUserDist(orgStaff->userDist());
       staff->setColor(orgStaff->color());
-      staff->setStaffType(orgStaff->staffType());
+      staff->setStaffType(0, orgStaff->staffType(0));
       staff->setPart(part);
       staff->setCutaway(orgStaff->cutaway());
       staff->setHideWhenEmpty(orgStaff->hideWhenEmpty());
       staff->setShowIfEmpty(orgStaff->showIfEmpty());
-      staff->setUserMag(orgStaff->userMag());
+      staff->setUserMag(0, orgStaff->userMag(0));
       staff->setHideSystemBarLine(orgStaff->hideSystemBarLine());
 
       // get tick range for instrument
@@ -122,14 +122,14 @@ void EditStaff::setStaff(Staff* s)
       // set dlg controls
       spinExtraDistance->setValue(s->userDist() / score->spatium());
       invisible->setChecked(staff->invisible());
-      small->setChecked(staff->small());
+      small->setChecked(staff->small(0));
       color->setColor(s->color());
       partName->setText(part->partName());
       cutaway->setChecked(staff->cutaway());
       hideMode->setCurrentIndex(int(staff->hideWhenEmpty()));
       showIfEmpty->setChecked(staff->showIfEmpty());
       hideSystemBarLine->setChecked(staff->hideSystemBarLine());
-      mag->setValue(staff->userMag() * 100.0);
+      mag->setValue(staff->userMag(0) * 100.0);
       updateStaffType();
       updateInstrument();
       updateNextPreviousButtons();
@@ -151,7 +151,7 @@ void EditStaff::hideEvent(QHideEvent* ev)
 
 void EditStaff::updateStaffType()
       {
-      StaffType* staffType = staff->staffType();
+      StaffType* staffType = staff->staffType(0);
       lines->setValue(staffType->lines());
       lineDistance->setValue(staffType->lineDistance().val());
       showClef->setChecked(staffType->genClef());
@@ -336,6 +336,7 @@ void EditStaff::apply()
       instrument.setLongName(ln);
 
       bool inv       = invisible->isChecked();
+      ClefTypeList clefType = instrument.clefType(orgStaff->rstaff());
       qreal userDist = spinExtraDistance->value();
       bool ifEmpty   = showIfEmpty->isChecked();
       bool hideSystemBL = hideSystemBarLine->isChecked();
@@ -354,23 +355,24 @@ void EditStaff::apply()
             if (v1 != v2)
                   score->transpositionChanged(part, v2, _tickStart, _tickEnd);
             }
-      orgStaff->undoChangeProperty(P_ID::MAG, mag->value() / 100.0);
-      orgStaff->undoChangeProperty(P_ID::COLOR, color->color());
-      orgStaff->undoChangeProperty(P_ID::SMALL, small->isChecked());
+      orgStaff->undoChangeProperty(Pid::MAG, mag->value() / 100.0);
+      orgStaff->undoChangeProperty(Pid::COLOR, color->color());
+      orgStaff->undoChangeProperty(Pid::SMALL, small->isChecked());
 
       if (inv != orgStaff->invisible()
+         || clefType != orgStaff->defaultClefType()
          || userDist != orgStaff->userDist()
          || cutAway != orgStaff->cutaway()
          || hideEmpty != orgStaff->hideWhenEmpty()
          || ifEmpty != orgStaff->showIfEmpty()
          || hideSystemBL != orgStaff->hideSystemBarLine()
          ) {
-            score->undo(new ChangeStaff(orgStaff, inv, userDist * score->spatium(), hideEmpty, ifEmpty, cutAway, hideSystemBL));
+            score->undo(new ChangeStaff(orgStaff, inv, clefType, userDist * score->spatium(), hideEmpty, ifEmpty, cutAway, hideSystemBL));
             }
 
-      if ( !(*orgStaff->staffType() == *staff->staffType()) ) {
+      if ( !(*orgStaff->staffType(0) == *staff->staffType(0)) ) {
             // updateNeeded |= (orgStaff->staffGroup() == StaffGroup::TAB || staff->staffGroup() == StaffGroup::TAB);
-            score->undo(new ChangeStaffType(orgStaff, *staff->staffType()));
+            score->undo(new ChangeStaffType(orgStaff, *staff->staffType(0)));
             }
 
       score->update();
@@ -431,27 +433,27 @@ void EditStaff::maxPitchPClicked()
 
 void EditStaff::lineDistanceChanged()
       {
-      staff->staffType()->setLineDistance(Spatium(lineDistance->value()));
+      staff->staffType(0)->setLineDistance(Spatium(lineDistance->value()));
       }
 
 void EditStaff::numOfLinesChanged()
       {
-      staff->staffType()->setLines(lines->value());
+      staff->staffType(0)->setLines(lines->value());
       }
 
 void EditStaff::showClefChanged()
       {
-      staff->staffType()->setGenClef(showClef->checkState() == Qt::Checked);
+      staff->staffType(0)->setGenClef(showClef->checkState() == Qt::Checked);
       }
 
 void EditStaff::showTimeSigChanged()
       {
-      staff->staffType()->setGenTimesig(showTimesig->checkState() == Qt::Checked);
+      staff->staffType(0)->setGenTimesig(showTimesig->checkState() == Qt::Checked);
       }
 
 void EditStaff::showBarlinesChanged()
       {
-      staff->staffType()->setShowBarlines(showBarlines->checkState() == Qt::Checked);
+      staff->staffType(0)->setShowBarlines(showBarlines->checkState() == Qt::Checked);
       }
 
 //---------------------------------------------------------
@@ -554,7 +556,7 @@ void EditStaff::showStaffTypeDialog()
       EditStaffType editor(this, staff);
       editor.setWindowModality(Qt::WindowModal);
       if (editor.exec()) {
-            staff->setStaffType(editor.getStaffType());
+            staff->setStaffType(0, editor.getStaffType());
             updateStaffType();
             }
       }

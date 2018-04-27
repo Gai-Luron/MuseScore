@@ -6,22 +6,6 @@
     <Division>480</Division>
     <Style>
       <lastSystemFillLimit>0</lastSystemFillLimit>
-      <page-layout>
-        <page-height>1683.36</page-height>
-        <page-width>1190.88</page-width>
-        <page-margins type="even">
-          <left-margin>56.6929</left-margin>
-          <right-margin>56.6929</right-margin>
-          <top-margin>56.6929</top-margin>
-          <bottom-margin>113.386</bottom-margin>
-          </page-margins>
-        <page-margins type="odd">
-          <left-margin>56.6929</left-margin>
-          <right-margin>56.6929</right-margin>
-          <top-margin>56.6929</top-margin>
-          <bottom-margin>113.386</bottom-margin>
-          </page-margins>
-        </page-layout>
       <Spatium>1.76389</Spatium>
       </Style>
     <showInvisible>1</showInvisible>
@@ -39,26 +23,6 @@
     <metaTag name="translator"></metaTag>
     <metaTag name="workNumber"></metaTag>
     <metaTag name="workTitle">Title</metaTag>
-    <PageList>
-      <Page>
-        <System>
-          </System>
-        <System>
-          </System>
-        <System>
-          </System>
-        <System>
-          </System>
-        <System>
-          </System>
-        <System>
-          </System>
-        <System>
-          </System>
-        <System>
-          </System>
-        </Page>
-      </PageList>
     <Part>
       <Staff id="1">
         <StaffType group="pitched">
@@ -120,7 +84,6 @@
         <TimeSig>
           <sigN>2</sigN>
           <sigD>4</sigD>
-          <showCourtesySig>1</showCourtesySig>
           </TimeSig>
         <Beam id="1">
           <l1>23</l1>
@@ -177,6 +140,7 @@
           <durationType>32nd</durationType>
           <Beam>2</Beam>
           <Note>
+            <endSpanner id="2"/>
             <pitch>71</pitch>
             <tpc>19</tpc>
             </Note>
@@ -271,6 +235,7 @@
           <durationType>32nd</durationType>
           <Beam>3</Beam>
           <Note>
+            <endSpanner id="3"/>
             <pitch>71</pitch>
             <tpc>19</tpc>
             </Note>
@@ -284,7 +249,6 @@
         <TimeSig>
           <sigN>3</sigN>
           <sigD>4</sigD>
-          <showCourtesySig>1</showCourtesySig>
           </TimeSig>
         <Chord>
           <durationType>16th</durationType>
@@ -405,6 +369,7 @@
           <durationType>eighth</durationType>
           <Beam>5</Beam>
           <Note>
+            <endSpanner id="4"/>
             <pitch>71</pitch>
             <tpc>19</tpc>
             </Note>
@@ -427,6 +392,7 @@
           <durationType>16th</durationType>
           <Beam>6</Beam>
           <Note>
+            <endSpanner id="5"/>
             <pitch>71</pitch>
             <tpc>19</tpc>
             </Note>
@@ -468,6 +434,7 @@
         <Chord>
           <durationType>16th</durationType>
           <Note>
+            <endSpanner id="6"/>
             <pitch>71</pitch>
             <tpc>19</tpc>
             </Note>
@@ -497,6 +464,7 @@
         <Chord>
           <durationType>eighth</durationType>
           <Note>
+            <endSpanner id="7"/>
             <pitch>71</pitch>
             <tpc>19</tpc>
             </Note>
@@ -683,7 +651,6 @@
         <TimeSig>
           <sigN>4</sigN>
           <sigD>4</sigD>
-          <showCourtesySig>1</showCourtesySig>
           </TimeSig>
         <Beam id="8">
           <l1>20</l1>
@@ -739,6 +706,7 @@
           <durationType>16th</durationType>
           <Beam>9</Beam>
           <Note>
+            <endSpanner id="8"/>
             <pitch>71</pitch>
             <tpc>19</tpc>
             </Note>
@@ -866,6 +834,7 @@
         <Chord>
           <durationType>16th</durationType>
           <Note>
+            <endSpanner id="9"/>
             <pitch>71</pitch>
             <tpc>19</tpc>
             </Note>
@@ -895,7 +864,6 @@
         <TimeSig>
           <sigN>6</sigN>
           <sigD>8</sigD>
-          <showCourtesySig>1</showCourtesySig>
           </TimeSig>
         <Beam id="10">
           <l1>20</l1>
@@ -946,6 +914,7 @@
           <durationType>eighth</durationType>
           <Beam>11</Beam>
           <Note>
+            <endSpanner id="10"/>
             <pitch>71</pitch>
             <tpc>19</tpc>
             </Note>
@@ -996,6 +965,7 @@
           <durationType>eighth</durationType>
           <Beam>12</Beam>
           <Note>
+            <endSpanner id="11"/>
             <pitch>71</pitch>
             <tpc>19</tpc>
             </Note>
@@ -1072,6 +1042,7 @@
         <Chord>
           <durationType>quarter</durationType>
           <Note>
+            <endSpanner id="12"/>
             <pitch>71</pitch>
             <tpc>19</tpc>
             </Note>
@@ -1093,6 +1064,7 @@
           <durationType>16th</durationType>
           <Beam>14</Beam>
           <Note>
+            <endSpanner id="13"/>
             <pitch>71</pitch>
             <tpc>19</tpc>
             </Note>
@@ -1122,6 +1094,7 @@
         <Chord>
           <durationType>quarter</durationType>
           <Note>
+            <endSpanner id="14"/>
             <pitch>71</pitch>
             <tpc>19</tpc>
             </Note>
@@ -1169,6 +1142,7 @@
         <Chord>
           <durationType>16th</durationType>
           <Note>
+            <endSpanner id="15"/>
             <pitch>71</pitch>
             <tpc>19</tpc>
             </Note>

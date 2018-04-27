@@ -15,8 +15,6 @@
 
 #include "line.h"
 
-class QPainter;
-
 namespace Ms {
 
 class Trill;
@@ -26,9 +24,7 @@ class Accidental;
 //   @@ TrillSegment
 //---------------------------------------------------------
 
-class TrillSegment : public LineSegment {
-      Q_OBJECT
-
+class TrillSegment final : public LineSegment {
       std::vector<SymId> _symbols;
 
       void symbolLine(SymId start, SymId fill);
@@ -38,15 +34,15 @@ class TrillSegment : public LineSegment {
    public:
       TrillSegment(Score* s) : LineSegment(s)      {}
       Trill* trill() const                         { return (Trill*)spanner(); }
-      virtual Element::Type type() const override  { return Element::Type::TRILL_SEGMENT; }
+      virtual ElementType type() const override  { return ElementType::TRILL_SEGMENT; }
       virtual TrillSegment* clone() const override { return new TrillSegment(*this); }
       virtual void draw(QPainter*) const override;
-      virtual bool acceptDrop(const DropData&) const override;
-      virtual Element* drop(const DropData&) override;
+      virtual bool acceptDrop(EditData&) const override;
+      virtual Element* drop(EditData&) override;
       virtual void layout() override;
-      virtual QVariant getProperty(P_ID propertyId) const override;
-      virtual bool setProperty(P_ID propertyId, const QVariant&) override;
-      virtual QVariant propertyDefault(P_ID) const override;
+      virtual QVariant getProperty(Pid propertyId) const override;
+      virtual bool setProperty(Pid propertyId, const QVariant&) override;
+      virtual QVariant propertyDefault(Pid) const override;
       virtual void add(Element*) override;
       virtual void remove(Element*) override;
       virtual void scanElements(void* data, void (*func)(void*, Element*), bool all) override;
@@ -61,13 +57,10 @@ class TrillSegment : public LineSegment {
 //   @P trillType  enum (Trill.DOWNPRALL_LINE, .PRALLPRALL_LINE, .PURE_LINE, .TRILL_LINE, .UPPRALL_LINE)
 //---------------------------------------------------------
 
-class Trill : public SLine {
-      Q_OBJECT
-      Q_ENUMS(Type)
-
+class Trill final : public SLine {
    public:
       enum class Type : char {
-            TRILL_LINE, UPPRALL_LINE, DOWNPRALL_LINE, PRALLPRALL_LINE
+            TRILL_LINE, UPPRALL_LINE, DOWNPRALL_LINE, PRALLPRALL_LINE,
             };
 
    private:
@@ -81,7 +74,7 @@ class Trill : public SLine {
       Trill(Score* s);
       virtual ~Trill();
       virtual Trill* clone() const override       { return new Trill(*this); }
-      virtual Element::Type type() const override { return Element::Type::TRILL; }
+      virtual ElementType type() const override { return ElementType::TRILL; }
 
       virtual void layout() override;
       virtual LineSegment* createLineSegment() override;
@@ -106,9 +99,9 @@ class Trill : public SLine {
       Segment* segment() const          { return (Segment*)parent(); }
       virtual void scanElements(void* data, void (*func)(void*, Element*), bool all=true) override;
 
-      virtual QVariant getProperty(P_ID propertyId) const override;
-      virtual bool setProperty(P_ID propertyId, const QVariant&) override;
-      virtual QVariant propertyDefault(P_ID) const override;
+      virtual QVariant getProperty(Pid propertyId) const override;
+      virtual bool setProperty(Pid propertyId, const QVariant&) override;
+      virtual QVariant propertyDefault(Pid) const override;
       virtual void setYoff(qreal) override;
 
       virtual QString accessibleInfo() const override;

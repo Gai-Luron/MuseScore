@@ -78,7 +78,7 @@ void MuseScore::showWorkspaceMenu()
             QAction* a = workspaces->addAction(qApp->translate("Ms::Workspace", p->name().toUtf8()));
             a->setCheckable(true);
             a->setData(p->path());
-            a->setChecked(p->name() == preferences.workspace);
+            a->setChecked(p->name() == preferences.getString(PREF_APP_WORKSPACE));
             menuWorkspaces->addAction(a);
             }
 
@@ -104,7 +104,7 @@ void MuseScore::showWorkspaceMenu()
 
 void MuseScore::createNewWorkspace()
       {
-      QString s = QInputDialog::getText(this, tr("MuseScore: Read Workspace Name"),
+      QString s = QInputDialog::getText(this, tr("Read Workspace Name"),
          tr("Workspace name:"));
       if (s.isEmpty())
             return;
@@ -120,7 +120,7 @@ void MuseScore::createNewWorkspace()
                   }
             if (!notFound) {
                   s = QInputDialog::getText(this,
-                     tr("MuseScore: Read Workspace Name"),
+                     tr("Read Workspace Name"),
                      tr("'%1' does already exist,\nplease choose a different name:").arg(s)
                      );
                   if (s.isEmpty())
@@ -133,8 +133,7 @@ void MuseScore::createNewWorkspace()
       if (Workspace::currentWorkspace->dirty())
             Workspace::currentWorkspace->save();
       Workspace::currentWorkspace = Workspace::createNewWorkspace(s);
-      preferences.workspace = Workspace::currentWorkspace->name();
-      preferences.dirty     = true;
+      preferences.setPreference(PREF_APP_WORKSPACE, Workspace::currentWorkspace->name());
       PaletteBox* paletteBox = mscore->getPaletteBox();
       paletteBox->updateWorkspaces();
       }
@@ -150,7 +149,6 @@ void MuseScore::deleteWorkspace()
       QAction* a = workspaces->checkedAction();
       if (!a)
             return;
-      preferences.dirty = true;
       Workspace* workspace = 0;
       for (Workspace* p : Workspace::workspaces()) {
             if (p->name() == a->text()) { // no need for qApp->translate since "Basic" and "Advanced" are not deletable
@@ -178,7 +176,7 @@ void MuseScore::deleteWorkspace()
       PaletteBox* paletteBox = mscore->getPaletteBox();
       paletteBox->clear();
       Workspace::currentWorkspace = Workspace::workspaces().first();
-      preferences.workspace = Workspace::currentWorkspace->name();
+      preferences.setPreference(PREF_APP_WORKSPACE, Workspace::currentWorkspace->name());
       changeWorkspace(Workspace::currentWorkspace);
       paletteBox = mscore->getPaletteBox();
       paletteBox->updateWorkspaces();
@@ -193,8 +191,7 @@ void MuseScore::changeWorkspace(QAction* a)
       for (Workspace* p :Workspace::workspaces()) {
             if (qApp->translate("Ms::Workspace", p->name().toUtf8()) == a->text()) {
                   changeWorkspace(p);
-                  preferences.workspace = Workspace::currentWorkspace->name();
-                  preferences.dirty = true;
+                  preferences.setPreference(PREF_APP_WORKSPACE, Workspace::currentWorkspace->name());
                   PaletteBox* paletteBox = mscore->getPaletteBox();
                   paletteBox->updateWorkspaces();
                   return;
@@ -221,7 +218,7 @@ void MuseScore::changeWorkspace(Workspace* p)
 void Workspace::initWorkspace()
       {
       for (Workspace* p : Workspace::workspaces()) {
-            if (p->name() == preferences.workspace) {
+            if (p->name() == preferences.getString(PREF_APP_WORKSPACE)) {
                   currentWorkspace = p;
                   break;
                   }
@@ -237,7 +234,7 @@ void Workspace::initWorkspace()
 static void writeFailed(const QString& _path)
       {
       QString s = qApp->translate("Workspace", "Writing Workspace File\n%1\nfailed: ");
-      QMessageBox::critical(mscore, qApp->translate("Workspace", "MuseScore: Writing Workspace File"), s.arg(_path));
+      QMessageBox::critical(mscore, qApp->translate("Workspace", "Writing Workspace File"), s.arg(_path));
       }
 
 //---------------------------------------------------------
@@ -378,7 +375,7 @@ void Workspace::read()
             }
 
       QByteArray ba = f.fileData(rootfile);
-      XmlReader e(gscore, ba);
+      XmlReader e(ba);
 
       while (e.readNextStartElement()) {
             if (e.name() == "museScore") {

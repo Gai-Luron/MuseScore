@@ -41,7 +41,6 @@ add_library(
       testutils STATIC
       testutils.cpp
       ${PROJECT_SOURCE_DIR}/libmscore/mcursor.cpp
-      ${PROJECT_SOURCE_DIR}/mscore/album.cpp
       ${PROJECT_SOURCE_DIR}/mscore/bb.cpp
       ${PROJECT_SOURCE_DIR}/mscore/capella.cpp
       ${PROJECT_SOURCE_DIR}/mscore/capxml.cpp
@@ -50,6 +49,7 @@ add_library(
       ${PROJECT_SOURCE_DIR}/mscore/importgtp-gp4.cpp
       ${PROJECT_SOURCE_DIR}/mscore/importgtp-gp5.cpp
       ${PROJECT_SOURCE_DIR}/mscore/importgtp-gp6.cpp
+      ${PROJECT_SOURCE_DIR}/mscore/importptb.cpp
       ${PROJECT_SOURCE_DIR}/mscore/importove.cpp
       ${PROJECT_SOURCE_DIR}/mscore/ove.cpp
       ${PROJECT_SOURCE_DIR}/mscore/importmidi/importmidi.cpp
@@ -80,6 +80,9 @@ add_library(
       ${PROJECT_SOURCE_DIR}/mscore/importmidi/importmidi_chordname.cpp
       ${PROJECT_SOURCE_DIR}/mscore/exportmidi.cpp
       ${PROJECT_SOURCE_DIR}/mscore/importmxml.cpp               # Required by importxml.cpp
+      ${PROJECT_SOURCE_DIR}/mscore/importmxmllogger.cpp         # Required by importxml.cpp
+      ${PROJECT_SOURCE_DIR}/mscore/importmxmlnoteduration.cpp   # Required by importxml.cpp
+      ${PROJECT_SOURCE_DIR}/mscore/importmxmlnotepitch.cpp      # Required by importxml.cpp
       ${PROJECT_SOURCE_DIR}/mscore/importmxmlpass1.cpp          # Required by importxml.cpp
       ${PROJECT_SOURCE_DIR}/mscore/importmxmlpass2.cpp          # Required by importxml.cpp
       ${PROJECT_SOURCE_DIR}/mscore/importxml.cpp
@@ -87,7 +90,9 @@ add_library(
       ${PROJECT_SOURCE_DIR}/mscore/musicxmlfonthandler.cpp
       ${PROJECT_SOURCE_DIR}/mscore/musicxmlsupport.cpp
       ${PROJECT_SOURCE_DIR}/mscore/qmlplugin.cpp
+      ${PROJECT_SOURCE_DIR}/mscore/preferences.cpp
       ${PROJECT_SOURCE_DIR}/mscore/shortcut.cpp
+      ${PROJECT_SOURCE_DIR}/mscore/stringutils.cpp
       ${PROJECT_SOURCE_DIR}/thirdparty/rtf2html/fmt_opts.cpp    # Required by capella.cpp and capxml.cpp
       ${PROJECT_SOURCE_DIR}/thirdparty/rtf2html/rtf2html.cpp    # Required by capella.cpp and capxml.cpp
       ${PROJECT_SOURCE_DIR}/thirdparty/rtf2html/rtf_keyword.cpp # Required by capella.cpp and capxml.cpp
@@ -112,21 +117,6 @@ target_link_libraries(
       )
 
 set(CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
-
-if (APPLE)
-   set(CMAKE_CXX_FLAGS_DEBUG   "-std=c++0x -fPIC -stdlib=libc++ -g -Wno-inconsistent-missing-override")
-   set(CMAKE_CXX_FLAGS_RELEASE "-std=c++0x -fPIC -stdlib=libc++ -O2 -DNDEBUG -DQT_NO_DEBUG -Wno-inconsistent-missing-override")
-else (APPLE)
-   if (MINGW)
-      # -mno-ms-bitfields see #22048
-      set(CMAKE_CXX_FLAGS_DEBUG   "-std=gnu++0x -mno-ms-bitfields -g")
-      set(CMAKE_CXX_FLAGS_RELEASE "-std=gnu++0x -mno-ms-bitfields -O2 -DNDEBUG -DQT_NO_DEBUG")
-   else (MINGW)
-      set(CMAKE_CXX_FLAGS_DEBUG   "-std=gnu++0x -fPIC -g")
-      set(CMAKE_CXX_FLAGS_RELEASE "-std=gnu++0x -fPIC -O2 -DNDEBUG -DQT_NO_DEBUG -DQT_NO_DEBUG_OUTPUT")
-   endif (MINGW)
-endif(APPLE)
-
 
 string(REPLACE ";" ";-I" INC "${QT_INCLUDES}")
 
@@ -157,9 +147,9 @@ add_custom_target(reporthtml
       )
 
 subdirs (
-        libmscore/compat114
+#        libmscore/compat114
         libmscore/compat206
-        libmscore/album
+#        libmscore/album            # obsolete
         libmscore/barline
         libmscore/beam
         libmscore/breath
@@ -170,6 +160,7 @@ subdirs (
         libmscore/copypaste
         libmscore/copypastesymbollist
         libmscore/dynamic
+        libmscore/durationtype
         libmscore/earlymusic
         libmscore/element
         libmscore/exchangevoices
@@ -179,10 +170,11 @@ subdirs (
         libmscore/join
         libmscore/keysig
         libmscore/layout
+        libmscore/links
         libmscore/parts
         libmscore/measure
         libmscore/midi                 # one disabled
-        libmscore/midimapping
+#        libmscore/midimapping
         libmscore/note
         libmscore/repeat
         libmscore/rhythmicGrouping
@@ -195,14 +187,15 @@ subdirs (
         libmscore/tools                # Some tests disabled
         libmscore/transpose
         libmscore/tuplet
-        libmscore/text
+#        libmscore/text        work in progress...
         importmidi
         capella
         biab
         musicxml
         guitarpro
         scripting
-        testoves
+        stringutils
+#        testoves
         zerberus/comments
         zerberus/envelopes
         zerberus/includes

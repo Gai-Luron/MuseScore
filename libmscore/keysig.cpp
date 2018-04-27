@@ -67,7 +67,7 @@ KeySig::KeySig(const KeySig& k)
 
 qreal KeySig::mag() const
       {
-      return staff() ? staff()->mag() : 1.0;
+      return staff() ? staff()->mag(tick()) : 1.0;
       }
 
 //---------------------------------------------------------
@@ -76,7 +76,7 @@ qreal KeySig::mag() const
 
 void KeySig::addLayout(SymId sym, qreal x, int line)
       {
-      qreal stepDistance = staff() ? staff()->logicalLineDistance() * 0.5 : 0.5;
+      qreal stepDistance = staff() ? staff()->lineDistance(tick()) * 0.5 : 0.5;
       KeySym ks;
       ks.sym    = sym;
       ks.spos   = QPointF(x, qreal(line) * stepDistance);
@@ -136,11 +136,11 @@ void KeySig::layout()
       // If we're not force hiding naturals (Continuous panel), use score style settings
       if (!_hideNaturals)
             naturalsOn = (prevMeasure && !prevMeasure->sectionBreak()
-               && (score()->styleI(StyleIdx::keySigNaturals) != int(KeySigNatural::NONE))) || (t1 == 0);
+               && (score()->styleI(Sid::keySigNaturals) != int(KeySigNatural::NONE))) || (t1 == 0);
 
 
       // Don't repeat naturals if shown in courtesy
-      if (prevMeasure && prevMeasure->findSegment(Segment::Type::KeySigAnnounce, segment()->tick())
+      if (prevMeasure && prevMeasure->findSegment(SegmentType::KeySigAnnounce, segment()->tick())
           && !segment()->isKeySigAnnounceType())
             naturalsOn = false;
       if (track() == -1)
@@ -179,7 +179,7 @@ void KeySig::layout()
 
       bool prefixNaturals =
             naturalsOn
-            && (score()->styleI(StyleIdx::keySigNaturals) == int(KeySigNatural::BEFORE) || t1 * int(t2) < 0);
+            && (score()->styleI(Sid::keySigNaturals) == int(KeySigNatural::BEFORE) || t1 * int(t2) < 0);
 
       // naturals should go AFTER accidentals if they should not go before!
       bool suffixNaturals = naturalsOn && !prefixNaturals;
@@ -203,19 +203,31 @@ void KeySig::layout()
 
       switch(t1) {
             case 7:  addLayout(SymId::accidentalSharp, xo + 6.0 * sspread, lines[6]);
+                     // fall through
             case 6:  addLayout(SymId::accidentalSharp, xo + 5.0 * sspread, lines[5]);
+                     // fall through
             case 5:  addLayout(SymId::accidentalSharp, xo + 4.0 * sspread, lines[4]);
+                     // fall through
             case 4:  addLayout(SymId::accidentalSharp, xo + 3.0 * sspread, lines[3]);
+                     // fall through
             case 3:  addLayout(SymId::accidentalSharp, xo + 2.0 * sspread, lines[2]);
+                     // fall through
             case 2:  addLayout(SymId::accidentalSharp, xo + 1.0 * sspread, lines[1]);
+                     // fall through
             case 1:  addLayout(SymId::accidentalSharp, xo,                 lines[0]);
                      break;
             case -7: addLayout(SymId::accidentalFlat, xo + 6.0 * fspread, lines[13]);
+                     // fall through
             case -6: addLayout(SymId::accidentalFlat, xo + 5.0 * fspread, lines[12]);
+                     // fall through
             case -5: addLayout(SymId::accidentalFlat, xo + 4.0 * fspread, lines[11]);
+                     // fall through
             case -4: addLayout(SymId::accidentalFlat, xo + 3.0 * fspread, lines[10]);
+                     // fall through
             case -3: addLayout(SymId::accidentalFlat, xo + 2.0 * fspread, lines[9]);
+                     // fall through
             case -2: addLayout(SymId::accidentalFlat, xo + 1.0 * fspread, lines[8]);
+                     // fall through
             case -1: addLayout(SymId::accidentalFlat, xo,                 lines[7]);
             case 0:
                   break;
@@ -267,19 +279,19 @@ void KeySig::draw(QPainter* p) const
 //   acceptDrop
 //---------------------------------------------------------
 
-bool KeySig::acceptDrop(const DropData& data) const
+bool KeySig::acceptDrop(EditData& data) const
       {
-      return data.element->type() == Element::Type::KEYSIG;
+      return data.element->type() == ElementType::KEYSIG;
       }
 
 //---------------------------------------------------------
 //   drop
 //---------------------------------------------------------
 
-Element* KeySig::drop(const DropData& data)
+Element* KeySig::drop(EditData& data)
       {
-      KeySig* ks = static_cast<KeySig*>(data.element);
-      if (ks->type() != Element::Type::KEYSIG) {
+      KeySig* ks = toKeySig(data.element);
+      if (ks->type() != ElementType::KEYSIG) {
             delete ks;
             return 0;
             }
@@ -495,17 +507,17 @@ int KeySig::tick() const
 
 void KeySig::undoSetShowCourtesy(bool v)
       {
-      undoChangeProperty(P_ID::SHOW_COURTESY, v);
+      undoChangeProperty(Pid::SHOW_COURTESY, v);
       }
 
 //---------------------------------------------------------
 //   getProperty
 //---------------------------------------------------------
 
-QVariant KeySig::getProperty(P_ID propertyId) const
+QVariant KeySig::getProperty(Pid propertyId) const
       {
       switch (propertyId) {
-            case P_ID::SHOW_COURTESY: return int(showCourtesy());
+            case Pid::SHOW_COURTESY: return int(showCourtesy());
             default:
                   return Element::getProperty(propertyId);
             }
@@ -515,10 +527,10 @@ QVariant KeySig::getProperty(P_ID propertyId) const
 //   setProperty
 //---------------------------------------------------------
 
-bool KeySig::setProperty(P_ID propertyId, const QVariant& v)
+bool KeySig::setProperty(Pid propertyId, const QVariant& v)
       {
       switch (propertyId) {
-            case P_ID::SHOW_COURTESY:
+            case Pid::SHOW_COURTESY:
                   if (generated())
                         return false;
                   setShowCourtesy(v.toBool());
@@ -537,29 +549,29 @@ bool KeySig::setProperty(P_ID propertyId, const QVariant& v)
 //   propertyDefault
 //---------------------------------------------------------
 
-QVariant KeySig::propertyDefault(P_ID id) const
+QVariant KeySig::propertyDefault(Pid id) const
       {
       switch (id) {
-            case P_ID::SHOW_COURTESY:     return true;
+            case Pid::SHOW_COURTESY:     return true;
             default:
                   return Element::propertyDefault(id);
             }
       }
 
 //---------------------------------------------------------
-//   nextElement
+//   nextSegmentElement
 //---------------------------------------------------------
 
-Element* KeySig::nextElement()
+Element* KeySig::nextSegmentElement()
       {
       return segment()->firstInNextSegments(staffIdx());
       }
 
 //---------------------------------------------------------
-//   prevElement
+//   prevSegmentElement
 //---------------------------------------------------------
 
-Element* KeySig::prevElement()
+Element* KeySig::prevSegmentElement()
       {
       return segment()->lastInPrevSegments(staffIdx());
       }
@@ -574,7 +586,7 @@ QString KeySig::accessibleInfo() const
       if (isAtonal())
             return QString("%1: %2").arg(Element::accessibleInfo()).arg(qApp->translate("MuseScore", keyNames[15]));
       else if (isCustom())
-            return tr("%1: Custom").arg(Element::accessibleInfo());
+            return QObject::tr("%1: Custom").arg(Element::accessibleInfo());
 
       if (key() == Key::C)
             return QString("%1: %2").arg(Element::accessibleInfo()).arg(qApp->translate("MuseScore", keyNames[14]));

@@ -15,8 +15,6 @@
 
 #include "element.h"
 
-class QPainter;
-
 namespace Ms {
 
 class Chord;
@@ -26,37 +24,34 @@ class Chord;
 ///    Graphic representation of a note stem.
 //---------------------------------------------------------
 
-class Stem : public Element {
-      Q_OBJECT
-
-      QLineF line;            // p1 is attached to notehead
-      qreal _userLen;
-      qreal _len;             // allways positive
-
-      virtual void startEdit(MuseScoreView*, const QPointF&);
+class Stem final : public Element {
+      QLineF line;                  // p1 is attached to notehead
+      qreal _userLen   { 0.0 };
+      qreal _len       { 0.0 };     // always positive
+      qreal _lineWidth;
 
    public:
       Stem(Score* = 0);
       Stem &operator=(const Stem&) = delete;
 
       virtual Stem* clone() const        { return new Stem(*this); }
-      virtual Element::Type type() const { return Element::Type::STEM; }
+      virtual ElementType type() const   { return ElementType::STEM; }
       virtual void draw(QPainter*) const;
       virtual bool isEditable() const    { return true; }
       virtual void layout();
       virtual void spatiumChanged(qreal /*oldValue*/, qreal /*newValue*/);
 
-      virtual void editDrag(const EditData&);
-      virtual void updateGrips(Grip*, QVector<QRectF>&) const;
-      virtual int grips() const override { return 1; }
-      virtual void write(XmlWriter& xml) const;
-      virtual void read(XmlReader& e);
-      virtual void reset();
-      virtual bool acceptDrop(const DropData&) const override;
-      virtual Element* drop(const DropData&);
+      virtual void startEdit(EditData&) override;
+      virtual void editDrag(EditData&) override;
+      virtual void updateGrips(EditData&) const override;
+      virtual void write(XmlWriter& xml) const override;
+      virtual void read(XmlReader& e) override;
+      virtual void reset() override;
+      virtual bool acceptDrop(EditData&) const override;
+      virtual Element* drop(EditData&);
 
-      virtual QVariant getProperty(P_ID propertyId) const;
-      virtual bool setProperty(P_ID propertyId, const QVariant&);
+      virtual QVariant getProperty(Pid propertyId) const;
+      virtual bool setProperty(Pid propertyId, const QVariant&);
 
       Chord* chord() const            { return (Chord*)parent(); }
       bool up() const;
@@ -64,7 +59,7 @@ class Stem : public Element {
       qreal userLen() const           { return _userLen; }
       void setUserLen(qreal l)        { _userLen = l; }
 
-      qreal lineWidth() const;
+      qreal lineWidth() const         { return _lineWidth; }
 
       QPointF hookPos() const;
       void setLen(qreal l);

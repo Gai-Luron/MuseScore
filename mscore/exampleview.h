@@ -20,6 +20,8 @@ namespace Ms {
 class Element;
 class Score;
 class Note;
+class Chord;
+class Icon;
 enum class Grip : int;
 
 //---------------------------------------------------------
@@ -37,6 +39,9 @@ class ExampleView : public QFrame, public MuseScoreView {
       QRectF dropRectangle;               ///< current drop rectangle during dragMove
       QLineF dropAnchor;                  ///< line to current anchor point during dragMove
 
+      QStateMachine* sm;
+      QPointF startMove;
+
       void drawElements(QPainter& painter, const QList<Element*>& el);
       void setDropTarget(const Element* el);
 
@@ -44,16 +49,20 @@ class ExampleView : public QFrame, public MuseScoreView {
       virtual void dragEnterEvent(QDragEnterEvent*);
       virtual void dragLeaveEvent(QDragLeaveEvent*);
       virtual void dragMoveEvent(QDragMoveEvent*);
+      virtual void wheelEvent(QWheelEvent*);
       virtual void dropEvent(QDropEvent*);
       virtual void mousePressEvent(QMouseEvent*);
+      void constraintCanvas(int *dxx);
       virtual QSize sizeHint() const;
 
    signals:
       void noteClicked(Note*);
+      void beamPropertyDropped(Chord*, Icon*);
 
    public:
       ExampleView(QWidget* parent = 0);
       ~ExampleView();
+      void resetMatrix();
       virtual void layoutChanged();
       virtual void dataChanged(const QRectF&);
       virtual void updateAll();
@@ -65,7 +74,6 @@ class ExampleView : public QFrame, public MuseScoreView {
       virtual QCursor cursor() const;
       virtual void setCursor(const QCursor&);
       virtual int gripCount() const;
-      virtual const QRectF& getGrip(Grip) const;
       virtual void setDropRectangle(const QRectF&);
       virtual void cmdAddSlur(Note* firstNote, Note* lastNote);
       virtual void cmdAddHairpin(bool) {}
@@ -73,8 +81,25 @@ class ExampleView : public QFrame, public MuseScoreView {
       virtual void startEdit(Element*, Grip);
       virtual Element* elementNear(QPointF);
       virtual void drawBackground(QPainter*, const QRectF&) const;
+      void dragExampleView(QMouseEvent* ev);
+      virtual const QRect geometry() const override { return QFrame::geometry(); }
       };
 
+//---------------------------------------------------------
+//   DragTransitionExampleView
+//---------------------------------------------------------
+
+class DragTransitionExampleView : public QEventTransition
+      {
+      ExampleView* canvas;
+
+   protected:
+      virtual void onTransition(QEvent* e);
+
+   public:
+      DragTransitionExampleView(ExampleView* c)
+         : QEventTransition(c, QEvent::MouseMove), canvas(c) {}
+      };
 
 } // namespace Ms
 #endif

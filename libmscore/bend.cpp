@@ -35,10 +35,26 @@ static const char* label[] = {
 //---------------------------------------------------------
 
 Bend::Bend(Score* s)
-   : Element(s)
+   : Element(s, ElementFlag::MOVABLE)
       {
-      setFlags(ElementFlag::MOVABLE | ElementFlag::SELECTABLE);
-      setPlayBend(true);
+      initSubStyle(SubStyleId::BEND);
+      }
+
+//---------------------------------------------------------
+//   font
+//---------------------------------------------------------
+
+QFont Bend::font(qreal sp) const
+      {
+      QFont f(_fontFace);
+      f.setBold(_fontBold);
+      f.setItalic(_fontItalic);
+      f.setUnderline(_fontUnderline);
+      qreal m = _fontSize;
+      m *= sp / SPATIUM20;
+
+      f.setPointSizeF(m);
+      return f;
       }
 
 //---------------------------------------------------------
@@ -53,7 +69,7 @@ void Bend::layout()
 
       qreal _spatium = spatium();
 
-      if (staff() && !staff()->isTabStaff()) {
+      if (staff() && !staff()->isTabStaff(tick())) {
             setbbox(QRectF());
             if (!parent()) {
                   noteWidth = -_spatium*2;
@@ -61,7 +77,7 @@ void Bend::layout()
                   }
             }
 
-      _lw        = _spatium * 0.15;
+      qreal _lw = _lineWidth.val() * _spatium;
       Note* note = toNote(parent());
       if (note == 0) {
             noteWidth = 0.0;
@@ -73,8 +89,7 @@ void Bend::layout()
             }
       QRectF bb;
 
-      const TextStyle* st = &score()->textStyle(TextStyleType::BEND);
-      QFontMetricsF fm(st->fontMetrics(_spatium));
+      QFontMetricsF fm(font(_spatium));
 
       int n   = _points.size();
       qreal x = noteWidth;
@@ -160,29 +175,29 @@ void Bend::layout()
 
 void Bend::draw(QPainter* painter) const
       {
+      qreal _spatium = spatium();
+      qreal _lw = _lineWidth.val() * _spatium;
+
       QPen pen(curColor(), _lw, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
       painter->setPen(pen);
       painter->setBrush(QBrush(curColor()));
 
-      qreal _spatium = spatium();
-      const TextStyle* st = &score()->textStyle(TextStyleType::BEND);
-      QFont f = st->font(_spatium * MScore::pixelRatio);
+      QFont f = font(_spatium * MScore::pixelRatio);
       painter->setFont(f);
+      QFontMetrics fm(f);
 
-      int n    = _points.size();
-      qreal x  = noteWidth;
+      qreal x  = noteWidth + _spatium * .2;
       qreal y  = -_spatium * .8;
       qreal x2, y2;
 
-      qreal aw = _spatium * .5;
+      qreal aw = score()->styleP(Sid::bendArrowWidth);
       QPolygonF arrowUp;
-      arrowUp << QPointF(0, 0) << QPointF(aw*.5, aw) << QPointF(-aw*.5, aw);
+      arrowUp << QPointF(0, 0) << QPointF(aw * .5, aw) << QPointF(-aw *.5, aw);
       QPolygonF arrowDown;
-      arrowDown << QPointF(0, 0) << QPointF(aw*.5, -aw) << QPointF(-aw*.5, -aw);
-      QFontMetrics fm(f);
-      for (int pt = 0; pt < n; ++pt) {
-            if (pt == (n-1))
-                  break;
+      arrowDown << QPointF(0, 0) << QPointF(aw * .5, -aw) << QPointF(-aw *.5, -aw);
+
+      int n = _points.size();
+      for (int pt = 0; pt < n-1; ++pt) {
             int pitch = _points[pt].pitch;
             if (pt == 0 && pitch) {
                   y2 = -notePos.y() -_spatium * 2;
@@ -258,11 +273,12 @@ void Bend::draw(QPainter* painter) const
 void Bend::write(XmlWriter& xml) const
       {
       xml.stag("Bend");
-      foreach(const PitchValue& v, _points) {
+      for (const PitchValue& v : _points) {
             xml.tagE(QString("point time=\"%1\" pitch=\"%2\" vibrato=\"%3\"")
                .arg(v.time).arg(v.pitch).arg(v.vibrato));
             }
-      writeProperty(xml, P_ID::PLAY);
+      writeStyledProperties(xml);
+      writeProperty(xml, Pid::PLAY);
       Element::writeProperties(xml);
       xml.etag();
       }
@@ -274,7 +290,11 @@ void Bend::write(XmlWriter& xml) const
 void Bend::read(XmlReader& e)
       {
       while (e.readNextStartElement()) {
-            if (e.name() == "point") {
+            const QStringRef& tag(e.name());
+
+            if (readStyledProperty(e, tag))
+                  ;
+            else if (tag == "point") {
                   PitchValue pv;
                   pv.time    = e.intAttribute("time");
                   pv.pitch   = e.intAttribute("pitch");
@@ -282,9 +302,8 @@ void Bend::read(XmlReader& e)
                   _points.append(pv);
                   e.readNext();
                   }
-            else if (e.name() == "play") {
+            else if (tag == "play")
                   setPlayBend(e.readBool());
-                  }
             else if (!Element::readProperties(e))
                   e.unknown();
             }
@@ -294,13 +313,25 @@ void Bend::read(XmlReader& e)
 //   getProperty
 //---------------------------------------------------------
 
-QVariant Bend::getProperty(P_ID propertyId) const
+QVariant Bend::getProperty(Pid id) const
       {
-      switch (propertyId) {
-            case P_ID::PLAY:
+      switch (id) {
+            case Pid::FONT_FACE:
+                  return _fontFace;
+            case Pid::FONT_SIZE:
+                  return _fontSize;
+            case Pid::FONT_BOLD:
+                  return _fontBold;
+            case Pid::FONT_ITALIC:
+                  return _fontItalic;
+            case Pid::FONT_UNDERLINE:
+                  return _fontUnderline;
+            case Pid::PLAY:
                   return bool(playBend());
+            case Pid::LINE_WIDTH:
+                  return _lineWidth;
             default:
-                  return Element::getProperty(propertyId);
+                  return Element::getProperty(id);
             }
       }
 
@@ -308,14 +339,32 @@ QVariant Bend::getProperty(P_ID propertyId) const
 //   setProperty
 //---------------------------------------------------------
 
-bool Bend::setProperty(P_ID propertyId, const QVariant& v)
+bool Bend::setProperty(Pid id, const QVariant& v)
       {
-      switch (propertyId) {
-            case P_ID::PLAY:
+      switch (id) {
+            case Pid::FONT_FACE:
+                  _fontFace = v.toString();
+                  break;
+            case Pid::FONT_SIZE:
+                  _fontSize = v.toReal();
+                  break;
+            case Pid::FONT_BOLD:
+                  _fontBold = v.toBool();
+                  break;
+            case Pid::FONT_ITALIC:
+                  _fontItalic = v.toBool();
+                  break;
+            case Pid::FONT_UNDERLINE:
+                  _fontUnderline = v.toBool();
+                  break;
+            case Pid::PLAY:
                  setPlayBend(v.toBool());
                  break;
+            case Pid::LINE_WIDTH:
+                  _lineWidth = v.value<Spatium>();
+                  break;
             default:
-                  return Element::setProperty(propertyId, v);
+                  return Element::setProperty(id, v);
             }
       triggerLayout();
       return true;
@@ -325,13 +374,13 @@ bool Bend::setProperty(P_ID propertyId, const QVariant& v)
 //   propertyDefault
 //---------------------------------------------------------
 
-QVariant Bend::propertyDefault(P_ID propertyId) const
+QVariant Bend::propertyDefault(Pid id) const
       {
-      switch (propertyId) {
-            case P_ID::PLAY:
+      switch (id) {
+            case Pid::PLAY:
                   return true;
             default:
-                  return Element::propertyDefault(propertyId);
+                  return Element::propertyDefault(id);
             }
       }
 

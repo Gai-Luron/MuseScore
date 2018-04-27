@@ -89,10 +89,10 @@ bool BSymbol::readProperties(XmlReader& e)
 
 void BSymbol::add(Element* e)
       {
-      if (e->type() == Element::Type::SYMBOL || e->type() == Element::Type::IMAGE) {
+      if (e->isSymbol() || e->isImage()) {
             e->setParent(this);
             _leafs.append(e);
-            static_cast<BSymbol*>(e)->setZ(z() - 1);    // draw on top of parent
+            toBSymbol(e)->setZ(z() - 1);    // draw on top of parent
             }
       else
             qDebug("BSymbol::add: unsupported type %s", e->name());
@@ -104,7 +104,7 @@ void BSymbol::add(Element* e)
 
 void BSymbol::remove(Element* e)
       {
-      if (e->type() == Element::Type::SYMBOL || e->type() == Element::Type::IMAGE) {
+      if (e->isSymbol() || e->isImage()) {
             if (!_leafs.removeOne(e))
                   qDebug("BSymbol::remove: element <%s> not found", e->name());
             }
@@ -127,20 +127,19 @@ void BSymbol::scanElements(void* data, void (*func)(void*, Element*), bool all)
 //   acceptDrop
 //---------------------------------------------------------
 
-bool BSymbol::acceptDrop(const DropData& data) const
+bool BSymbol::acceptDrop(EditData& data) const
       {
-      Element::Type type = data.element->type();
-      return type == Element::Type::SYMBOL || type == Element::Type::IMAGE;
+      return data.element->isSymbol() || data.element->isImage();
       }
 
 //---------------------------------------------------------
 //   drop
 //---------------------------------------------------------
 
-Element* BSymbol::drop(const DropData& data)
+Element* BSymbol::drop(EditData& data)
       {
       Element* el = data.element;
-      if (el->type() == Element::Type::SYMBOL || el->type() == Element::Type::IMAGE) {
+      if (el->isSymbol() || el->isImage()) {
             el->setParent(this);
             QPointF p = data.pos - pagePos() - data.dragOffset;
             el->setUserOff(p);
@@ -159,7 +158,7 @@ Element* BSymbol::drop(const DropData& data)
 void BSymbol::layout()
       {
       if (staff())
-            setMag(staff()->mag());
+            setMag(staff()->mag(tick()));
       for (Element* e : _leafs)
             e->layout();
       adjustReadPos();
@@ -169,22 +168,22 @@ void BSymbol::layout()
 //   drag
 //---------------------------------------------------------
 
-QRectF BSymbol::drag(EditData* data)
+QRectF BSymbol::drag(EditData& ed)
       {
       QRectF r(canvasBoundingRect());
       foreach(const Element* e, _leafs)
             r |= e->canvasBoundingRect();
 
-      qreal x = data->delta.x();
-      qreal y = data->delta.y();
+      qreal x = ed.delta.x();
+      qreal y = ed.delta.y();
 
       qreal _spatium = spatium();
-      if (data->hRaster) {
+      if (ed.hRaster) {
             qreal hRaster = _spatium / MScore::hRaster();
             int n = lrint(x / hRaster);
             x = hRaster * n;
             }
-      if (data->vRaster) {
+      if (ed.vRaster) {
             qreal vRaster = _spatium / MScore::vRaster();
             int n = lrint(y / vRaster);
             y = vRaster * n;

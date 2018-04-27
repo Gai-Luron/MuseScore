@@ -27,7 +27,6 @@ class Score;
 class System;
 class Measure;
 
-#if 1
 //---------------------------------------------------------
 //   Repeat
 //---------------------------------------------------------
@@ -46,7 +45,6 @@ constexpr Repeat operator| (Repeat t1, Repeat t2) {
 constexpr bool operator& (Repeat t1, Repeat t2) {
       return static_cast<int>(t1) & static_cast<int>(t2);
       }
-#endif
 
 //---------------------------------------------------------
 //   @@ MeasureBase
@@ -61,15 +59,6 @@ constexpr bool operator& (Repeat t1, Repeat t2) {
 //---------------------------------------------------------
 
 class MeasureBase : public Element {
-      Q_OBJECT
-
-      Q_PROPERTY(bool         lineBreak         READ lineBreak   WRITE undoSetLineBreak)
-      Q_PROPERTY(Ms::Measure* nextMeasure       READ nextMeasure)
-      Q_PROPERTY(Ms::Measure* nextMeasureMM     READ nextMeasureMM)
-      Q_PROPERTY(bool         pageBreak         READ pageBreak   WRITE undoSetPageBreak)
-      Q_PROPERTY(Ms::Measure* prevMeasure       READ prevMeasure)
-      Q_PROPERTY(Ms::Measure* prevMeasureMM     READ prevMeasureMM)
-
       MeasureBase* _next    { 0 };
       MeasureBase* _prev    { 0 };
 
@@ -88,7 +77,7 @@ class MeasureBase : public Element {
       MeasureBase(const MeasureBase&);
 
       virtual MeasureBase* clone() const = 0;
-      virtual Element::Type type() const = 0;
+      virtual ElementType type() const = 0;
 
       virtual void setScore(Score* s) override;
 
@@ -104,7 +93,7 @@ class MeasureBase : public Element {
       Ms::Measure* prevMeasureMM() const;
 
       virtual void write(XmlWriter&) const override = 0;
-      virtual void write(XmlWriter&, int, bool) const = 0;
+      virtual void write(XmlWriter&, int, bool, bool) const = 0;
 
       virtual void layout();
 
@@ -136,9 +125,9 @@ class MeasureBase : public Element {
 
       qreal pause() const;
 
-      virtual QVariant getProperty(P_ID) const override;
-      virtual bool setProperty(P_ID, const QVariant&) override;
-      virtual QVariant propertyDefault(P_ID) const override;
+      virtual QVariant getProperty(Pid) const override;
+      virtual bool setProperty(Pid, const QVariant&) override;
+      virtual QVariant propertyDefault(Pid) const override;
 
       void clearElements();
       ElementList takeElements();

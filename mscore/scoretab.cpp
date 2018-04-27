@@ -23,7 +23,6 @@
 #include "config.h"
 #include "scoretab.h"
 #include "scoreview.h"
-#include "scoreview.h"
 #include "libmscore/score.h"
 #include "magbox.h"
 #ifdef OMR
@@ -79,6 +78,7 @@ ScoreTab::ScoreTab(QList<MasterScore*>* sl, QWidget* parent)
       connect(tab, SIGNAL(currentChanged(int)), this, SLOT(setCurrent(int)));
       connect(tab2, SIGNAL(currentChanged(int)), this, SLOT(setExcerpt(int)));
       connect(tab, SIGNAL(tabCloseRequested(int)), this, SIGNAL(tabCloseRequested(int)));
+      connect(tab, SIGNAL(tabMoved(int,int)), this, SLOT(tabMoved(int,int)));
       }
 
 ScoreTab::~ScoreTab()
@@ -140,6 +140,31 @@ void ScoreTab::clearTab2()
       for (int i = 0; i < n; ++i)
             tab2->removeTab(0);
       tab2->blockSignals(false);
+      }
+
+//---------------------------------------------------------
+//   tabMoved
+//---------------------------------------------------------
+
+void ScoreTab::tabMoved(int from, int to)
+      {
+      static bool scoreListChanged = false;
+      if (scoreListChanged == false) {
+            qDebug("Moved score tab %d to %d", from, to);
+            scoreList->move(from, to);
+
+            // now move the tab in the other ScoreTab...but don't update the scoreList a second time!
+            scoreListChanged = true;
+            if (this == mscore->getTab1()) {
+                  if (mscore->getTab2())
+                        mscore->getTab2()->getTab()->moveTab(from, to);
+                  }
+            else if (this == mscore->getTab2()) {
+                  if (mscore->getTab1())
+                        mscore->getTab1()->getTab()->moveTab(from, to);
+                  }
+            scoreListChanged = false;
+            }
       }
 
 //---------------------------------------------------------
@@ -268,6 +293,8 @@ void ScoreTab::updateExcerpts()
       blockSignals(true);
       setExcerpt(0);
       blockSignals(false);
+
+      getAction("file-part-export")->setEnabled(excerpts.size() > 0);
       }
 
 //---------------------------------------------------------

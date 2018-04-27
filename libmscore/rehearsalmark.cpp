@@ -12,6 +12,8 @@
 
 #include "score.h"
 #include "rehearsalmark.h"
+#include "measure.h"
+#include "system.h"
 
 namespace Ms {
 
@@ -20,9 +22,10 @@ namespace Ms {
 //---------------------------------------------------------
 
 RehearsalMark::RehearsalMark(Score* s)
-   : Text(s)
+   : TextBase(s)
       {
-      setTextStyleType(TextStyleType::REHEARSAL_MARK);
+      initSubStyle(SubStyleId::REHEARSAL_MARK);
+      setSystemFlag(true);
       }
 
 //---------------------------------------------------------
@@ -31,19 +34,18 @@ RehearsalMark::RehearsalMark(Score* s)
 
 void RehearsalMark::layout()
       {
-      if (autoplace())
-            setUserOff(QPointF());
-      setPos(textStyle().offset(spatium()));
-      Text::layout1();
+      qreal y = placeAbove() ? styleP(Sid::rehearsalMarkPosAbove) : styleP(Sid::rehearsalMarkPosBelow) + staff()->height();
+      setPos(QPointF(0.0, y));
+      TextBase::layout1();
       Segment* s = segment();
       if (s) {
             if (!s->rtick()) {
                   // first CR of measure, decide whether to align to barline
-                  if (!s->prev() && align() & AlignmentFlags::CENTER) {
+                  if (!s->prev() && align() & Align::CENTER) {
                         // measure with no clef / keysig / timesig
                         rxpos() -= s->x();
                         }
-                  else if (align() & AlignmentFlags::RIGHT) {
+                  else if (align() & Align::RIGHT) {
                         // measure with clef / keysig / timesig, rehearsal mark right aligned
                         // align left edge of rehearsal to barline if that is further to left
                         qreal leftX = bbox().x();
@@ -51,13 +53,23 @@ void RehearsalMark::layout()
                         rxpos() += qMin(leftX, barlineX) + width();
                         }
                   }
-            if (autoplace()) {
-                  Shape s1 = s->staffShape(staffIdx()).translated(s->pos());
-                  Shape s2 = shape().translated(s->pos());
-                  qreal d  = s2.minVerticalDistance(s1);
-                  if (d > 0)
-                        setUserOff(QPointF(0.0, -d));
-                  }
+            autoplaceSegmentElement(styleP(Sid::rehearsalMarkMinDistance));
+            }
+      }
+
+//---------------------------------------------------------
+//   propertyDefault
+//---------------------------------------------------------
+
+QVariant RehearsalMark::propertyDefault(Pid id) const
+      {
+      switch (id) {
+            case Pid::SUB_STYLE:
+                  return int(SubStyleId::REHEARSAL_MARK);
+            case Pid::PLACEMENT:
+                  return score()->styleV(Sid::rehearsalMarkPlacement);
+            default:
+                  return TextBase::propertyDefault(id);
             }
       }
 

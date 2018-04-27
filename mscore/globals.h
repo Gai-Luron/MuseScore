@@ -24,14 +24,12 @@
 namespace Ms {
 
 extern bool enableExperimental;
-extern bool enableTestMode;
 extern bool noSeq;            ///< Dont use sequencer; cmd line option.
 extern bool noMidi;           ///< Dont use midi; cmd line option.
 extern bool midiInputTrace;   ///< debug option: dump midi input
 extern bool midiOutputTrace;  ///< debug option: dump midi output
 extern bool converterMode;
 extern bool pluginMode;
-extern double converterDpi;
 extern double guiScaling;
 extern int trimMargin;
 extern bool noWebView;
@@ -39,7 +37,7 @@ extern bool ignoreWarnings;
 
 //---------------------------------------------------------
 // MsWidget
-// used to assign actions (shortcuts) to the apropriate
+// used to assign actions (shortcuts) to the appropriate
 // widget (actions.cpp, shortcuts.cpp)
 //---------------------------------------------------------
 

@@ -51,6 +51,7 @@ struct ElementPattern {
 struct NotePattern {
       QList<Note*> el;
       int pitch = -1;
+      int string = STRING_NONE;
       int tpc = Tpc::TPC_INVALID;;
       NoteHead::Group notehead = NoteHead::Group::HEAD_INVALID;
       TDuration duration = TDuration();
@@ -150,6 +151,7 @@ class Selection {
       void setState(SelState s);
 
       const QList<Element*>& elements() const { return _el; }
+      QList<Element*>& elements()             { return _el; }
       std::vector<Note*> noteList(int track = -1) const;
 
       const QList<Element*> uniqueElements() const;

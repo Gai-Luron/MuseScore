@@ -70,7 +70,7 @@ DrumrollEditor::DrumrollEditor(QWidget* parent)
 #endif
       QAction* a = getAction("follow");
       a->setCheckable(true);
-      a->setChecked(preferences.followSong);
+      a->setChecked(preferences.getBool(PREF_APP_PLAYBACK_FOLLOWSONG));
 
       tb->addAction(a);
 
@@ -194,7 +194,7 @@ void DrumrollEditor::setStaff(Staff* st)
       {
       staff = st;
       _score = staff->score();
-      setWindowTitle(tr("MuseScore: <%1> Staff: %2").arg(_score->masterScore()->fileInfo()->completeBaseName()).arg(st->idx()));
+      setWindowTitle(tr("<%1> Staff: %2").arg(_score->masterScore()->fileInfo()->completeBaseName()).arg(st->idx()));
       TempoMap* tl = _score->tempomap();
       TimeSigMap*  sl = _score->sigmap();
       for (int i = 0; i < 3; ++i)
@@ -391,7 +391,7 @@ void DrumrollEditor::heartBeat(Seq* seq)
             locator[0].setTick(t);
             gv->moveLocator(0);
             ruler->update();
-            if (preferences.followSong)
+            if (preferences.getBool(PREF_APP_PLAYBACK_FOLLOWSONG))
                   gv->ensureVisible(t);
             }
       }

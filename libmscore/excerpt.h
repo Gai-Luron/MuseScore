@@ -32,10 +32,6 @@ class XmlReader;
 #include <QMultiMap>
 
 class Excerpt : public QObject {
-      Q_OBJECT
-      Q_PROPERTY(Ms::Score*  partScore  READ partScore)
-      Q_PROPERTY(QString     title      READ title)
-
       MasterScore* _oscore;
 
       Score* _partScore           { 0 };
@@ -45,6 +41,7 @@ class Excerpt : public QObject {
 
    public:
       Excerpt(MasterScore* s = 0)          { _oscore = s;       }
+      ~Excerpt();
 
       QList<Part*>& parts()                { return _parts;     }
       void setParts(const QList<Part*>& p) { _parts = p;        }
@@ -66,9 +63,8 @@ class Excerpt : public QObject {
       void setTitle(const QString& s) { _title = s;    }
 
       static QList<Excerpt*> createAllExcerpt(MasterScore* score);
-      static QString createName(const QString& partName, QList<Excerpt*>);
+      static QString createName(const QString& partName, QList<Excerpt*>&);
       static void createExcerpt(Excerpt*);
-      static void deleteExcerpt(Excerpt*);
       static void cloneStaves(Score* oscore, Score* score, const QList<int>& map, QMultiMap<int, int>& allTracks);
       static void cloneStaff(Staff* ostaff, Staff* nstaff);
       static void cloneStaff2(Staff* ostaff, Staff* nstaff, int stick, int etick);

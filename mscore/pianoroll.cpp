@@ -71,7 +71,7 @@ PianorollEditor::PianorollEditor(QWidget* parent)
       tb->addSeparator();
       tb->addAction(getAction("repeat"));
       QAction* followAction = getAction("follow");
-      followAction->setChecked(preferences.followSong);
+      followAction->setChecked(preferences.getBool(PREF_APP_PLAYBACK_FOLLOWSONG));
       tb->addAction(followAction);
       tb->addSeparator();
       tb->addAction(getAction("metronome"));
@@ -252,7 +252,7 @@ void PianorollEditor::setStaff(Staff* st)
             }
       staff = st;
       if (staff) {
-            setWindowTitle(tr("MuseScore: <%1> Staff: %2").arg(_score->masterScore()->fileInfo()->completeBaseName()).arg(st->idx()));
+            setWindowTitle(tr("<%1> Staff: %2").arg(_score->masterScore()->fileInfo()->completeBaseName()).arg(st->idx()));
             TempoMap* tl = _score->tempomap();
             TimeSigMap*  sl = _score->sigmap();
             for (int i = 0; i < 3; ++i)
@@ -497,7 +497,7 @@ void PianorollEditor::heartBeat(Seq* seq)
             tick = score()->repeatList()->utick2tick(tick);
       if (locator[0].tick() != tick) {
             posChanged(POS::CURRENT, tick);
-            if (preferences.followSong)
+            if (preferences.getBool(PREF_APP_PLAYBACK_FOLLOWSONG))
                   gv->ensureVisible(tick);
             }
       }
@@ -583,16 +583,6 @@ int PianorollEditor::gripCount() const
       }
 
 //---------------------------------------------------------
-//   getGrip
-//---------------------------------------------------------
-
-const QRectF& PianorollEditor::getGrip(Grip) const
-      {
-      static QRectF r;
-      return r;
-      }
-
-//---------------------------------------------------------
 //   matrix
 //---------------------------------------------------------
 
@@ -656,7 +646,6 @@ void PianorollEditor::updateAll()
 
 void PianorollEditor::playlistChanged()
       {
-      startTimer(0);    // delayed update
       }
 
 //---------------------------------------------------------

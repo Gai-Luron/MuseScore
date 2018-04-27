@@ -32,26 +32,27 @@ struct ChannelActions {
 //   @@ StaffText
 //---------------------------------------------------------
 
-class StaffText : public Text  {
-      Q_OBJECT
-
+class StaffText final : public TextBase  {
       QString _channelNames[4];
       QList<ChannelActions> _channelActions;
       SwingParameters _swingParameters;
-      bool _setAeolusStops;
-      int aeolusStops[4];
-      bool _swing;
+      bool _setAeolusStops { false };
+      int aeolusStops[4]   { 0, 0, 0, 0 };
+      bool _swing          { false };
 
    public:
       StaffText(Score* = 0);
-      virtual StaffText* clone() const                    { return new StaffText(*this); }
-      virtual Element::Type type() const                  { return Element::Type::STAFF_TEXT; }
-      virtual void write(XmlWriter& xml) const;
-      virtual void read(XmlReader&);
-      virtual int subtype() const                         { return (int) textStyleType(); }
+      StaffText(SubStyleId, Score* = 0);
+      virtual StaffText* clone() const                    { return new StaffText(*this);    }
+      virtual ElementType type() const                    { return ElementType::STAFF_TEXT; }
+
+      virtual void write(XmlWriter& xml) const override;
+      virtual void read(XmlReader&) override;
+      virtual bool readProperties(XmlReader&) override;
+      virtual int subtype() const                         { return (int) subStyleId(); }
       virtual void layout() override;
-      virtual QString subtypeName() const                 { return textStyle().name(); }
-      virtual QVariant propertyDefault(P_ID id) const override;
+      virtual QString subtypeName() const                 { return "??"; }
+      virtual QVariant propertyDefault(Pid id) const override;
 
       Segment* segment() const;
       QString channelName(int voice) const                { return _channelNames[voice]; }

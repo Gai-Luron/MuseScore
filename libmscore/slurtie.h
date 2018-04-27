@@ -14,6 +14,7 @@
 #define __SLURTIE_H__
 
 #include "spanner.h"
+#include "mscore.h"
 
 namespace Ms {
 
@@ -40,9 +41,7 @@ struct UP {
       QPointF p;            // layout position relative to pos()
       QPointF off;          // user offset in point units
 
-      bool operator!=(const UP& up) const {
-            return p != up.p || off != up.off;
-            }
+      bool operator!=(const UP& up) const { return p != up.p || off != up.off; }
       };
 
 class SlurTie;
@@ -52,13 +51,15 @@ class SlurTie;
 //---------------------------------------------------------
 
 class SlurTieSegment : public SpannerSegment {
-      Q_OBJECT
-
    protected:
       struct UP _ups[int(Grip::GRIPS)];
+
       QPainterPath path;
       QPainterPath shapePath;
       Shape _shape;
+
+      virtual void changeAnchor(EditData&, Element*) = 0;
+      virtual QPointF gripAnchor(Grip grip) const override;
 
    public:
       SlurTieSegment(Score*);
@@ -66,12 +67,17 @@ class SlurTieSegment : public SpannerSegment {
       virtual void spatiumChanged(qreal, qreal) override;
       SlurTie* slurTie() const { return (SlurTie*)spanner(); }
 
-      virtual QVariant getProperty(P_ID propertyId) const override;
-      virtual bool setProperty(P_ID propertyId, const QVariant&) override;
-      virtual QVariant propertyDefault(P_ID id) const override;
+      virtual void startEdit(EditData&) override;
+      virtual void endEdit(EditData&) override;
+      virtual void startEditDrag(EditData& ed) override;
+      virtual void endEditDrag(EditData& ed) override;
+      virtual void editDrag(EditData&) override;
+
+      virtual QVariant getProperty(Pid propertyId) const override;
+      virtual bool setProperty(Pid propertyId, const QVariant&) override;
+      virtual QVariant propertyDefault(Pid id) const override;
       virtual void reset() override;
       virtual void move(const QPointF& s) override;
-      virtual QPainterPath outline() const override { return shapePath; }
       virtual bool isEditable() const override { return true; }
 
       void setSlurOffset(Grip i, const QPointF& val) { _ups[int(i)].off = val;  }
@@ -81,21 +87,18 @@ class SlurTieSegment : public SpannerSegment {
 
       void writeSlur(XmlWriter& xml, int no) const;
       void read(XmlReader&);
+      virtual void drawEditMode(QPainter*, EditData&) override;
+      virtual void computeBezier(QPointF so = QPointF()) = 0;
       };
 
 //-------------------------------------------------------------------
 //   @@ SlurTie
-//   @P lineType       int    (0 - solid, 1 - dotted, 2 - dashed)
+//   @P lineType       int  (0 - solid, 1 - dotted, 2 - dashed, 3 - wide dashed)
 //   @P slurDirection  enum (Direction.AUTO, Direction.DOWN, Direction.UP)
 //-------------------------------------------------------------------
 
 class SlurTie : public Spanner {
-      Q_OBJECT
-      Q_PROPERTY(int lineType                         READ lineType       WRITE undoSetLineType)
-//TODO-WS      Q_PROPERTY(Ms::Direction slurDirection  READ slurDirection  WRITE undoSetSlurDirection)
-//TODO-WS      Q_ENUMS(Ms::MScore::Direction)
-
-      int _lineType;    // 0 = solid, 1 = dotted, 2 = dashed
+      int _lineType;    // 0 = solid, 1 = dotted, 2 = dashed, 3 = wide dashed
 
       static Element* editStartElement;
       static Element* editEndElement;
@@ -114,7 +117,7 @@ class SlurTie : public Spanner {
       SlurTie(const SlurTie&);
       ~SlurTie();
 
-      virtual Element::Type type() const = 0;
+      virtual ElementType type() const = 0;
       bool up() const                             { return _up; }
 
       virtual void reset() override;
@@ -136,12 +139,10 @@ class SlurTie : public Spanner {
       virtual void slurPos(SlurPos*) = 0;
       virtual SlurTieSegment* newSlurTieSegment() = 0;
 
-      virtual void startEdit(MuseScoreView*, const QPointF&) override;
-      virtual void endEdit() override;
 
-      virtual QVariant getProperty(P_ID propertyId) const;
-      virtual bool setProperty(P_ID propertyId, const QVariant&);
-      virtual QVariant propertyDefault(P_ID id) const;
+      virtual QVariant getProperty(Pid propertyId) const override;
+      virtual bool setProperty(Pid propertyId, const QVariant&) override;
+      virtual QVariant propertyDefault(Pid id) const override;
       };
 
 }

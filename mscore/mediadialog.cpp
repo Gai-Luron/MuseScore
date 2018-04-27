@@ -39,7 +39,7 @@ MediaDialog::MediaDialog(QWidget* /*parent*/)
       setObjectName("MediaDialog");
       setupUi(this);
       setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
-      setWindowTitle(tr("MuseScore: Additional Media"));
+      setWindowTitle(tr("Additional Media"));
 
       connect(addScan,         SIGNAL(clicked()), SLOT(addScanPressed()));
       connect(removeScan,      SIGNAL(clicked()), SLOT(removeScanPressed()));
@@ -199,7 +199,7 @@ void MediaDialog::addAudioPressed()
             }
       score->setTempomap(tmn);
       syncFile.close();
-      QMessageBox::information(0, "Done", "Done");
+      QMessageBox::information(0, tr("Done"), tr("Done"));
       }
 
 //---------------------------------------------------------

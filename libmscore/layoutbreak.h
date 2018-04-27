@@ -15,8 +15,6 @@
 
 #include "element.h"
 
-class QPainter;
-
 namespace Ms {
 
 // layout break subtypes:
@@ -28,9 +26,7 @@ namespace Ms {
 //   @P layoutBreakType  enum (LayoutBreak.PAGE, LayoutBreak.LINE, LayoutBreak.SECTION)
 //---------------------------------------------------------
 
-class LayoutBreak : public Element {
-      Q_OBJECT
-
+class LayoutBreak final : public Element {
    public:
       enum Type {
             PAGE, LINE, SECTION, NOBREAK
@@ -56,15 +52,15 @@ class LayoutBreak : public Element {
       LayoutBreak(const LayoutBreak&);
       virtual LayoutBreak* clone() const override { return new LayoutBreak(*this); }
 
-      virtual Element::Type type() const override { return Element::Type::LAYOUT_BREAK; }
+      virtual ElementType type() const override   { return ElementType::LAYOUT_BREAK; }
       virtual bool systemFlag() const override    { return true;  }
 
       void setLayoutBreakType(Type);
       Type layoutBreakType() const  { return _layoutBreakType; }
       void undoSetLayoutBreakType(Type);
 
-      virtual bool acceptDrop(const DropData&) const override;
-      virtual Element* drop(const DropData&) override;
+      virtual bool acceptDrop(EditData&) const override;
+      virtual Element* drop(EditData&) override;
       virtual void write(XmlWriter&) const override;
       virtual void read(XmlReader&) override;
 
@@ -81,9 +77,9 @@ class LayoutBreak : public Element {
       bool isSectionBreak() const { return _layoutBreakType == SECTION; }
       bool isNoBreak() const      { return _layoutBreakType == NOBREAK; }
 
-      virtual QVariant getProperty(P_ID propertyId) const override;
-      virtual bool setProperty(P_ID propertyId, const QVariant&) override;
-      virtual QVariant propertyDefault(P_ID) const override;
+      virtual QVariant getProperty(Pid propertyId) const override;
+      virtual bool setProperty(Pid propertyId, const QVariant&) override;
+      virtual QVariant propertyDefault(Pid) const override;
       };
 
 

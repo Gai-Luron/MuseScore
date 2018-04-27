@@ -22,6 +22,7 @@
 #include "tempo.h"
 #include "xml.h"
 #include "system.h"
+#include "stafftypechange.h"
 
 namespace Ms {
 
@@ -111,7 +112,8 @@ void MeasureBase::scanElements(void* data, void (*func)(void*, Element*), bool a
                         e->scanElements(data, func, all);
                   }
             }
-      func(data, this);
+      if (isBox())
+            func(data, this);
       }
 
 //---------------------------------------------------------
@@ -150,6 +152,9 @@ void MeasureBase::add(Element* e)
                         setNoBreak(true);
                         break;
                   }
+            if (next())
+                  score()->setLayout(next()->endTick());
+//            score()->setLayoutAll();     // TODO
             }
       triggerLayout();
       _el.push_back(e);
@@ -208,7 +213,7 @@ Measure* MeasureBase::nextMeasure() const
 Measure* MeasureBase::nextMeasureMM() const
       {
       Measure* mm = nextMeasure();
-      if (mm && score()->styleB(StyleIdx::createMultiMeasureRests) && mm->hasMMRest())
+      if (mm && score()->styleB(Sid::createMultiMeasureRests) && mm->hasMMRest())
             return mm->mmRest();
       return mm;
       }
@@ -238,7 +243,7 @@ Measure* MeasureBase::prevMeasureMM() const
       while (m) {
             if (m->isMeasure()) {
                   Measure* mm = toMeasure(m);
-                  if (score()->styleB(StyleIdx::createMultiMeasureRests)) {
+                  if (score()->styleB(Sid::createMultiMeasureRests)) {
                         if (mm->mmRestCount() >= 0) {
                               if (mm->hasMMRest())
                                     return mm->mmRest();
@@ -289,6 +294,8 @@ void MeasureBase::layout()
                         }
                   element->setPos(x, y);
                   }
+            else if (element->isMarker() || element->isJump())
+                  ;
             else
                   element->layout();
             }
@@ -316,14 +323,14 @@ MeasureBase* Score::last()  const
 //   getProperty
 //---------------------------------------------------------
 
-QVariant MeasureBase::getProperty(P_ID id) const
+QVariant MeasureBase::getProperty(Pid id) const
       {
       switch (id) {
-            case P_ID::REPEAT_END:
+            case Pid::REPEAT_END:
                   return repeatEnd();
-            case P_ID::REPEAT_START:
+            case Pid::REPEAT_START:
                   return repeatStart();
-            case P_ID::REPEAT_JUMP:
+            case Pid::REPEAT_JUMP:
                   return repeatJump();
             default:
                   return Element::getProperty(id);
@@ -334,16 +341,16 @@ QVariant MeasureBase::getProperty(P_ID id) const
 //   setProperty
 //---------------------------------------------------------
 
-bool MeasureBase::setProperty(P_ID id, const QVariant& value)
+bool MeasureBase::setProperty(Pid id, const QVariant& value)
       {
       switch (id) {
-            case P_ID::REPEAT_END:
+            case Pid::REPEAT_END:
                   setRepeatEnd(value.toBool());
                   break;
-            case P_ID::REPEAT_START:
+            case Pid::REPEAT_START:
                   setRepeatStart(value.toBool());
                   break;
-            case P_ID::REPEAT_JUMP:
+            case Pid::REPEAT_JUMP:
                   setRepeatJump(value.toBool());
                   break;
             default:
@@ -359,12 +366,12 @@ bool MeasureBase::setProperty(P_ID id, const QVariant& value)
 //   propertyDefault
 //---------------------------------------------------------
 
-QVariant MeasureBase::propertyDefault(P_ID propertyId) const
+QVariant MeasureBase::propertyDefault(Pid propertyId) const
       {
       switch (propertyId) {
-            case P_ID::REPEAT_END:
-            case P_ID::REPEAT_START:
-            case P_ID::REPEAT_JUMP:
+            case Pid::REPEAT_END:
+            case Pid::REPEAT_START:
+            case Pid::REPEAT_JUMP:
                   return false;
             default:
                   break;
@@ -382,18 +389,21 @@ void MeasureBase::undoSetBreak(bool v, LayoutBreak::Type type)
             case LayoutBreak::LINE:
                   if (lineBreak() == v)
                         return;
+                  setLineBreak(v);
                   break;
             case LayoutBreak::PAGE:
                   if (pageBreak() == v)
                         return;
                   if (v && lineBreak())
                         setLineBreak(false);
+                  setPageBreak(v);
                   break;
             case LayoutBreak::SECTION:
                   if (sectionBreak() == v)
                         return;
                   if (v && lineBreak())
                         setLineBreak(false);
+                  setSectionBreak(v);
                   break;
             case LayoutBreak::NOBREAK:
                   if (noBreak() == v)
@@ -403,6 +413,7 @@ void MeasureBase::undoSetBreak(bool v, LayoutBreak::Type type)
                         setPageBreak(false);
                         setSectionBreak(false);
                         }
+                  setNoBreak(v);
                   break;
             }
 
@@ -462,7 +473,7 @@ MeasureBase* MeasureBase::nextMM() const
       {
       if (_next
          && _next->isMeasure()
-         && score()->styleB(StyleIdx::createMultiMeasureRests)
+         && score()->styleB(Sid::createMultiMeasureRests)
          && toMeasure(_next)->hasMMRest()) {
             return toMeasure(_next)->mmRest();
             }
@@ -515,6 +526,13 @@ bool MeasureBase::readProperties(XmlReader& e)
                   }
             else
                   delete lb;
+            }
+      else if (tag == "StaffTypeChange") {
+            StaffTypeChange* stc = new StaffTypeChange(score());
+            stc->setTrack(e.track());
+            stc->setParent(this);
+            stc->read(e);
+            add(stc);
             }
       else if (Element::readProperties(e))
             ;

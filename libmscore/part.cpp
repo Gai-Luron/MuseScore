@@ -57,7 +57,6 @@ Staff* Part::staff(int idx) const
       return _staves[idx];
       }
 
-
 //---------------------------------------------------------
 //   readProperties
 //---------------------------------------------------------
@@ -97,9 +96,7 @@ bool Part::readProperties(XmlReader& e)
 void Part::read(XmlReader& e)
       {
       while (e.readNextStartElement()) {
-            if (readProperties(e))
-                 ;
-            else
+            if (!readProperties(e))
                   e.unknown();
             }
       if (_partName.isEmpty())
@@ -487,22 +484,22 @@ void Part::setPlainShortName(const QString& s)
 //   getProperty
 //---------------------------------------------------------
 
-QVariant Part::getProperty(P_ID id) const
+QVariant Part::getProperty(Pid id) const
       {
       switch (id) {
-            case P_ID::VISIBLE:
+            case Pid::VISIBLE:
                   return QVariant(_show);
-            case P_ID::USE_DRUMSET:
+            case Pid::USE_DRUMSET:
                   return instrument()->useDrumset();
-            case P_ID::PART_VOLUME:
+            case Pid::PART_VOLUME:
                   return volume();
-            case P_ID::PART_MUTE:
+            case Pid::PART_MUTE:
                   return mute();
-            case P_ID::PART_PAN:
+            case Pid::PART_PAN:
                   return pan();
-            case P_ID::PART_REVERB:
+            case Pid::PART_REVERB:
                   return reverb();
-            case P_ID::PART_CHORUS:
+            case Pid::PART_CHORUS:
                   return chorus();
             default:
                   return QVariant();
@@ -513,28 +510,28 @@ QVariant Part::getProperty(P_ID id) const
 //   setProperty
 //---------------------------------------------------------
 
-bool Part::setProperty(P_ID id, const QVariant& property)
+bool Part::setProperty(Pid id, const QVariant& property)
       {
       switch (id) {
-            case P_ID::VISIBLE:
+            case Pid::VISIBLE:
                   setShow(property.toBool());
                   break;
-            case P_ID::USE_DRUMSET:
+            case Pid::USE_DRUMSET:
                   instrument()->setUseDrumset(property.toBool());
                   break;
-            case P_ID::PART_VOLUME:
+            case Pid::PART_VOLUME:
                   setVolume(property.toInt());
                   break;
-            case P_ID::PART_MUTE:
+            case Pid::PART_MUTE:
                   setMute(property.toBool());
                   break;
-            case P_ID::PART_PAN:
+            case Pid::PART_PAN:
                   setPan(property.toInt());
                   break;
-            case P_ID::PART_REVERB:
+            case Pid::PART_REVERB:
                   setReverb(property.toInt());
                   break;
-            case P_ID::PART_CHORUS:
+            case Pid::PART_CHORUS:
                   setChorus(property.toInt());
                   break;
             default:
@@ -602,7 +599,7 @@ int Part::lyricCount()
       if (!score())
             return 0;
       int count = 0;
-      Segment::Type st = Segment::Type::ChordRest;
+      SegmentType st = SegmentType::ChordRest;
       for (Segment* seg = score()->firstMeasure()->first(st); seg; seg = seg->next1(st)) {
             for (int i = startTrack(); i < endTrack() ; ++i) {
                   ChordRest* cr = toChordRest(seg->element(i));
@@ -622,10 +619,10 @@ int Part::harmonyCount()
       if (!score())
             return 0;
       int count = 0;
-      Segment::Type st = Segment::Type::ChordRest;
+      SegmentType st = SegmentType::ChordRest;
       for (Segment* seg = score()->firstMeasure()->first(st); seg; seg = seg->next1(st)) {
             for (Element* e : seg->annotations()) {
-                  if (e->type() == Element::Type::HARMONY && e->track() >= startTrack() && e->track() < endTrack())
+                  if (e->type() == ElementType::HARMONY && e->track() >= startTrack() && e->track() < endTrack())
                         count++;
                   }
             }
@@ -641,7 +638,7 @@ bool Part::hasPitchedStaff()
       if (!staves())
             return false;
       for (Staff* s : *staves()) {
-            if (s && s->isPitchedStaff())
+            if (s && s->isPitchedStaff(0))
                   return true;
             }
       return false;
@@ -656,7 +653,7 @@ bool Part::hasTabStaff()
       if (!staves())
             return false;
       for (Staff* s : *staves()) {
-            if (s && s->isTabStaff())
+            if (s && s->isTabStaff(0))
                   return true;
             }
       return false;
@@ -671,7 +668,7 @@ bool Part::hasDrumStaff()
       if (!staves())
             return false;
       for (Staff* s : *staves()) {
-            if (s && s->isDrumStaff())
+            if (s && s->isDrumStaff(0))
                   return true;
             }
       return false;

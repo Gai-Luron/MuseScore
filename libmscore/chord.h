@@ -21,8 +21,6 @@
 #include <functional>
 #include "chordrest.h"
 
-class QPainter;
-
 namespace Ms {
 
 class Note;
@@ -60,18 +58,7 @@ enum class PlayEventType : char    {
 //   @P stemDirection Direction       the stem slash of the chord (acciaccatura) if any (read only)
 //---------------------------------------------------------
 
-class Chord : public ChordRest {
-      Q_OBJECT
-
-      Q_PROPERTY(Ms::Beam* beam                         READ beam)
-      Q_PROPERTY(QQmlListProperty<Ms::Chord> graceNotes READ qmlGraceNotes)
-      Q_PROPERTY(Ms::Hook* hook                         READ hook)
-      Q_PROPERTY(QQmlListProperty<Ms::Lyrics> lyrics    READ qmlLyrics)
-      Q_PROPERTY(QQmlListProperty<Ms::Note> notes       READ qmlNotes)
-      Q_PROPERTY(Ms::Stem* stem                         READ stem)
-      Q_PROPERTY(Ms::StemSlash* stemSlash               READ stemSlash)
-      Q_PROPERTY(int stemDirection                      READ stemDirection)
-
+class Chord final : public ChordRest {
       std::vector<Note*>   _notes;       // sorted to decreasing line step
       LedgerLine*          _ledgerLines; // single linked list
 
@@ -82,7 +69,6 @@ class Chord : public ChordRest {
       Arpeggio*           _arpeggio;
       Tremolo*            _tremolo;
       bool                _endsGlissando;///< true if this chord is the ending point of a glissando (needed for layout)
-      ElementList         _el;           ///< chordline, slur
       QVector<Chord*>     _graceNotes;
       int                 _graceIndex;   ///< if this is a grace note, index in parent list
 
@@ -94,9 +80,11 @@ class Chord : public ChordRest {
       qreal _spaceLw;
       qreal _spaceRw;
 
+      QVector<Articulation*> _articulations;
+
       virtual qreal upPos()   const;
       virtual qreal downPos() const;
-      virtual qreal centerX() const;
+      qreal centerX() const;
       void addLedgerLines();
       void processSiblings(std::function<void(Element*)> func) const;
 
@@ -115,14 +103,13 @@ class Chord : public ChordRest {
       virtual void undoUnlink() override;
 
       virtual void setScore(Score* s);
-      virtual Element::Type type() const         { return Element::Type::CHORD; }
+      virtual ElementType type() const         { return ElementType::CHORD; }
       virtual qreal mag() const;
 
       virtual void write(XmlWriter& xml) const override;
       virtual void read(XmlReader&) override;
       virtual bool readProperties(XmlReader&) override;
-      virtual void setSelected(bool f) override;
-      virtual Element* drop(const DropData&) override;
+      virtual Element* drop(EditData&) override;
 
       void setStemDirection(Direction d) { _stemDirection = d; }
       Direction stemDirection() const    { return _stemDirection; }
@@ -134,10 +121,6 @@ class Chord : public ChordRest {
       virtual void layoutStem1() override;
       void layoutStem();
       void layoutArpeggio2();
-
-      QQmlListProperty<Ms::Note> qmlNotes()           { return QmlListAccess<Ms::Note>(this, _notes); }
-      QQmlListProperty<Ms::Lyrics> qmlLyrics()        { return QmlListAccess<Ms::Lyrics>(this, _lyrics); }
-      QQmlListProperty<Ms::Chord> qmlGraceNotes()     { return QmlListAccess<Ms::Chord>(this, _graceNotes); }
 
       std::vector<Note*>& notes()                 { return _notes; }
       const std::vector<Note*>& notes() const     { return _notes; }
@@ -162,7 +145,7 @@ class Chord : public ChordRest {
       StemSlash* stemSlash() const           { return _stemSlash; }
       bool slash();
       void setSlash(bool flag, bool stemless);
-      void removeMarkings(bool keepTremolo = false);
+      virtual void removeMarkings(bool keepTremolo = false) override;
 
       const QVector<Chord*>& graceNotes() const { return _graceNotes; }
       QVector<Chord*>& graceNotes()             { return _graceNotes; }
@@ -196,7 +179,7 @@ class Chord : public ChordRest {
       void setNoteType(NoteType t)    { _noteType = t; }
       bool isGrace() const            { return _noteType != NoteType::NORMAL; }
       void toGraceAfter();
-      virtual void scanElements(void* data, void (*func)(void*, Element*), bool all=true);
+      virtual void scanElements(void* data, void (*func)(void*, Element*), bool all=true) override;
 
       virtual void setTrack(int val) override;
 
@@ -212,16 +195,19 @@ class Chord : public ChordRest {
 
       TremoloChordType tremoloChordType() const;
 
-      ElementList& el()               { return _el; }
-      const ElementList& el() const   { return _el; }
+      void layoutArticulations();
+      void layoutArticulations2();
 
-      QPointF layoutArticulation(Articulation*);
+      QVector<Articulation*>& articulations()             { return _articulations; }
+      const QVector<Articulation*>& articulations() const { return _articulations; }
+      Articulation* hasArticulation(const Articulation*);
+      bool hasSingleArticulation() const                  { return _articulations.size() == 1; }
 
       virtual void crossMeasureSetup(bool on);
 
-      virtual QVariant getProperty(P_ID propertyId) const override;
-      virtual bool setProperty(P_ID propertyId, const QVariant&) override;
-      virtual QVariant propertyDefault(P_ID) const override;
+      virtual QVariant getProperty(Pid propertyId) const override;
+      virtual bool setProperty(Pid propertyId, const QVariant&) override;
+      virtual QVariant propertyDefault(Pid) const override;
 
       virtual void reset();
 
@@ -234,6 +220,9 @@ class Chord : public ChordRest {
 
       virtual Element* nextElement() override;
       virtual Element* prevElement() override;
+      virtual Element* nextSegmentElement() override;
+      virtual Element* lastElementBeforeSegment();
+      virtual Element* prevSegmentElement() override;
       virtual QString accessibleExtraInfo() const override;
 
       virtual Shape shape() const override;

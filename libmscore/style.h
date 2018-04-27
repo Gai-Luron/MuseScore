@@ -13,28 +13,35 @@
 #ifndef __STYLE_H__
 #define __STYLE_H__
 
-#include "mscore.h"
-#include "spatium.h"
-#include "articulation.h"
-#include "page.h"
 #include "chordlist.h"
 
 namespace Ms {
 
+enum class Pid : int;
 class XmlWriter;
 struct ChordDescription;
-class PageFormat;
-class ChordList;
 class Element;
 
 //---------------------------------------------------------
-//   StyleIdx
+//   Sid
 //
 //    Keep in sync with styleTypes[] in style.cpp
 //---------------------------------------------------------
 
-enum class StyleIdx : int {
+enum class Sid {
       NOSTYLE = -1,
+
+      pageWidth,
+      pageHeight,
+      pagePrintableWidth,
+      pageEvenLeftMargin,
+      pageOddLeftMargin,
+      pageEvenTopMargin,
+      pageEvenBottomMargin,
+      pageOddTopMargin,
+      pageOddBottomMargin,
+      pageTwosided,
+
       staffUpperBorder,
       staffLowerBorder,
       staffDistance,
@@ -57,7 +64,7 @@ enum class StyleIdx : int {
       lyricsLineThickness,
 
       figuredBassFontFamily,
-      figuredBassFontSize,
+//      figuredBassFontSize,
       figuredBassYOffset,
       figuredBassLineHeight,
       figuredBassAlignment,
@@ -93,6 +100,7 @@ enum class StyleIdx : int {
       keysigLeftMargin,
       ambitusMargin,
       timesigLeftMargin,
+      timesigScale,
 
       clefKeyRightMargin,
       clefKeyDistance,
@@ -143,16 +151,34 @@ enum class StyleIdx : int {
       hairpinHeight,
       hairpinContHeight,
       hairpinLineWidth,
+      hairpinFontFace,
+      hairpinFontSize,
+      hairpinFontBold,
+      hairpinFontItalic,
+      hairpinFontUnderline,
+      hairpinTextAlign,
 
       pedalPlacement,
       pedalPosAbove,
       pedalPosBelow,
       pedalLineWidth,
       pedalLineStyle,
+      pedalBeginTextOffset,
+      pedalHookHeight,
+      pedalFontFace,
+      pedalFontSize,
+      pedalFontBold,
+      pedalFontItalic,
+      pedalFontUnderline,
+      pedalTextAlign,
 
       trillPlacement,
       trillPosAbove,
       trillPosBelow,
+
+      vibratoPlacement,
+      vibratoPosAbove,
+      vibratoPosBelow,
 
       harmonyY,
       harmonyFretDist,
@@ -162,6 +188,7 @@ enum class StyleIdx : int {
       fretNumMag,
       fretNumPos,
       fretY,
+      fretMinDistance,
 
       showPageNumber,
       showPageNumberOne,
@@ -212,11 +239,13 @@ enum class StyleIdx : int {
       ArpeggioNoteDistance,
       ArpeggioLineWidth,
       ArpeggioHookLen,
+      ArpeggioHiddenInStdIfTab,
 
       SlurEndWidth,
       SlurMidWidth,
       SlurDottedWidth,
       MinTieLength,
+      SlurMinDistance,
 
       SectionPause,
       MusicalSymbolFont,
@@ -246,6 +275,13 @@ enum class StyleIdx : int {
       voltaHook,
       voltaLineWidth,
       voltaLineStyle,
+      voltaFontFace,
+      voltaFontSize,
+      voltaFontBold,
+      voltaFontItalic,
+      voltaFontUnderline,
+      voltaAlign,
+      voltaOffset,
 
       ottavaPlacement,
       ottavaPosAbove,
@@ -254,6 +290,12 @@ enum class StyleIdx : int {
       ottavaLineWidth,
       ottavaLineStyle,
       ottavaNumbersOnly,
+      ottavaFontFace,
+      ottavaFontSize,
+      ottavaFontBold,
+      ottavaFontItalic,
+      ottavaFontUnderline,
+      ottavaTextAlign,
 
       tabClef,
 
@@ -280,6 +322,12 @@ enum class StyleIdx : int {
       tupletDirection,
       tupletNumberType,
       tupletBracketType,
+      tupletFontFace,
+      tupletFontSize,
+      tupletFontBold,
+      tupletFontItalic,
+      tupletFontUnderline,
+      tupletAlign,
 
       barreLineWidth,
       fretMag,
@@ -304,25 +352,450 @@ enum class StyleIdx : int {
       textLinePosBelow,
 
       tremoloBarLineWidth,
+      jumpPosAbove,
+      markerPosAbove,
+
+      defaultFontFace,
+      defaultFontSize,
+      defaultFontSpatiumDependent,
+      defaultFontBold,
+      defaultFontItalic,
+      defaultFontUnderline,
+      defaultAlign,
+      defaultFrame,
+      defaultFrameSquare,
+      defaultFrameCircle,
+      defaultFramePadding,
+      defaultFrameWidth,
+      defaultFrameRound,
+      defaultFrameFgColor,
+      defaultFrameBgColor,
+      defaultOffset,
+      defaultOffsetType,
+      defaultSystemFlag,
+      defaultText,
+
+      titleFontFace,
+      titleFontSize,
+      titleFontSpatiumDependent,
+      titleFontBold,
+      titleFontItalic,
+      titleFontUnderline,
+      titleAlign,
+      titleOffset,
+      titleOffsetType,
+
+      subTitleFontFace,
+      subTitleFontSize,
+      subTitleFontSpatiumDependent,
+      subTitleFontBold,
+      subTitleFontItalic,
+      subTitleFontUnderline,
+      subTitleAlign,
+      subTitleOffset,
+      subTitleOffsetType,
+
+      composerFontFace,
+      composerFontSize,
+      composerFontSpatiumDependent,
+      composerFontBold,
+      composerFontItalic,
+      composerFontUnderline,
+      composerAlign,
+      composerOffset,
+      composerOffsetType,
+
+      lyricistFontFace,
+      lyricistFontSize,
+      lyricistFontSpatiumDependent,
+      lyricistFontBold,
+      lyricistFontItalic,
+      lyricistFontUnderline,
+      lyricistAlign,
+      lyricistOffset,
+      lyricistOffsetType,
+
+      lyricsOddFontFace,
+      lyricsOddFontSize,
+      lyricsOddFontBold,
+      lyricsOddFontItalic,
+      lyricsOddFontUnderline,
+      lyricsOddAlign,
+      lyricsOddOffset,
+
+      lyricsEvenFontFace,
+      lyricsEvenFontSize,
+      lyricsEvenFontBold,
+      lyricsEvenFontItalic,
+      lyricsEvenFontUnderline,
+      lyricsEvenAlign,
+      lyricsEvenOffset,
+
+      fingeringFontFace,
+      fingeringFontSize,
+      fingeringFontBold,
+      fingeringFontItalic,
+      fingeringFontUnderline,
+      fingeringAlign,
+      fingeringFrame,
+      fingeringFrameSquare,
+      fingeringFrameCircle,
+      fingeringFramePadding,
+      fingeringFrameWidth,
+      fingeringFrameRound,
+      fingeringFrameFgColor,
+      fingeringFrameBgColor,
+      fingeringOffset,
+
+      lhGuitarFingeringFontFace,
+      lhGuitarFingeringFontSize,
+      lhGuitarFingeringFontBold,
+      lhGuitarFingeringFontItalic,
+      lhGuitarFingeringFontUnderline,
+      lhGuitarFingeringAlign,
+      lhGuitarFingeringFrame,
+      lhGuitarFingeringFrameSquare,
+      lhGuitarFingeringFrameCircle,
+      lhGuitarFingeringFramePadding,
+      lhGuitarFingeringFrameWidth,
+      lhGuitarFingeringFrameRound,
+      lhGuitarFingeringFrameFgColor,
+      lhGuitarFingeringFrameBgColor,
+      lhGuitarFingeringOffset,
+
+      rhGuitarFingeringFontFace,
+      rhGuitarFingeringFontSize,
+      rhGuitarFingeringFontBold,
+      rhGuitarFingeringFontItalic,
+      rhGuitarFingeringFontUnderline,
+      rhGuitarFingeringAlign,
+      rhGuitarFingeringFrame,
+      rhGuitarFingeringFrameSquare,
+      rhGuitarFingeringFrameCircle,
+      rhGuitarFingeringFramePadding,
+      rhGuitarFingeringFrameWidth,
+      rhGuitarFingeringFrameRound,
+      rhGuitarFingeringFrameFgColor,
+      rhGuitarFingeringFrameBgColor,
+      rhGuitarFingeringOffset,
+
+      stringNumberFontFace,
+      stringNumberFontSize,
+      stringNumberFontBold,
+      stringNumberFontItalic,
+      stringNumberFontUnderline,
+      stringNumberAlign,
+      stringNumberFrame,
+      stringNumberFrameSquare,
+      stringNumberFrameCircle,
+      stringNumberFramePadding,
+      stringNumberFrameWidth,
+      stringNumberFrameRound,
+      stringNumberFrameFgColor,
+      stringNumberFrameBgColor,
+      stringNumberOffset,
+
+      longInstrumentFontFace,
+      longInstrumentFontSize,
+      longInstrumentFontBold,
+      longInstrumentFontItalic,
+      longInstrumentFontUnderline,
+      longInstrumentAlign,
+
+      shortInstrumentFontFace,
+      shortInstrumentFontSize,
+      shortInstrumentFontBold,
+      shortInstrumentFontItalic,
+      shortInstrumentFontUnderline,
+      shortInstrumentAlign,
+
+      partInstrumentFontFace,
+      partInstrumentFontSize,
+      partInstrumentFontBold,
+      partInstrumentFontItalic,
+      partInstrumentFontUnderline,
+
+      dynamicsFontFace,
+      dynamicsFontSize,
+      dynamicsFontBold,
+      dynamicsFontItalic,
+      dynamicsFontUnderline,
+      dynamicsAlign,
+
+      expressionFontFace,
+      expressionFontSize,
+      expressionFontBold,
+      expressionFontItalic,
+      expressionFontUnderline,
+      expressionAlign,
+
+      tempoFontFace,
+      tempoFontSize,
+      tempoFontBold,
+      tempoFontItalic,
+      tempoFontUnderline,
+      tempoAlign,
+      tempoOffset,
+      tempoSystemFlag,
+      tempoPlacement,
+      tempoPosAbove,
+      tempoPosBelow,
+      tempoMinDistance,
+
+      metronomeFontFace,
+      metronomeFontSize,
+      metronomeFontBold,
+      metronomeFontItalic,
+      metronomeFontUnderline,
+
+      measureNumberFontFace,
+      measureNumberFontSize,
+      measureNumberFontBold,
+      measureNumberFontItalic,
+      measureNumberFontUnderline,
+      measureNumberOffset,
+      measureNumberOffsetType,
+
+      translatorFontFace,
+      translatorFontSize,
+      translatorFontBold,
+      translatorFontItalic,
+      translatorFontUnderline,
+
+      systemFontFace,
+      systemFontSize,
+      systemFontBold,
+      systemFontItalic,
+      systemFontUnderline,
+      systemOffset,
+      systemOffsetType,
+      systemAlign,
+
+      staffTextFontFace,
+      staffTextFontSize,
+      staffTextFontBold,
+      staffTextFontItalic,
+      staffTextFontUnderline,
+      staffTextAlign,
+      staffTextOffset,
+      staffTextOffsetType,
+      staffTextPlacement,
+      staffTextPosAbove,
+      staffTextPosBelow,
+      staffTextMinDistance,
+
+      chordSymbolFontFace,
+      chordSymbolFontSize,
+      chordSymbolFontBold,
+      chordSymbolFontItalic,
+      chordSymbolFontUnderline,
+      chordSymbolAlign,
+
+      rehearsalMarkFontFace,
+      rehearsalMarkFontSize,
+      rehearsalMarkFontBold,
+      rehearsalMarkFontItalic,
+      rehearsalMarkFontUnderline,
+      rehearsalMarkAlign,
+      rehearsalMarkFrame,
+      rehearsalMarkFrameSquare,
+      rehearsalMarkFrameCircle,
+      rehearsalMarkFramePadding,
+      rehearsalMarkFrameWidth,
+      rehearsalMarkFrameRound,
+      rehearsalMarkFrameFgColor,
+      rehearsalMarkFrameBgColor,
+      rehearsalMarkPlacement,
+      rehearsalMarkPosAbove,
+      rehearsalMarkPosBelow,
+      rehearsalMarkMinDistance,
+
+      repeatLeftFontFace,
+      repeatLeftFontSize,
+      repeatLeftFontBold,
+      repeatLeftFontItalic,
+      repeatLeftFontUnderline,
+      repeatLeftAlign,
+      repeatLeftPlacement,
+
+      repeatRightFontFace,
+      repeatRightFontSize,
+      repeatRightFontBold,
+      repeatRightFontItalic,
+      repeatRightFontUnderline,
+      repeatRightAlign,
+      repeatRightPlacement,
+
+      frameFontFace,
+      frameFontSize,
+      frameFontBold,
+      frameFontItalic,
+      frameFontUnderline,
+      frameAlign,
+
+      textLineFontFace,
+      textLineFontSize,
+      textLineFontBold,
+      textLineFontItalic,
+      textLineFontUnderline,
+
+      glissandoFontFace,
+      glissandoFontSize,
+      glissandoFontBold,
+      glissandoFontItalic,
+      glissandoFontUnderline,
+      glissandoLineWidth,
+      glissandoText,
+
+      bendFontFace,
+      bendFontSize,
+      bendFontBold,
+      bendFontItalic,
+      bendFontUnderline,
+      bendLineWidth,
+      bendArrowWidth,
+
+      headerFontFace,
+      headerFontSize,
+      headerFontBold,
+      headerFontItalic,
+      headerFontUnderline,
+
+      footerFontFace,
+      footerFontSize,
+      footerFontBold,
+      footerFontItalic,
+      footerFontUnderline,
+
+      instrumentChangeFontFace,
+      instrumentChangeFontSize,
+      instrumentChangeFontBold,
+      instrumentChangeFontItalic,
+      instrumentChangeFontUnderline,
+      instrumentChangeAlign,
+      instrumentChangeOffset,
+
+      figuredBassFontFace,
+      figuredBassFontSize,
+      figuredBassFontBold,
+      figuredBassFontItalic,
+      figuredBassFontUnderline,
+
+      user1FontFace,
+      user1FontSize,
+      user1FontBold,
+      user1FontItalic,
+      user1FontUnderline,
+
+      user2FontFace,
+      user2FontSize,
+      user2FontBold,
+      user2FontItalic,
+      user2FontUnderline,
+
+      letRingFontFace,
+      letRingFontSize,
+      letRingFontBold,
+      letRingFontItalic,
+      letRingFontUnderline,
+      letRingTextAlign,
+      letRingHookHeight,
+      letRingPlacement,
+      letRingPosAbove,
+      letRingPosBelow,
+      letRingLineWidth,
+      letRingLineStyle,
+      letRingBeginTextOffset,
+      letRingText,
+
+      palmMuteFontFace,
+      palmMuteFontSize,
+      palmMuteFontBold,
+      palmMuteFontItalic,
+      palmMuteFontUnderline,
+      palmMuteTextAlign,
+      palmMuteHookHeight,
+      palmMutePlacement,
+      palmMutePosAbove,
+      palmMutePosBelow,
+      palmMuteLineWidth,
+      palmMuteLineStyle,
+      palmMuteBeginTextOffset,
+      palmMuteText,
+
+      fermataPosAbove,
+      fermataPosBelow,
+      fermataMinDistance,
 
       STYLES
       };
 
 //---------------------------------------------------------
-//   StyleType
+//   StyledProperty
 //---------------------------------------------------------
 
-struct StyleType {
-      StyleIdx _idx;
-      const char* _name;       // xml name for read()/write()
-      QVariant _defaultValue;
+struct StyledProperty {
+      Sid sid;
+      Pid pid;
+      };
 
-   public:
-      StyleIdx  styleIdx() const            { return _idx;          }
-      int idx() const                       { return int(_idx);     }
-      const char*  valueType() const        { return _defaultValue.typeName();    }
-      const char*      name() const         { return _name;         }
-      const QVariant&  defaultValue() const { return _defaultValue; }
+//-------------------------------------------------------------------
+//   SubStyleId
+//    Enumerate the list of built-in substyles
+//    must be in sync with namedStyles array
+//-------------------------------------------------------------------
+
+enum class SubStyleId {
+      EMPTY,
+      DEFAULT,
+      TITLE,
+      SUBTITLE,
+      COMPOSER,
+      POET,
+      LYRIC_ODD,
+      LYRIC_EVEN,
+      FINGERING,
+      LH_GUITAR_FINGERING,
+      RH_GUITAR_FINGERING,
+      STRING_NUMBER,
+      INSTRUMENT_LONG,
+      INSTRUMENT_SHORT,
+      INSTRUMENT_EXCERPT,
+      DYNAMICS,
+      EXPRESSION,
+      TEMPO,
+      METRONOME,
+      MEASURE_NUMBER,
+      TRANSLATOR,
+      TUPLET,
+      SYSTEM,
+      STAFF,
+      HARMONY,
+      REHEARSAL_MARK,
+      REPEAT_LEFT,       // align to start of measure
+      REPEAT_RIGHT,      // align to end of measure
+      FRAME,
+      TEXTLINE,
+      GLISSANDO,
+      OTTAVA,
+      VOLTA,
+      PEDAL,
+      LET_RING,
+      PALM_MUTE,
+      HAIRPIN,
+      BEND,
+      HEADER,
+      FOOTER,
+      INSTRUMENT_CHANGE,
+      FIGURED_BASS,
+      BEAM,
+      BOX,
+      FRET,
+      TREMOLO_BAR,
+      TIMESIG,
+      USER1,
+      USER2,
+      SUBSTYLES
       };
 
 
@@ -331,62 +804,53 @@ struct StyleType {
 //---------------------------------------------------------
 
 class MStyle {
-      QVector<QVariant> _values;
-      QVector<qreal> _precomputedValues;
+      std::array<QVariant, int(Sid::STYLES)> _values;
+      std::array<qreal, int(Sid::STYLES)> _precomputedValues;
 
       ChordList _chordList;
-      QList<TextStyle> _textStyles;
-      PageFormat _pageFormat;
-
       bool _customChordList;        // if true, chordlist will be saved as part of score
-
-      void precomputeValues();
 
    public:
       MStyle();
-      MStyle(const MStyle&);
-      MStyle& operator=(const MStyle&);
-      // ~MStyle() {}
 
-      bool isDefault(StyleIdx idx) const;
+      void precomputeValues();
+      QVariant value(Sid idx) const;
+      qreal pvalue(Sid idx) const    { return _precomputedValues[int(idx)]; }
+      void set(Sid idx, const QVariant& v);
+
+      bool isDefault(Sid idx) const;
+
       const ChordDescription* chordDescription(int id) const;
       ChordList* chordList()  { return &_chordList; }
-
       void setChordList(ChordList*, bool custom = true);    // Style gets ownership of ChordList
       void setCustomChordList(bool t) { _customChordList = t; }
-
-      const TextStyle& textStyle(TextStyleType) const;
-      TextStyle& textStyle(TextStyleType);
-
-      const TextStyle& textStyle(const QString& name) const;
-      TextStyleType textStyleType(const QString& name) const;
-      void setTextStyle(const TextStyle& ts);
-      void addTextStyle(const TextStyle& ts);
-      void removeTextStyle(const TextStyle& ts);
-      const QList<TextStyle>& textStyles() const;
-
-      void set(StyleIdx idx, const QVariant& v);
-
-      QVariant value(StyleIdx idx) const  { return _values[int(idx)]; }
-      qreal pvalue(StyleIdx idx) const    { return _precomputedValues[int(idx)]; }
 
       bool load(QFile* qf);
       void load(XmlReader& e);
       void save(XmlWriter& xml, bool optimize);
+      bool readProperties(XmlReader&);
 
-      void convertToUnit(const QString& tag, const QString& val);
-
-      PageFormat* pageFormat()             { return &_pageFormat; }
-      const PageFormat* pageFormat() const { return &_pageFormat; }
-
-      void setPageFormat(const PageFormat& pf);
-
-      static const char* valueType(const StyleIdx);
-      static const char* valueName(const StyleIdx);
-      static StyleIdx styleIdx(const QString& name);
+      static const char* valueType(const Sid);
+      static const char* valueName(const Sid);
+      static Sid styleIdx(const QString& name);
       };
 
-extern void initStyle(MStyle*);
+typedef std::vector<StyledProperty> SubStyle;
+
+extern const SubStyle emptyStyle;
+extern const SubStyle defaultStyle;
+extern const SubStyle fingeringStyle;
+
+const SubStyle& subStyle(SubStyleId);
+const SubStyle& subStyle(const char*);
+
+const char* subStyleName(SubStyleId);
+QString subStyleUserName(SubStyleId);
+SubStyleId subStyleFromName(const QString&);
+
+#ifndef NDEBUG
+extern void checkStyles();
+#endif
 
 }     // namespace Ms
 

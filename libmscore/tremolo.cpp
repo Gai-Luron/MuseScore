@@ -74,7 +74,7 @@ void Tremolo::draw(QPainter* painter) const
       painter->drawPath(path);
       if ((parent() == 0) && !twoNotes()) {
             qreal x = 0.0; // bbox().width() * .25;
-            QPen pen(curColor(), point(score()->styleS(StyleIdx::stemWidth)));
+            QPen pen(curColor(), point(score()->styleS(Sid::stemWidth)));
             painter->setPen(pen);
             qreal _spatium = spatium() * mag();
             painter->drawLine(QLineF(x, -_spatium*.5, x, path.boundingRect().height() + _spatium));
@@ -115,9 +115,9 @@ void Tremolo::layout()
       {
       qreal _spatium  = spatium() * mag();
 
-      qreal w2  = _spatium * score()->styleS(StyleIdx::tremoloWidth).val() * .5;
-      qreal lw  = _spatium * score()->styleS(StyleIdx::tremoloStrokeWidth).val();
-      qreal td  = _spatium * score()->styleS(StyleIdx::tremoloDistance).val();
+      qreal w2  = _spatium * score()->styleS(Sid::tremoloWidth).val() * .5;
+      qreal lw  = _spatium * score()->styleS(Sid::tremoloStrokeWidth).val();
+      qreal td  = _spatium * score()->styleS(Sid::tremoloDistance).val();
       path      = QPainterPath();
 
       qreal ty   = 0.0;
@@ -131,7 +131,7 @@ void Tremolo::layout()
       // if ((parent() == 0) && !twoNotes())
       //       rect.setHeight(rect.height() + _spatium);
 
-      _chord1 = static_cast<Chord*>(parent());
+      _chord1 = toChord(parent());
       if (_chord1 == 0) {
             // just for the palette
             QTransform shearTransform;
@@ -240,7 +240,7 @@ void Tremolo::layout()
       //
       Segment* s = _chord1->segment()->next();
       while (s) {
-            if (s->element(track()) && (s->element(track())->type() == Element::Type::CHORD))
+            if (s->element(track()) && (s->element(track())->type() == ElementType::CHORD))
                   break;
             s = s->next();
             }
@@ -249,7 +249,7 @@ void Tremolo::layout()
             return;
             }
 
-      _chord2 = static_cast<Chord*>(s->element(track()));
+      _chord2 = toChord(s->element(track()));
       _chord2->setTremolo(this);
 
       Stem* stem1 = _chord1->stem();
@@ -300,9 +300,9 @@ void Tremolo::layout()
       x = (x1 + x2) * .5 - _chord1->pagePos().x();
 
       QTransform xScaleTransform;
-      // TODO const qreal H_MULTIPLIER = score()->styleS(StyleIdx::tremoloBeamLengthMultiplier).val();
+      // TODO const qreal H_MULTIPLIER = score()->styleS(Sid::tremoloBeamLengthMultiplier).val();
       const qreal H_MULTIPLIER = 0.62;
-      // TODO const qreal MAX_H_LENGTH = _spatium * score()->styleS(StyleIdx::tremoloBeamLengthMultiplier).val();
+      // TODO const qreal MAX_H_LENGTH = _spatium * score()->styleS(Sid::tremoloBeamLengthMultiplier).val();
       const qreal MAX_H_LENGTH = _spatium * 12.0;
 
       qreal xScaleFactor = qMin(H_MULTIPLIER * (x2 - x1), MAX_H_LENGTH);
@@ -315,10 +315,10 @@ void Tremolo::layout()
 
       if (_chord1->beams() == _chord2->beams() && _chord1->beam()) {
             int beams = _chord1->beams();
-            qreal beamHalfLineWidth = point(score()->styleS(StyleIdx::beamWidth)) * .5 * mag();
+            qreal beamHalfLineWidth = point(score()->styleS(Sid::beamWidth)) * .5 * mag();
             beamYOffset = beams * _chord1->beam()->beamDist() - beamHalfLineWidth;
             if (_chord1->up() != _chord2->up()) {  // cross-staff
-                  beamYOffset += beamYOffset + beamHalfLineWidth;
+                  beamYOffset = 2 * beamYOffset + beamHalfLineWidth;
                   }
             else if (!_chord1->up() && !_chord2->up()) {
                   beamYOffset = -beamYOffset;

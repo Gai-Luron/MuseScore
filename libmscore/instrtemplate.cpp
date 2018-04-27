@@ -132,7 +132,7 @@ InstrumentTemplate::InstrumentTemplate()
             smallStaff[i]  = false;
             bracket[i]     = BracketType::NO_BRACKET;
             bracketSpan[i] = 0;
-            barlineSpan[i] = 0;
+            barlineSpan[i] = false;
             }
       transpose.diatonic   = 0;
       transpose.chromatic  = 0;
@@ -249,7 +249,7 @@ void InstrumentTemplate::write(XmlWriter& xml) const
                   else
                         xml.tag("bracketSpan", bracketSpan[i]);
                   }
-            if (barlineSpan[i] != 0) {
+            if (barlineSpan[i]) {
                   if (i)
                         xml.tag(QString("barlineSpan staff=\"%1\"").arg(i+1), barlineSpan[i]);
                   else
@@ -340,7 +340,8 @@ void InstrumentTemplate::read(XmlReader& e)
             else if (tag == "staves") {
                   staves = e.readInt();
                   bracketSpan[0] = staves;
-                  barlineSpan[0] = staves;
+//                  for (int i = 0; i < staves-1; ++i)
+//                        barlineSpan[i] = true;
                   }
             else if (tag == "clef") {           // sets both transposing and concert clef
                   int idx = readStaffIdx(e);
@@ -383,7 +384,9 @@ void InstrumentTemplate::read(XmlReader& e)
                   }
             else if (tag == "barlineSpan") {
                   int idx = readStaffIdx(e);
-                  barlineSpan[idx] = e.readInt();
+                  int span = e.readInt();
+                  for (int i = 0; i < span-1; ++i)
+                        barlineSpan[idx+i] = true;
                   }
             else if (tag == "aPitchRange")
                   setPitchRange(e.readElementText(), &minPitchA, &maxPitchA);
@@ -470,25 +473,6 @@ void InstrumentTemplate::read(XmlReader& e)
                   }
             else
                   e.unknown();
-            }
-      //
-      // check bar line spans
-      //
-      int barLine = 0;
-      for (int i = 0; i < staves; ++i) {
-            int bls = barlineSpan[i];
-            if (barLine) {
-                  if (bls)
-                        barlineSpan[i] = 0;
-                  }
-            else {
-                  if (bls == 0) {
-                        bls = 1;
-                        barlineSpan[i] = 1;
-                        }
-                  barLine = bls;
-                  }
-            --barLine;
             }
       if (channel.empty()) {
             Channel a;
@@ -614,7 +598,7 @@ bool loadInstrumentTemplates(const QString& instrTemplates)
             return false;
             }
 
-      XmlReader e(0, &qf);
+      XmlReader e(&qf);
       while (e.readNextStartElement()) {
             if (e.name() == "museScore") {
                   while (e.readNextStartElement()) {
@@ -658,7 +642,7 @@ bool loadInstrumentTemplates(const QString& instrTemplates)
 
 InstrumentTemplate* searchTemplate(const QString& name)
       {
-      foreach(InstrumentGroup* g, instrumentGroups) {
+      foreach (InstrumentGroup* g, instrumentGroups) {
             foreach(InstrumentTemplate* it, g->instrumentTemplates) {
                   if (it->id == name)
                         return it;
@@ -667,6 +651,20 @@ InstrumentTemplate* searchTemplate(const QString& name)
       return 0;
       }
 
+//---------------------------------------------------------
+//   searchTemplateForMusicXMLid
+//---------------------------------------------------------
+
+InstrumentTemplate* searchTemplateForMusicXmlId(const QString& mxmlId)
+      {
+      foreach(InstrumentGroup* g, instrumentGroups) {
+            foreach(InstrumentTemplate* it, g->instrumentTemplates) {
+                  if (it->musicXMLid == mxmlId)
+                        return it;
+                  }
+            }
+      return 0;
+      }
 
 //---------------------------------------------------------
 //   linkGenre
@@ -733,6 +731,30 @@ ClefTypeList InstrumentTemplate::clefType(int staffIdx) const
       if (staffIdx < staves)
             return clefTypes[staffIdx];
       return clefTypes[0];
+      }
+
+//---------------------------------------------------------
+//   defaultClef
+//    traverse the instrument list for first instrument
+//    with midi patch 'program'. Return the default clef
+//    for this instrument.
+//---------------------------------------------------------
+
+ClefType defaultClef(int program)
+      {
+      if (program >= 25 && program < 32)              // this are guitars
+            return ClefType::G8_VB;
+      else if (program >= 33 && program < 41)         // this is bass
+            return ClefType::F8_VB;
+
+      for (InstrumentGroup* g : instrumentGroups) {
+            for (InstrumentTemplate* it : g->instrumentTemplates) {
+                  if (it->channel[0].bank == 0 && it->channel[0].program == program){
+                        return (it->clefTypes[0]._concertClef);
+                        }
+                  }
+            }
+      return ClefType::G;
       }
 
 }

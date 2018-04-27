@@ -29,7 +29,7 @@ ResourceManager::ResourceManager(QWidget *parent) :
       setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
       QDir dir;
       dir.mkpath(dataPath + "/locale");
-      baseAddr = "http://extensions.musescore.org/2.0.2/";
+      baseAddr = "http://extensions.musescore.org/2.2/";
       displayPlugins();
       displayLanguages();
       languagesTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
@@ -56,7 +56,7 @@ void ResourceManager::displayLanguages()
       QJsonParseError err;
       QJsonDocument result = QJsonDocument::fromJson(json, &err);
       if (err.error != QJsonParseError::NoError || !result.isObject()) {
-            qDebug("An error occured during parsing");
+            qDebug("An error occurred during parsing");
             return;
             }
       int rowCount = result.object().keys().size();
@@ -145,7 +145,7 @@ bool ResourceManager::verifyLanguageFile(QString filename, QString hash)
 
 void ResourceManager::download()
       {
-      QPushButton *button = dynamic_cast<QPushButton*>( sender() );
+      QPushButton *button = qobject_cast<QPushButton*>( sender() );
       QString data = buttonMap[button];
       QString hash = buttonHashMap[button];
       button->setText(tr("Updating"));

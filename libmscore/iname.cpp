@@ -23,10 +23,10 @@ namespace Ms {
 //---------------------------------------------------------
 
 InstrumentName::InstrumentName(Score* s)
-   : Text(s)
+   : TextBase(s)
       {
       setInstrumentNameType(InstrumentNameType::SHORT);
-      _layoutPos = 0;
+      setSelectable(false);
       }
 
 //---------------------------------------------------------
@@ -59,26 +59,58 @@ void InstrumentName::setInstrumentNameType(const QString& s)
 void InstrumentName::setInstrumentNameType(InstrumentNameType st)
       {
       _instrumentNameType = st;
-      setTextStyleType(st == InstrumentNameType::SHORT ? TextStyleType::INSTRUMENT_SHORT : TextStyleType::INSTRUMENT_LONG);
+      initSubStyle(st == InstrumentNameType::SHORT ? SubStyleId::INSTRUMENT_SHORT : SubStyleId::INSTRUMENT_LONG);
       }
 
 //---------------------------------------------------------
-//   endEdit
+//   getProperty
 //---------------------------------------------------------
 
-void InstrumentName::endEdit()
+QVariant InstrumentName::getProperty(Pid id) const
       {
-      Text::endEdit();
-      Part* part = staff()->part();
-      Instrument* instrument = new Instrument(*part->instrument());
+      switch (id) {
+            case Pid::INAME_LAYOUT_POSITION:
+                  return _layoutPos;
+            default:
+                  return TextBase::getProperty(id);
+            }
+      }
 
-      QString s = plainText();
+//---------------------------------------------------------
+//   setProperty
+//---------------------------------------------------------
 
-      if (_instrumentNameType == InstrumentNameType::LONG)
-            instrument->setLongName(s);
-      else
-            instrument->setShortName(s);
-      score()->undo(new ChangePart(part, instrument, part->name()));
+bool InstrumentName::setProperty(Pid id, const QVariant& v)
+      {
+      bool rv = true;
+      switch (id) {
+            case Pid::INAME_LAYOUT_POSITION:
+                  _layoutPos = v.toInt();
+                  break;
+            default:
+                  rv = TextBase::setProperty(id, v);
+                  break;
+            }
+      Sid sidx = getPropertyStyle(id);
+      if (sidx != Sid::NOSTYLE) {
+            score()->undoChangeStyleVal(sidx, getProperty(id));
+            }
+      score()->setLayoutAll();
+      return rv;
+      }
+
+//---------------------------------------------------------
+//   propertyDefault
+//---------------------------------------------------------
+
+QVariant InstrumentName::propertyDefault(Pid id) const
+      {
+      switch (id) {
+            case Pid::INAME_LAYOUT_POSITION:
+                  return 0;
+            default:
+                  return TextBase::propertyDefault(id);
+            }
       }
 
 }

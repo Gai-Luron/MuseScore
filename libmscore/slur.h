@@ -22,18 +22,17 @@ namespace Ms {
 ///    a single segment of slur; also used for Tie
 //---------------------------------------------------------
 
-class SlurSegment : public SlurTieSegment {
-      Q_OBJECT
+class SlurSegment final : public SlurTieSegment {
 
    protected:
-      void changeAnchor(MuseScoreView*, Grip, Element*);
+      virtual void changeAnchor(EditData&, Element*);
 
    public:
       SlurSegment(Score* s) : SlurTieSegment(s) {}
       SlurSegment(const SlurSegment& ss) : SlurTieSegment(ss) {}
 
       virtual SlurSegment* clone() const override  { return new SlurSegment(*this); }
-      virtual Element::Type type() const override  { return Element::Type::SLUR_SEGMENT; }
+      virtual ElementType type() const override  { return ElementType::SLUR_SEGMENT; }
       virtual int subtype() const override         { return static_cast<int>(spanner()->type()); }
       virtual QString subtypeName() const override { return name(spanner()->type()); }
       virtual void draw(QPainter*) const override;
@@ -41,26 +40,19 @@ class SlurSegment : public SlurTieSegment {
       void layoutSegment(const QPointF& p1, const QPointF& p2);
 
       bool isEdited() const;
-      virtual void editDrag(const EditData&) override;
-      virtual bool edit(MuseScoreView*, Grip grip, int key, Qt::KeyboardModifiers, const QString& s) override;
-      virtual void updateGrips(Grip*, QVector<QRectF>&) const override;
-      virtual int grips() const override { return int(Grip::GRIPS); }
-      virtual QPointF gripAnchor(Grip grip) const override;
-
-      QPointF getGrip(Grip) const override;
-      void setGrip(Grip, const QPointF&) override;
+      virtual bool edit(EditData&) override;
+      virtual void updateGrips(EditData&) const override;
 
       Slur* slur() const { return (Slur*)spanner(); }
 
-      void computeBezier(QPointF so = QPointF());
+      virtual void computeBezier(QPointF so = QPointF());
       };
 
 //---------------------------------------------------------
 //   @@ Slur
 //---------------------------------------------------------
 
-class Slur : public SlurTie {
-      Q_OBJECT
+class Slur final : public SlurTie {
 
       void slurPosChord(SlurPos*);
 
@@ -68,7 +60,7 @@ class Slur : public SlurTie {
       Slur(Score* = 0);
       ~Slur();
       virtual Slur* clone() const override        { return new Slur(*this); }
-      virtual Element::Type type() const override { return Element::Type::SLUR; }
+      virtual ElementType type() const override { return ElementType::SLUR; }
       virtual void write(XmlWriter& xml) const override;
       virtual void read(XmlReader&) override;
       virtual void layout() override;

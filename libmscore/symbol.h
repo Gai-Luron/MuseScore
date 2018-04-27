@@ -15,8 +15,6 @@
 
 #include "bsymbol.h"
 
-class QPainter;
-
 namespace Ms {
 
 class Segment;
@@ -31,9 +29,6 @@ enum class SymId;
 //---------------------------------------------------------
 
 class Symbol : public BSymbol {
-      Q_OBJECT
-      Q_PROPERTY(QString symbol        READ symName)
-
    protected:
       SymId _sym;
       const ScoreFont* _scoreFont = nullptr;
@@ -45,7 +40,7 @@ class Symbol : public BSymbol {
       Symbol &operator=(const Symbol&) = delete;
 
       virtual Symbol* clone() const      { return new Symbol(*this); }
-      virtual Element::Type type() const { return Element::Type::SYMBOL; }
+      virtual ElementType type() const   { return ElementType::SYMBOL; }
 
       void setSym(SymId s, const ScoreFont* sf = nullptr) { _sym  = s; _scoreFont = sf;    }
       SymId sym() const                  { return _sym;  }
@@ -66,9 +61,7 @@ class Symbol : public BSymbol {
 ///    Symbol constructed from a font glyph.
 //---------------------------------------------------------
 
-class FSymbol : public BSymbol {
-      Q_OBJECT
-
+class FSymbol final : public BSymbol {
       QFont _font;
       int _code;
 
@@ -77,7 +70,7 @@ class FSymbol : public BSymbol {
       FSymbol(const FSymbol&);
 
       virtual FSymbol* clone() const    { return new FSymbol(*this); }
-      virtual Element::Type type() const  { return Element::Type::FSYMBOL; }
+      virtual ElementType type() const  { return ElementType::FSYMBOL; }
 
       virtual void draw(QPainter*) const;
       virtual void write(XmlWriter& xml) const;

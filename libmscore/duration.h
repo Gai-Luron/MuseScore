@@ -36,17 +36,13 @@ class DurationElement : public Element {
       Tuplet* _tuplet;
 
 #ifdef SCRIPT_INTERFACE
-      Q_OBJECT
-      Q_PROPERTY(FractionWrapper* duration READ durationW WRITE setDurationW)
-      Q_PROPERTY(FractionWrapper* globalDuration READ globalDurW)
-
       void setDurationW(FractionWrapper* f)  { _duration = f->fraction(); }
       FractionWrapper* durationW() const     { return new FractionWrapper(_duration); }
       FractionWrapper* globalDurW() const    { return new FractionWrapper(globalDuration()); }
 #endif
 
    public:
-      DurationElement(Score* s);
+      DurationElement(Score* = 0, ElementFlags = ElementFlag::NOTHING);
       DurationElement(const DurationElement& e);
       ~DurationElement();
 
@@ -58,6 +54,7 @@ class DurationElement : public Element {
 
       void setTuplet(Tuplet* t)           { _tuplet = t;      }
       Tuplet* tuplet() const              { return _tuplet;   }
+      Tuplet* topTuplet() const;
       virtual Beam* beam() const          { return 0;         }
       int actualTicks() const;
       Fraction actualFraction() const;
@@ -66,8 +63,8 @@ class DurationElement : public Element {
       Fraction globalDuration() const;
       void setDuration(const Fraction& f) { _duration = f;    }
 
-      virtual QVariant getProperty(P_ID propertyId) const override;
-      virtual bool setProperty(P_ID propertyId, const QVariant&) override;
+      virtual QVariant getProperty(Pid propertyId) const override;
+      virtual bool setProperty(Pid propertyId, const QVariant&) override;
       };
 
 

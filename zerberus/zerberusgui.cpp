@@ -117,7 +117,7 @@ static void collectFiles(QFileInfoList* l, const QString& path)
             if (path == s.absoluteFilePath())
                   return;
 
-            if (s.isDir())
+            if (s.isDir() && !s.isHidden())
                   collectFiles(l, s.absoluteFilePath());
             else {
                   if (s.suffix().toLower() == "sfz")
@@ -134,7 +134,7 @@ QFileInfoList Zerberus::sfzFiles()
       {
       QFileInfoList l;
 
-      QStringList pl = Ms::preferences.mySoundfontsPath.split(";");
+      QStringList pl = Ms::preferences.getString(PREF_APP_PATHS_MYSOUNDFONTS).split(";");
       pl.prepend(QFileInfo(QString("%1%2").arg(Ms::mscoreGlobalShare).arg("sound")).absoluteFilePath());
 
       foreach (const QString& s, pl) {

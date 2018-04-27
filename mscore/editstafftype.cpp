@@ -30,6 +30,10 @@ const char* g_groupNames[STAFF_GROUP_MAX] = {
       QT_TRANSLATE_NOOP("staff group header name", "TABLATURE STAFF")
       };
 
+//---------------------------------------------------------
+//   noteHeadSchemes
+//---------------------------------------------------------
+
 NoteHeadScheme noteHeadSchemes[] = {
       NoteHeadScheme::HEAD_NORMAL,
       NoteHeadScheme::HEAD_PITCHNAME,
@@ -54,7 +58,7 @@ EditStaffType::EditStaffType(QWidget* parent, Staff* st)
       setupUi(this);
 
       staff     = st;
-      staffType = *staff->staffType();
+      staffType = *staff->staffType(0);
       Instrument* instr = staff->part()->instrument();
 
       // template combo
@@ -142,6 +146,7 @@ EditStaffType::EditStaffType(QWidget* parent, Staff* st)
 
       connect(linesThroughRadio,    SIGNAL(toggled(bool)),              SLOT(updatePreview()));
       connect(onLinesRadio,         SIGNAL(toggled(bool)),              SLOT(updatePreview()));
+      connect(showTabFingering,     SIGNAL(toggled(bool)),              SLOT(updatePreview()));
       connect(upsideDown,           SIGNAL(toggled(bool)),              SLOT(updatePreview()));
       connect(numbersRadio,         SIGNAL(toggled(bool)),              SLOT(updatePreview()));
       connect(showBackTied,         SIGNAL(toggled(bool)),              SLOT(updatePreview()));
@@ -149,6 +154,7 @@ EditStaffType::EditStaffType(QWidget* parent, Staff* st)
       connect(templateReset,        SIGNAL(clicked()),                  SLOT(resetToTemplateClicked()));
       connect(addToTemplates,       SIGNAL(clicked()),                  SLOT(addToTemplatesClicked()));
 //      connect(groupCombo,           SIGNAL(currentIndexChanged(int)),   SLOT(staffGroupChanged(int)));
+      addToTemplates->setVisible(false);
 
       MuseScore::restoreGeometry(this);
       }
@@ -207,6 +213,7 @@ void EditStaffType::setValues()
             case StaffGroup::TAB:
                   {
                   upsideDown->setChecked(staffType.upsideDown());
+                  showTabFingering->setChecked(staffType.showTabFingering());
                   int idx = fretFontName->findText(staffType.fretFontName(), Qt::MatchFixedString);
                   if (idx == -1)
                         idx = 0;          // if name not found, use first name
@@ -398,6 +405,7 @@ void EditStaffType::setFromDlg()
       staffType.setOnLines(onLinesRadio->isChecked());
       staffType.setShowRests(showRests->isChecked());
       staffType.setUpsideDown(upsideDown->isChecked());
+      staffType.setShowTabFingering(showTabFingering->isChecked());
       staffType.setUseNumbers(numbersRadio->isChecked());
       //note values
       staffType.setStemsDown(stemBelowRadio->isChecked());
@@ -440,6 +448,7 @@ void EditStaffType::blockSignals(bool block)
       showBackTied->blockSignals(block);
 
       upsideDown->blockSignals(block);
+      showTabFingering->blockSignals(block);
       valuesRepeatNever->blockSignals(block);
       valuesRepeatSystem->blockSignals(block);
       valuesRepeatMeasure->blockSignals(block);
@@ -534,7 +543,7 @@ void EditStaffType::updatePreview()
       else if (staffType.group() == StaffGroup::STANDARD)
              preview = standardPreview;
       if (preview) {
-            preview->score()->staff(0)->setStaffType(&staffType);
+            preview->score()->staff(0)->setStaffType(0, &staffType);
             preview->score()->doLayout();
             preview->updateAll();
             preview->update();

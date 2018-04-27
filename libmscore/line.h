@@ -14,15 +14,12 @@
 #define __LINE_H__
 
 #include "spanner.h"
-// #include "mscore.h"
-
-class QPainter;
+#include "mscore.h"
 
 namespace Ms {
 
 class SLine;
 class System;
-class MuseScoreView;
 
 //---------------------------------------------------------
 //   @@ LineSegment
@@ -35,16 +32,13 @@ class MuseScoreView;
 //---------------------------------------------------------
 
 class LineSegment : public SpannerSegment {
-      Q_OBJECT
-
    protected:
-      virtual void editDrag(const EditData&) override;
-      virtual bool edit(MuseScoreView*, Grip, int key, Qt::KeyboardModifiers, const QString& s) override;
-      virtual void updateGrips(Grip*, QVector<QRectF>&) const override;
-      virtual int grips() const override              { return 3; }
-      virtual void setGrip(Grip, const QPointF& p) override;
-      virtual QPointF getGrip(Grip) const override;
+      virtual void startEdit(EditData&) override;
+      virtual void editDrag(EditData&) override;
+      virtual bool edit(EditData&) override;
+      virtual void updateGrips(EditData&) const override;
       virtual QPointF gripAnchor(Grip) const override;
+      virtual void startEditDrag(EditData&) override;
 
    public:
       LineSegment(Score* s) : SpannerSegment(s) {}
@@ -58,9 +52,9 @@ class LineSegment : public SpannerSegment {
       virtual void read(XmlReader&) override;
       bool readProperties(XmlReader&);
 
-      virtual QVariant getProperty(P_ID id) const override;
-      virtual bool setProperty(P_ID propertyId, const QVariant&) override;
-      virtual QVariant propertyDefault(P_ID id) const override;
+      virtual QVariant getProperty(Pid id) const override;
+      virtual bool setProperty(Pid propertyId, const QVariant&) override;
+      virtual QVariant propertyDefault(Pid id) const override;
       virtual QLineF dragAnchor() const override;
       };
 
@@ -70,8 +64,6 @@ class LineSegment : public SpannerSegment {
 //---------------------------------------------------------
 
 class SLine : public Spanner {
-      Q_OBJECT
-
       Spatium _lineWidth      { 0.15 };
       QColor _lineColor       { MScore::defaultColor };
       Qt::PenStyle _lineStyle { Qt::SolidLine };
@@ -79,11 +71,15 @@ class SLine : public Spanner {
       qreal _dashGapLen       { 5.0   };
       bool _diagonal          { false };
 
+      PropertyFlags lineWidthStyle;
+      PropertyFlags lineStyleStyle;
+      PropertyFlags lineColorStyle;
+
    protected:
       virtual QPointF linePos(Grip, System** system) const;
 
    public:
-      SLine(Score* s);
+      SLine(Score* s, ElementFlags = ElementFlag::NOTHING);
       SLine(const SLine&);
 
       virtual void layout() override;
@@ -120,9 +116,9 @@ class SLine : public Spanner {
       LineSegment* takeLastSegment()      { return (LineSegment*)spannerSegments().takeLast(); }
       LineSegment* segmentAt(int n) const { return (LineSegment*)spannerSegments().at(n); }
 
-      virtual QVariant getProperty(P_ID id) const override;
-      virtual bool setProperty(P_ID propertyId, const QVariant&) override;
-      virtual QVariant propertyDefault(P_ID id) const override;
+      virtual QVariant getProperty(Pid id) const override;
+      virtual bool setProperty(Pid propertyId, const QVariant&) override;
+      virtual QVariant propertyDefault(Pid id) const override;
 
       friend class LineSegment;
       };

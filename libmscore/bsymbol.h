@@ -24,8 +24,6 @@ namespace Ms {
 //---------------------------------------------------------
 
 class BSymbol : public Element, public ElementLayout {
-      Q_OBJECT
-
       QList<Element*> _leafs;
       bool _systemFlag;
 
@@ -38,10 +36,10 @@ class BSymbol : public Element, public ElementLayout {
       virtual void add(Element*) override;
       virtual void remove(Element*) override;
       virtual void scanElements(void* data, void (*func)(void*, Element*), bool all=true) override;
-      virtual bool acceptDrop(const DropData&) const override;
-      virtual Element* drop(const DropData&) override;
+      virtual bool acceptDrop(EditData&) const override;
+      virtual Element* drop(EditData&) override;
       virtual void layout() override;
-      virtual QRectF drag(EditData*) override;
+      virtual QRectF drag(EditData&) override;
 
       void writeProperties(XmlWriter& xml) const;
       bool readProperties(XmlReader&);

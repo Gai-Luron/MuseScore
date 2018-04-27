@@ -30,7 +30,6 @@
 
 namespace Ms {
 
-
 //---------------------------------------------------------
 //   Box
 //---------------------------------------------------------
@@ -94,29 +93,41 @@ void Box::draw(QPainter* painter) const
 //   startEdit
 //---------------------------------------------------------
 
-void Box::startEdit(MuseScoreView*, const QPointF&)
+void Box::startEdit(EditData& ed)
       {
-      editMode = true;
-      if (isHBox())
-            undoPushProperty(P_ID::BOX_WIDTH);
-      else
-            undoPushProperty(P_ID::BOX_HEIGHT);
+      Element::startEdit(ed);
+      ed.grips   = 1;
+      ed.curGrip = Grip::START;
+      editMode   = true;
       }
 
 //---------------------------------------------------------
 //   edit
 //---------------------------------------------------------
 
-bool Box::edit(MuseScoreView*, Grip, int /*key*/, Qt::KeyboardModifiers, const QString&)
+bool Box::edit(EditData&)
       {
       return false;
+      }
+
+//---------------------------------------------------------
+//   startEditDrag
+//---------------------------------------------------------
+
+void Box::startEditDrag(EditData& ed)
+      {
+      ElementEditData* eed = ed.getData(this);
+      if (isHBox())
+            eed->pushProperty(Pid::BOX_WIDTH);
+      else
+            eed->pushProperty(Pid::BOX_HEIGHT);
       }
 
 //---------------------------------------------------------
 //   editDrag
 //---------------------------------------------------------
 
-void Box::editDrag(const EditData& ed)
+void Box::editDrag(EditData& ed)
       {
       if (isVBox()) {
             _boxHeight = Spatium((ed.pos.y() - abbox().y()) / spatium());
@@ -145,7 +156,7 @@ void Box::editDrag(const EditData& ed)
 //   endEdit
 //---------------------------------------------------------
 
-void Box::endEdit()
+void Box::endEdit(EditData&)
       {
       editMode = false;
       layout();
@@ -155,14 +166,13 @@ void Box::endEdit()
 //   updateGrips
 //---------------------------------------------------------
 
-void Box::updateGrips(Grip* defaultGrip, QVector<QRectF>& grip) const
+void Box::updateGrips(EditData& ed) const
       {
-      *defaultGrip = Grip::START;
       QRectF r(abbox());
       if (isHBox())
-            grip[0].translate(QPointF(r.right(), r.top() + r.height() * .5));
-      else if (type() == Element::Type::VBOX)
-            grip[0].translate(QPointF(r.x() + r.width() * .5, r.bottom()));
+            ed.grip[0].translate(QPointF(r.right(), r.top() + r.height() * .5));
+      else if (type() == ElementType::VBOX)
+            ed.grip[0].translate(QPointF(r.x() + r.width() * .5, r.bottom()));
       }
 
 //---------------------------------------------------------
@@ -182,18 +192,11 @@ void Box::write(XmlWriter& xml) const
 
 void Box::writeProperties(XmlWriter& xml) const
       {
-      writeProperty(xml, P_ID::BOX_HEIGHT);
-      writeProperty(xml, P_ID::BOX_WIDTH);
-
-      if (getProperty(P_ID::TOP_GAP) != propertyDefault(P_ID::TOP_GAP))
-            xml.tag("topGap", _topGap / spatium());
-      if (getProperty(P_ID::BOTTOM_GAP) != propertyDefault(P_ID::BOTTOM_GAP))
-            xml.tag("bottomGap", _bottomGap / spatium());
-      writeProperty(xml, P_ID::LEFT_MARGIN);
-      writeProperty(xml, P_ID::RIGHT_MARGIN);
-      writeProperty(xml, P_ID::TOP_MARGIN);
-      writeProperty(xml, P_ID::BOTTOM_MARGIN);
-
+      for (Pid id : {
+         Pid::BOX_HEIGHT, Pid::BOX_WIDTH, Pid::TOP_GAP, Pid::BOTTOM_GAP,
+         Pid::LEFT_MARGIN, Pid::RIGHT_MARGIN, Pid::TOP_MARGIN, Pid::BOTTOM_MARGIN }) {
+            writeProperty(xml, id);
+            }
       Element::writeProperties(xml);
       for (const Element* e : el())
             e->write(xml);
@@ -211,7 +214,6 @@ void Box::read(XmlReader& e)
       _bottomMargin    = 0.0;
       _boxHeight       = Spatium(0);     // override default set in constructor
       _boxWidth        = Spatium(0);
-      bool keepMargins = false;        // whether original margins have to be kept when reading old file
 
       while (e.readNextStartElement()) {
             const QStringRef& tag(e.name());
@@ -219,26 +221,14 @@ void Box::read(XmlReader& e)
                   HBox* hb = new HBox(score());
                   hb->read(e);
                   add(hb);
-                  keepMargins = true;     // in old file, box nesting used outer box margins
                   }
             else if (tag == "VBox") {
                   VBox* vb = new VBox(score());
                   vb->read(e);
                   add(vb);
-                  keepMargins = true;     // in old file, box nesting used outer box margins
                   }
             else if (!Box::readProperties(e))
                   e.unknown();
-            }
-
-      // with .msc versions prior to 1.17, box margins were only used when nesting another box inside this box:
-      // for backward compatibility set them to 0 in all other cases
-
-      if (score()->mscVersion() <= 114 && (isHBox() || isVBox()) && !keepMargins)  {
-            _leftMargin   = 0.0;
-            _rightMargin  = 0.0;
-            _topMargin    = 0.0;
-            _bottomMargin = 0.0;
             }
       }
 
@@ -257,13 +247,13 @@ bool Box::readProperties(XmlReader& e)
             _topGap = e.readDouble();
             if (score()->mscVersion() >= 206)
                   _topGap *= score()->spatium();
-            topGapStyle = PropertyStyle::UNSTYLED;
+            setPropertyFlags(Pid::TOP_GAP, PropertyFlags::UNSTYLED);
             }
       else if (tag == "bottomGap") {
             _bottomGap = e.readDouble();
              if (score()->mscVersion() >= 206)
                   _bottomGap *= score()->spatium();
-            bottomGapStyle = PropertyStyle::UNSTYLED;
+            setPropertyFlags(Pid::BOTTOM_GAP, PropertyFlags::UNSTYLED);
             }
       else if (tag == "leftMargin")
             _leftMargin = e.readDouble();
@@ -282,9 +272,8 @@ bool Box::readProperties(XmlReader& e)
             else {
                   t = new Text(score());
                   t->read(e);
-                  if (t->empty()) {
+                  if (t->empty())
                         qDebug("read empty text");
-                        }
                   else
                         add(t);
                   }
@@ -333,8 +322,8 @@ bool Box::readProperties(XmlReader& e)
 
 void Box::add(Element* e)
       {
-      if (e->type() == Element::Type::TEXT)
-            static_cast<Text*>(e)->setLayoutToParentWidth(true);
+      if (e->isText())
+            toText(e)->setLayoutToParentWidth(true);
       MeasureBase::add(e);
       }
 
@@ -342,24 +331,24 @@ void Box::add(Element* e)
 //   getProperty
 //---------------------------------------------------------
 
-QVariant Box::getProperty(P_ID propertyId) const
+QVariant Box::getProperty(Pid propertyId) const
       {
       switch(propertyId) {
-            case P_ID::BOX_HEIGHT:
+            case Pid::BOX_HEIGHT:
                   return _boxHeight;
-            case P_ID::BOX_WIDTH:
+            case Pid::BOX_WIDTH:
                   return _boxWidth;
-            case P_ID::TOP_GAP:
+            case Pid::TOP_GAP:
                   return _topGap;
-            case P_ID::BOTTOM_GAP:
+            case Pid::BOTTOM_GAP:
                   return _bottomGap;
-            case P_ID::LEFT_MARGIN:
+            case Pid::LEFT_MARGIN:
                   return _leftMargin;
-            case P_ID::RIGHT_MARGIN:
+            case Pid::RIGHT_MARGIN:
                   return _rightMargin;
-            case P_ID::TOP_MARGIN:
+            case Pid::TOP_MARGIN:
                   return _topMargin;
-            case P_ID::BOTTOM_MARGIN:
+            case Pid::BOTTOM_MARGIN:
                   return _bottomMargin;
             default:
                   return MeasureBase::getProperty(propertyId);
@@ -370,34 +359,32 @@ QVariant Box::getProperty(P_ID propertyId) const
 //   setProperty
 //---------------------------------------------------------
 
-bool Box::setProperty(P_ID propertyId, const QVariant& v)
+bool Box::setProperty(Pid propertyId, const QVariant& v)
       {
       score()->addRefresh(canvasBoundingRect());
-      switch(propertyId) {
-            case P_ID::BOX_HEIGHT:
+      switch (propertyId) {
+            case Pid::BOX_HEIGHT:
                   _boxHeight = v.value<Spatium>();
                   break;
-            case P_ID::BOX_WIDTH:
+            case Pid::BOX_WIDTH:
                   _boxWidth = v.value<Spatium>();
                   break;
-            case P_ID::TOP_GAP:
+            case Pid::TOP_GAP:
                   _topGap = v.toDouble();
-                  topGapStyle = PropertyStyle::UNSTYLED;
                   break;
-            case P_ID::BOTTOM_GAP:
+            case Pid::BOTTOM_GAP:
                   _bottomGap = v.toDouble();
-                  bottomGapStyle = PropertyStyle::UNSTYLED;
                   break;
-            case P_ID::LEFT_MARGIN:
+            case Pid::LEFT_MARGIN:
                   _leftMargin = v.toDouble();
                   break;
-            case P_ID::RIGHT_MARGIN:
+            case Pid::RIGHT_MARGIN:
                   _rightMargin = v.toDouble();
                   break;
-            case P_ID::TOP_MARGIN:
+            case Pid::TOP_MARGIN:
                   _topMargin = v.toDouble();
                   break;
-            case P_ID::BOTTOM_MARGIN:
+            case Pid::BOTTOM_MARGIN:
                   _bottomMargin = v.toDouble();
                   break;
             default:
@@ -411,94 +398,28 @@ bool Box::setProperty(P_ID propertyId, const QVariant& v)
 //   propertyDefault
 //---------------------------------------------------------
 
-QVariant Box::propertyDefault(P_ID id) const
+QVariant Box::propertyDefault(Pid id) const
       {
       switch(id) {
-            case P_ID::BOX_HEIGHT:
-            case P_ID::BOX_WIDTH:
+            case Pid::SUB_STYLE:
+                  return int(SubStyleId::BOX);
+            case Pid::BOX_HEIGHT:
+            case Pid::BOX_WIDTH:
                   return Spatium(0.0);
 
-            case P_ID::TOP_GAP:
-                  return isHBox() ? 0.0 : score()->styleP(StyleIdx::systemFrameDistance);
-            case P_ID::BOTTOM_GAP:
-                  return isHBox() ? 0.0 : score()->styleP(StyleIdx::frameSystemDistance);
+            case Pid::TOP_GAP:
+                  return isHBox() ? 0.0 : score()->styleP(Sid::systemFrameDistance);
+            case Pid::BOTTOM_GAP:
+                  return isHBox() ? 0.0 : score()->styleP(Sid::frameSystemDistance);
 
-            case P_ID::LEFT_MARGIN:
-            case P_ID::RIGHT_MARGIN:
-            case P_ID::TOP_MARGIN:
-            case P_ID::BOTTOM_MARGIN:
+            case Pid::LEFT_MARGIN:
+            case Pid::RIGHT_MARGIN:
+            case Pid::TOP_MARGIN:
+            case Pid::BOTTOM_MARGIN:
                   return 0.0;
             default:
                   return MeasureBase::propertyDefault(id);
             }
-      }
-
-//---------------------------------------------------------
-//   propertyStyle
-//---------------------------------------------------------
-
-PropertyStyle Box::propertyStyle(P_ID id) const
-      {
-      switch (id) {
-            case P_ID::TOP_GAP:
-                  return topGapStyle;
-            case P_ID::BOTTOM_GAP:
-                  return bottomGapStyle;
-            default:
-                  return MeasureBase::propertyStyle(id);
-            }
-      }
-
-//---------------------------------------------------------
-//   resetProperty
-//---------------------------------------------------------
-
-void Box::resetProperty(P_ID id)
-      {
-      switch (id) {
-            case P_ID::TOP_GAP:
-                  setTopGap(isHBox() ? 0.0 : score()->styleP(StyleIdx::systemFrameDistance));
-                  topGapStyle = PropertyStyle::STYLED;
-                  break;
-            case P_ID::BOTTOM_GAP:
-                  setBottomGap(isHBox() ? 0.0 : score()->styleP(StyleIdx::frameSystemDistance));
-                  bottomGapStyle = PropertyStyle::STYLED;
-                  break;
-            default:
-                  return MeasureBase::resetProperty(id);
-            }
-      score()->setLayout(tick());
-      }
-
-//---------------------------------------------------------
-//   styleChanged
-//    reset all styled values to actual style
-//---------------------------------------------------------
-
-void Box::styleChanged()
-      {
-      if (topGapStyle == PropertyStyle::STYLED)
-            setTopGap(isHBox() ? 0.0 : score()->styleP(StyleIdx::systemFrameDistance));
-      if (bottomGapStyle == PropertyStyle::STYLED)
-            setBottomGap(isHBox() ? 0.0 : score()->styleP(StyleIdx::frameSystemDistance));
-      score()->setLayout(tick());
-      }
-
-//---------------------------------------------------------
-//   getPropertyStyle
-//---------------------------------------------------------
-
-StyleIdx Box::getPropertyStyle(P_ID id) const
-      {
-      switch (id) {
-            case P_ID::TOP_GAP:
-                  return isHBox() ? StyleIdx::NOSTYLE : StyleIdx::systemFrameDistance;
-            case P_ID::BOTTOM_GAP:
-                  return isHBox() ? StyleIdx::NOSTYLE : StyleIdx::frameSystemDistance;
-            default:
-                  break;
-            }
-      return StyleIdx::NOSTYLE;
       }
 
 //---------------------------------------------------------
@@ -526,6 +447,7 @@ void Box::copyValues(Box* origin)
 HBox::HBox(Score* score)
    : Box(score)
       {
+      initSubStyle(SubStyleId::BOX);
       setBoxWidth(Spatium(5.0));
       }
 
@@ -535,8 +457,8 @@ HBox::HBox(Score* score)
 
 void HBox::layout()
       {
-      if (parent() && parent()->type() == Element::Type::VBOX) {
-            VBox* vb = static_cast<VBox*>(parent());
+      if (parent() && parent()->isVBox()) {
+            VBox* vb = toVBox(parent());
             qreal x = vb->leftMargin() * DPMM;
             qreal y = vb->topMargin() * DPMM;
             qreal w = point(boxWidth());
@@ -565,19 +487,19 @@ void HBox::layout2()
 //   acceptDrop
 //---------------------------------------------------------
 
-bool Box::acceptDrop(const DropData& data) const
+bool Box::acceptDrop(EditData& data) const
       {
-      Element::Type t = data.element->type();
+      ElementType t = data.element->type();
       if (data.element->flag(ElementFlag::ON_STAFF))
             return false;
       switch (t) {
-            case Type::LAYOUT_BREAK:
-            case Type::TEXT:
-            case Type::STAFF_TEXT:
-            case Type::IMAGE:
-            case Type::SYMBOL:
+            case ElementType::LAYOUT_BREAK:
+            case ElementType::TEXT:
+            case ElementType::STAFF_TEXT:
+            case ElementType::IMAGE:
+            case ElementType::SYMBOL:
                   return true;
-            case Type::ICON:
+            case ElementType::ICON:
                   switch (toIcon(data.element)->iconType()) {
                         case IconType::VFRAME:
                         case IconType::TFRAME:
@@ -588,8 +510,8 @@ bool Box::acceptDrop(const DropData& data) const
                               break;
                         }
                   break;
-            case Type::BAR_LINE:
-                  return type() == Type::HBOX;
+            case ElementType::BAR_LINE:
+                  return type() == ElementType::HBOX;
             default:
                   break;
             }
@@ -600,15 +522,15 @@ bool Box::acceptDrop(const DropData& data) const
 //   drop
 //---------------------------------------------------------
 
-Element* Box::drop(const DropData& data)
+Element* Box::drop(EditData& data)
       {
       Element* e = data.element;
       if (e->flag(ElementFlag::ON_STAFF))
             return 0;
       switch (e->type()) {
-            case Type::LAYOUT_BREAK:
+            case ElementType::LAYOUT_BREAK:
                   {
-                  LayoutBreak* lb = static_cast<LayoutBreak*>(e);
+                  LayoutBreak* lb = toLayoutBreak(e);
                   if (pageBreak() || lineBreak()) {
                         if (
                            (lb->isPageBreak() && pageBreak())
@@ -622,7 +544,7 @@ Element* Box::drop(const DropData& data)
                               break;
                               }
                         for (Element* elem : el()) {
-                              if (elem->type() == Element::Type::LAYOUT_BREAK) {
+                              if (elem->type() == ElementType::LAYOUT_BREAK) {
                                     score()->undoChangeElement(elem, e);
                                     break;
                                     }
@@ -635,53 +557,41 @@ Element* Box::drop(const DropData& data)
                   return lb;
                   }
 
-            case Type::STAFF_TEXT:
+            case ElementType::STAFF_TEXT:
                   {
-                  Text* text = new Text(score());
-                  text->setTextStyleType(TextStyleType::FRAME);
+                  Text* text = new Text(SubStyleId::FRAME, score());
                   text->setParent(this);
-                  text->setXmlText(static_cast<StaffText*>(e)->xmlText());
+                  text->setXmlText(toStaffText(e)->xmlText());
                   score()->undoAddElement(text);
                   delete e;
                   return text;
                   }
 
-            case Type::ICON:
+            case ElementType::ICON:
                   switch (toIcon(e)->iconType()) {
                         case IconType::VFRAME:
-                              score()->insertMeasure(Element::Type::VBOX, this);
+                              score()->insertMeasure(ElementType::VBOX, this);
                               break;
                         case IconType::TFRAME:
-                              score()->insertMeasure(Element::Type::TBOX, this);
+                              score()->insertMeasure(ElementType::TBOX, this);
                               break;
                         case IconType::FFRAME:
-                              score()->insertMeasure(Element::Type::FBOX, this);
+                              score()->insertMeasure(ElementType::FBOX, this);
                               break;
                         case IconType::MEASURE:
-                              score()->insertMeasure(Element::Type::MEASURE, this);
+                              score()->insertMeasure(ElementType::MEASURE, this);
                               break;
                         default:
                               break;
                         }
                   break;
 
-            case Type::TEXT:
-            case Type::IMAGE:
-            case Type::SYMBOL:
+            case ElementType::TEXT:
+            case ElementType::IMAGE:
+            case ElementType::SYMBOL:
                   e->setParent(this);
                   score()->undoAddElement(e);
                   return e;
-
-            case Type::BAR_LINE: {
-                  MeasureBase* mb = next();
-                  if (!mb || !mb->isMeasure()) {
-                        delete e;
-                        return 0;
-                        }
-                  score()->undoChangeBarLine(toMeasure(mb), toBarLine(e)->barLineType(), true);
-                  }
-                  return 0;
-
             default:
                   return 0;
             }
@@ -692,13 +602,13 @@ Element* Box::drop(const DropData& data)
 //   drag
 //---------------------------------------------------------
 
-QRectF HBox::drag(EditData* data)
+QRectF HBox::drag(EditData& data)
       {
       QRectF r(canvasBoundingRect());
-      qreal diff = data->delta.x();
+      qreal diff = data.delta.x();
       qreal x1   = userOff().x() + diff;
-      if (parent()->type() == Element::Type::VBOX) {
-            VBox* vb = static_cast<VBox*>(parent());
+      if (parent()->type() == ElementType::VBOX) {
+            VBox* vb = toVBox(parent());
             qreal x2 = parent()->width() - width() - (vb->leftMargin() + vb->rightMargin()) * DPMM;
             if (x1 < 0.0)
                   x1 = 0.0;
@@ -706,7 +616,7 @@ QRectF HBox::drag(EditData* data)
                   x1 = x2;
             }
       setUserOff(QPointF(x1, 0.0));
-      setStartDragPosition(data->delta);
+//      setStartDragPosition(data.delta);
       return canvasBoundingRect() | r;
       }
 
@@ -714,7 +624,7 @@ QRectF HBox::drag(EditData* data)
 //   endEditDrag
 //---------------------------------------------------------
 
-void HBox::endEditDrag()
+void HBox::endEditDrag(EditData&)
       {
       score()->setLayout(tick());
       score()->update();
@@ -726,7 +636,54 @@ void HBox::endEditDrag()
 
 bool HBox::isMovable() const
       {
-      return parent() && (parent()->type() == Element::Type::HBOX || parent()->type() == Element::Type::VBOX);
+      return parent() && (parent()->isHBox() || parent()->isVBox());
+      }
+
+//---------------------------------------------------------
+//   getProperty
+//---------------------------------------------------------
+
+QVariant HBox::getProperty(Pid propertyId) const
+      {
+      switch (propertyId) {
+            case Pid::CREATE_SYSTEM_HEADER:
+                  return createSystemHeader();
+            default:
+                  return Box::getProperty(propertyId);
+            }
+      }
+
+//---------------------------------------------------------
+//   setProperty
+//---------------------------------------------------------
+
+bool HBox::setProperty(Pid propertyId, const QVariant& v)
+      {
+      switch (propertyId) {
+            case Pid::CREATE_SYSTEM_HEADER:
+                  setCreateSystemHeader(v.toBool());
+                  score()->setLayout(tick());
+                  break;
+            default:
+                  return Box::setProperty(propertyId, v);
+            }
+      return true;
+      }
+
+//---------------------------------------------------------
+//   propertyDefault
+//---------------------------------------------------------
+
+QVariant HBox::propertyDefault(Pid id) const
+      {
+      switch(id) {
+            case Pid::SUB_STYLE:
+                  return int(SubStyleId::BOX);
+            case Pid::CREATE_SYSTEM_HEADER:
+                  return true;
+            default:
+                  return Box::propertyDefault(id);
+            }
       }
 
 //---------------------------------------------------------
@@ -736,9 +693,8 @@ bool HBox::isMovable() const
 VBox::VBox(Score* score)
    : Box(score)
       {
+      initSubStyle(SubStyleId::BOX);
       setBoxHeight(Spatium(10.0));
-      setTopGap(score->styleP(StyleIdx::systemFrameDistance));
-      setBottomGap(score->styleP(StyleIdx::frameSystemDistance));
       setLineBreak(true);
       }
 
@@ -754,25 +710,6 @@ void VBox::layout()
       else
             bbox().setRect(0.0, 0.0, 50, 50);
       Box::layout();
-      }
-
-//---------------------------------------------------------
-//   getGrip
-//---------------------------------------------------------
-
-QPointF VBox::getGrip(Grip) const
-      {
-      return QPointF(0.0, boxHeight().val());
-      }
-
-//---------------------------------------------------------
-//   setGrip
-//---------------------------------------------------------
-
-void VBox::setGrip(Grip, const QPointF& pt)
-      {
-      setBoxHeight(Spatium(pt.y()));
-      layout();
       }
 
 //---------------------------------------------------------
@@ -794,8 +731,8 @@ void FBox::layout()
 void FBox::add(Element* e)
       {
       e->setParent(this);
-      if (e->type() == Element::Type::FRET_DIAGRAM) {
-//            FretDiagram* fd = static_cast<FretDiagram*>(e);
+      if (e->isFretDiagram()) {
+//            FretDiagram* fd = toFretDiagram(e);
 //            fd->setFlag(ElementFlag::MOVABLE, false);
             }
       else {
@@ -804,6 +741,5 @@ void FBox::add(Element* e)
             }
       el().push_back(e);
       }
-
 }
 

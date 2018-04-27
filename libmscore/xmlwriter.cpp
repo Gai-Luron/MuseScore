@@ -157,7 +157,7 @@ void XmlWriter::netag(const char* s)
 //   tag
 //---------------------------------------------------------
 
-void XmlWriter::tag(P_ID id, QVariant data, QVariant defaultData)
+void XmlWriter::tag(Pid id, QVariant data, QVariant defaultData)
       {
       if (data == defaultData)
             return;
@@ -178,6 +178,9 @@ void XmlWriter::tag(P_ID id, QVariant data, QVariant defaultData)
             case P_TYPE::SIZE:
             case P_TYPE::COLOR:
             case P_TYPE::DIRECTION:
+            case P_TYPE::STRING:
+            case P_TYPE::FONT:
+            case P_TYPE::ALIGN:
                   tag(name, data);
                   break;
             case P_TYPE::ORNAMENT_STYLE:
@@ -191,14 +194,14 @@ void XmlWriter::tag(P_ID id, QVariant data, QVariant defaultData)
                              }
                   break;
             case P_TYPE::GLISSANDO_STYLE:
-                  switch (MScore::GlissandoStyle(data.toInt())) {
-                        case MScore::GlissandoStyle::BLACK_KEYS:
+                  switch (GlissandoStyle(data.toInt())) {
+                        case GlissandoStyle::BLACK_KEYS:
                               tag(name, QVariant("blackkeys"));
                               break;
-                        case MScore::GlissandoStyle::WHITE_KEYS:
+                        case GlissandoStyle::WHITE_KEYS:
                               tag(name, QVariant("whitekeys"));
                               break;
-                        case MScore::GlissandoStyle::DIATONIC:
+                        case GlissandoStyle::DIATONIC:
                               tag(name, QVariant("diatonic"));
                               break;
                         default:
@@ -245,11 +248,11 @@ void XmlWriter::tag(P_ID id, QVariant data, QVariant defaultData)
                         }
                   break;
             case P_TYPE::PLACEMENT:
-                  switch (Element::Placement(data.toInt())) {
-                        case Element::Placement::ABOVE:
+                  switch (Placement(data.toInt())) {
+                        case Placement::ABOVE:
                               tag(name, QVariant("above"));
                               break;
-                        case Element::Placement::BELOW:
+                        case Placement::BELOW:
                               tag(name, QVariant("below"));
                               break;
                         }
@@ -266,8 +269,30 @@ void XmlWriter::tag(P_ID id, QVariant data, QVariant defaultData)
             case P_TYPE::HEAD_TYPE:
                   tag(name, NoteHead::type2name(NoteHead::Type(data.toInt())));
                   break;
-            default:
-                  Q_ASSERT(false);
+            case P_TYPE::SUB_STYLE:
+                  tag(name, subStyleName(SubStyleId(data.toInt())));
+                  break;
+            case P_TYPE::FRACTION:
+                  qFatal("unknown: FRACTION");
+            case P_TYPE::POINT_SP:
+                  qFatal("unknown: POINT_SP");
+            case P_TYPE::POINT_MM:
+                  qFatal("unknown: POINT_MM");
+            case P_TYPE::SIZE_MM:
+                  qFatal("unknown: SIZE_MM");
+            case P_TYPE::TDURATION:
+                  qFatal("unknown: TDURATION");
+            case P_TYPE::BEAM_MODE:
+                  qFatal("unknown: BEAM_MODE");
+            case P_TYPE::TEMPO:
+                  qFatal("unknown: TEMPO");
+            case P_TYPE::GROUPS:
+                  qFatal("unknown: GROUPS");
+            case P_TYPE::INT_LIST:
+                  qFatal("unknown: INT_LIST");
+
+//            default:
+//                  Q_ASSERT(false);
             }
       }
 
@@ -349,7 +374,27 @@ void XmlWriter::tag(const QString& name, QVariant data)
                         *this << QString("<%1>%2/%3</%1>\n").arg(name).arg(f.numerator()).arg(f.denominator());
                         }
                   else if (strcmp(type, "Ms::Direction") == 0)
-                        *this << QString("<%1>%2</%1>\n").arg(name).arg(data.value<Direction>().toString());
+                        *this << QString("<%1>%2</%1>\n").arg(name).arg(toString(data.value<Direction>()));
+                  else if (strcmp(type, "Ms::Align") == 0) {
+                        Align a = Align(data.toInt());
+                        const char* h;
+                        if (a & Align::HCENTER)
+                              h = "center";
+                        else if (a & Align::RIGHT)
+                              h = "right";
+                        else
+                              h = "left";
+                        const char* v;
+                        if (a & Align::BOTTOM)
+                              v = "bottom";
+                        else if (a & Align::VCENTER)
+                              v = "center";
+                        else if (a & Align::BASELINE)
+                              v = "baseline";
+                        else
+                              v = "top";
+                        *this << QString("<%1>%2,%3</%1>\n").arg(name).arg(h).arg(v);
+                        }
                   else {
                         qFatal("XmlWriter::tag: unsupported type %d %s", data.type(), type);
                         }

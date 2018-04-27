@@ -15,6 +15,7 @@
 #include "system.h"
 #include "staff.h"
 #include "xml.h"
+#include "measure.h"
 
 namespace Ms {
 
@@ -23,14 +24,17 @@ namespace Ms {
 //---------------------------------------------------------
 
 StaffText::StaffText(Score* s)
-   : Text(s)
+   : TextBase(s, ElementFlag::MOVABLE | ElementFlag::SELECTABLE | ElementFlag::ON_STAFF)
       {
-      setFlags(ElementFlag::MOVABLE | ElementFlag::SELECTABLE | ElementFlag::ON_STAFF);
-      setTextStyleType(TextStyleType::STAFF);
+      initSubStyle(SubStyleId::STAFF);
+      setSwingParameters(MScore::division / 2, 60);
+      }
+
+StaffText::StaffText(SubStyleId ss, Score* s)
+   : TextBase(s, ElementFlag::MOVABLE | ElementFlag::SELECTABLE | ElementFlag::ON_STAFF)
+      {
+      initSubStyle(ss);
       setPlacement(Placement::ABOVE);     // default
-      _setAeolusStops = false;
-      _swing = false;
-      clearAeolusStops();
       setSwingParameters(MScore::division / 2, 60);
       }
 
@@ -43,6 +47,7 @@ void StaffText::write(XmlWriter& xml) const
       if (!xml.canWrite(this))
             return;
       xml.stag("StaffText");
+
       for (ChannelActions s : _channelActions) {
             int channel = s.channel;
             for (QString name : s.midiActionNames)
@@ -67,7 +72,8 @@ void StaffText::write(XmlWriter& xml) const
             int swingRatio = swingParameters()->swingRatio;
             xml.tagE(QString("swing unit=\"%1\" ratio= \"%2\"").arg(swingUnit).arg(swingRatio));
             }
-      Text::writeProperties(xml);
+      TextBase::writeProperties(xml);
+
       xml.etag();
       }
 
@@ -81,65 +87,77 @@ void StaffText::read(XmlReader& e)
             _channelNames[voice].clear();
       clearAeolusStops();
       while (e.readNextStartElement()) {
-            const QStringRef& tag(e.name());
-            if (tag == "MidiAction") {
-                  int channel = e.intAttribute("channel", 0);
-                  QString name = e.attribute("name");
-                  bool found = false;
-                  int n = _channelActions.size();
-                  for (int i = 0; i < n; ++i) {
-                        ChannelActions* a = &_channelActions[i];
-                        if (a->channel == channel) {
-                              a->midiActionNames.append(name);
-                              found = true;
-                              break;
-                              }
-                        }
-                  if (!found) {
-                        ChannelActions a;
-                        a.channel = channel;
-                        a.midiActionNames.append(name);
-                        _channelActions.append(a);
-                        }
-                  e.readNext();
-                  }
-            else if (tag == "channelSwitch" || tag == "articulationChange") {
-                  int voice = e.intAttribute("voice", -1);
-                  if (voice >= 0 && voice < VOICES)
-                        _channelNames[voice] = e.attribute("name");
-                  else if (voice == -1) {
-                        // no voice applies channel to all voices for
-                        // compatibility
-                        for (int i = 0; i < VOICES; ++i)
-                              _channelNames[i] = e.attribute("name");
-                        }
-                  e.readNext();
-                  }
-            else if (tag == "aeolus") {
-                  int group = e.intAttribute("group", -1);
-                  if (group >= 0 && group < 4)
-                        aeolusStops[group] = e.readInt();
-                  else
-                        e.readNext();
-                  _setAeolusStops = true;
-                  }
-            else if (tag == "swing") {
-                  QString swingUnit = e.attribute("unit","");
-                  int unit = 0;
-                  if (swingUnit == TDuration(TDuration::DurationType::V_EIGHTH).name())
-                        unit = MScore::division / 2;
-                  else if (swingUnit == TDuration(TDuration::DurationType::V_16TH).name())
-                        unit = MScore:: division / 4;
-                  else if (swingUnit == TDuration(TDuration::DurationType::V_ZERO).name())
-                        unit = 0;
-                  int ratio = e.intAttribute("ratio", 60);
-                  setSwing(true);
-                  setSwingParameters(unit, ratio);
-                  e.readNext();
-                  }
-            else if (!Text::readProperties(e))
+            if (!readProperties(e))
                   e.unknown();
             }
+      }
+
+//---------------------------------------------------------
+//   readProperties
+//---------------------------------------------------------
+
+bool StaffText::readProperties(XmlReader& e)
+      {
+      const QStringRef& tag(e.name());
+
+      if (tag == "MidiAction") {
+            int channel = e.intAttribute("channel", 0);
+            QString name = e.attribute("name");
+            bool found = false;
+            int n = _channelActions.size();
+            for (int i = 0; i < n; ++i) {
+                  ChannelActions* a = &_channelActions[i];
+                  if (a->channel == channel) {
+                        a->midiActionNames.append(name);
+                        found = true;
+                        break;
+                        }
+                  }
+            if (!found) {
+                  ChannelActions a;
+                  a.channel = channel;
+                  a.midiActionNames.append(name);
+                  _channelActions.append(a);
+                  }
+            e.readNext();
+            }
+      else if (tag == "channelSwitch" || tag == "articulationChange") {
+            int voice = e.intAttribute("voice", -1);
+            if (voice >= 0 && voice < VOICES)
+                  _channelNames[voice] = e.attribute("name");
+            else if (voice == -1) {
+                  // no voice applies channel to all voices for
+                  // compatibility
+                  for (int i = 0; i < VOICES; ++i)
+                        _channelNames[i] = e.attribute("name");
+                  }
+            e.readNext();
+            }
+      else if (tag == "aeolus") {
+            int group = e.intAttribute("group", -1);
+            if (group >= 0 && group < 4)
+                  aeolusStops[group] = e.readInt();
+            else
+                  e.readNext();
+            _setAeolusStops = true;
+            }
+      else if (tag == "swing") {
+            QString swingUnit = e.attribute("unit","");
+            int unit = 0;
+            if (swingUnit == TDuration(TDuration::DurationType::V_EIGHTH).name())
+                  unit = MScore::division / 2;
+            else if (swingUnit == TDuration(TDuration::DurationType::V_16TH).name())
+                  unit = MScore:: division / 4;
+            else if (swingUnit == TDuration(TDuration::DurationType::V_ZERO).name())
+                  unit = 0;
+            int ratio = e.intAttribute("ratio", 60);
+            setSwing(true);
+            setSwingParameters(unit, ratio);
+            e.readNext();
+            }
+      else if (!TextBase::readProperties(e))
+            return false;
+      return true;
       }
 
 //---------------------------------------------------------
@@ -179,33 +197,11 @@ bool StaffText::getAeolusStop(int group, int idx) const
 
 void StaffText::layout()
       {
-      if (autoplace())
-            setUserOff(QPointF());
-      QPointF p(textStyle().offset(spatium()));
-      if (placement() == Element::Placement::BELOW)
-            p.ry() =  - p.ry() + lineHeight();
-      setPos(p);
-      Text::layout1();
-      if (!parent()) // palette & clone trick
-          return;
-
-      if (autoplace() && segment()) {
-            qreal minDistance = score()->styleP(StyleIdx::dynamicsMinDistance);  // TODO
-            Shape s1          = segment()->staffShape(staffIdx()).translated(segment()->pos());
-            Shape s2          = shape().translated(segment()->pos());
-
-            if (placement() == Element::Placement::ABOVE) {
-                  qreal d = s2.minVerticalDistance(s1);
-                  if (d > -minDistance)
-                        rUserYoffset() = -d - minDistance;
-                  }
-            else {
-                  qreal d = s1.minVerticalDistance(s2);
-                  if (d > -minDistance)
-                        rUserYoffset() = d + minDistance;
-                  }
-            }
-      adjustReadPos();
+      Staff* s = staff();
+      qreal y = placeAbove() ? styleP(Sid::staffTextPosAbove) : styleP(Sid::staffTextPosBelow) + (s ? s->height() : 0.0);
+      setPos(QPointF(0.0, y));
+      TextBase::layout1();
+      autoplaceSegmentElement(styleP(Sid::staffTextMinDistance));
       }
 
 //---------------------------------------------------------
@@ -226,13 +222,17 @@ Segment* StaffText::segment() const
 //   propertyDefault
 //---------------------------------------------------------
 
-QVariant StaffText::propertyDefault(P_ID id) const
+QVariant StaffText::propertyDefault(Pid id) const
       {
       switch(id) {
-            case P_ID::PLACEMENT:
+            case Pid::SUB_STYLE:
+                  return int(SubStyleId::STAFF);
+            case Pid::PLACEMENT:
                   return int(Placement::ABOVE);
+            case Pid::FRAME:
+                  return false;
             default:
-                  return Text::propertyDefault(id);
+                  return TextBase::propertyDefault(id);
             }
       }
 

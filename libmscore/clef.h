@@ -21,8 +21,6 @@
 #include "element.h"
 #include "mscore.h"
 
-class QPainter;
-
 namespace Ms {
 
 class XmlWriter;
@@ -129,11 +127,7 @@ class ClefInfo {
 //   @P small         bool    small, mid-staff clef (read only, set by layout)
 //---------------------------------------------------------
 
-class Clef : public Element {
-      Q_OBJECT
-      Q_PROPERTY(bool showCourtesy READ showCourtesy WRITE undoSetShowCourtesy)
-      Q_PROPERTY(bool small READ small)
-
+class Clef final : public Element {
       SymId symId;
       bool _showCourtesy;
       bool _small;
@@ -145,14 +139,14 @@ class Clef : public Element {
       Clef(const Clef&);
       ~Clef() {}
       virtual Clef* clone() const        { return new Clef(*this); }
-      virtual Element::Type type() const { return Element::Type::CLEF; }
+      virtual ElementType type() const { return ElementType::CLEF; }
       virtual qreal mag() const;
 
       Segment* segment() const           { return (Segment*)parent(); }
       Measure* measure() const           { return (Measure*)parent()->parent(); }
 
-      virtual bool acceptDrop(const DropData&) const override;
-      virtual Element* drop(const DropData&);
+      virtual bool acceptDrop(EditData&) const override;
+      virtual Element* drop(EditData&);
       virtual void layout();
       virtual void draw(QPainter*) const;
       virtual void read(XmlReader&);
@@ -184,12 +178,12 @@ class Clef : public Element {
       void setClefType(const ClefTypeList& ctl) { _clefTypes = ctl; }
       virtual void spatiumChanged(qreal oldValue, qreal newValue) override;
 
-      QVariant getProperty(P_ID propertyId) const;
-      bool setProperty(P_ID propertyId, const QVariant&);
-      QVariant propertyDefault(P_ID id) const;
+      QVariant getProperty(Pid propertyId) const;
+      bool setProperty(Pid propertyId, const QVariant&);
+      QVariant propertyDefault(Pid id) const;
 
-      virtual Element* nextElement() override;
-      virtual Element* prevElement() override;
+      virtual Element* nextSegmentElement() override;
+      virtual Element* prevSegmentElement() override;
       QString accessibleInfo() const override;
       void clear();
       };

@@ -15,6 +15,7 @@
 #include "tempo.h"
 #include "system.h"
 #include "measure.h"
+#include "staff.h"
 #include "xml.h"
 
 namespace Ms {
@@ -22,19 +23,20 @@ namespace Ms {
 #define MIN_TEMPO 5.0/60
 #define MAX_TEMPO 999.0/60
 
+//TODO: textChanged() needs to be called during/after editing
+
 //---------------------------------------------------------
 //   TempoText
 //---------------------------------------------------------
 
 TempoText::TempoText(Score* s)
-   : Text(s)
+   : TextBase(s, ElementFlags(ElementFlag::SYSTEM))
       {
+      initSubStyle(SubStyleId::TEMPO);
       _tempo      = 2.0;      // propertyDefault(P_TEMPO).toDouble();
       _followText = false;
-      _relative = 1.0;
+      _relative   = 1.0;
       _isRelative = false;
-      setPlacement(Element::Placement::ABOVE);
-      setTextStyleType(TextStyleType::TEMPO);
       }
 
 //---------------------------------------------------------
@@ -43,11 +45,11 @@ TempoText::TempoText(Score* s)
 
 void TempoText::write(XmlWriter& xml) const
       {
-      xml.stag("Tempo");
+      xml.stag(name());
       xml.tag("tempo", _tempo);
       if (_followText)
             xml.tag("followText", _followText);
-      Text::writeProperties(xml);
+      TextBase::writeProperties(xml);
       xml.etag();
       }
 
@@ -63,18 +65,8 @@ void TempoText::read(XmlReader& e)
                   setTempo(e.readDouble());
             else if (tag == "followText")
                   _followText = e.readInt();
-            else if (!Text::readProperties(e))
+            else if (!TextBase::readProperties(e))
                   e.unknown();
-            }
-      if (score()->mscVersion() <= 114) {
-            //
-            // Reset text in old version to
-            // style.
-            //
-//TODO            if (textStyle() != TextStyleType::INVALID) {
-//                  setStyled(true);
-//                  styleChanged();
-//                  }
             }
       // check sanity
       if (xmlText().isEmpty()) {
@@ -97,6 +89,51 @@ struct TempoPattern {
 // note: findTempoDuration requires the longer patterns to be before the shorter patterns in tp
 
 static const TempoPattern tp[] = {
+      TempoPattern("\uECA5\\s*\uECB7\\s*\uECB7", 1.75/60.0,  TDuration::DurationType::V_QUARTER, 2), // double dotted 1/4
+      TempoPattern("\uECA5\\s*\uECB7",           1.5/60.0,   TDuration::DurationType::V_QUARTER, 1), // dotted 1/4
+      TempoPattern("\uECA5",                     1.0/60.0,   TDuration::DurationType::V_QUARTER),    // 1/4
+      TempoPattern("\uECA3\\s*\uECB7\\s*\uECB7", 1.75/30.0,  TDuration::DurationType::V_HALF, 2),    // double dotted 1/2
+      TempoPattern("\uECA3\\s*\uECB7",           1.5/30.0,   TDuration::DurationType::V_HALF, 1),    // dotted 1/2
+      TempoPattern("\uECA3",                     1.0/30.0,   TDuration::DurationType::V_HALF),       // 1/2
+      TempoPattern("\uECA7\\s*\uECB7\\s*\uECB7", 1.75/120.0, TDuration::DurationType::V_EIGHTH, 2),  // double dotted 1/8
+      TempoPattern("\uECA7\\s*\uECB7",           1.5/120.0,  TDuration::DurationType::V_EIGHTH, 1),  // dotted 1/8
+      TempoPattern("\uECA7",                     1.0/120.0,  TDuration::DurationType::V_EIGHTH),     // 1/8
+      TempoPattern("\uECA2\\s*\uECB7",           1.5/15.0,   TDuration::DurationType::V_WHOLE, 1),   // dotted whole
+      TempoPattern("\uECA2",                     1.0/15.0,   TDuration::DurationType::V_WHOLE),      // whole
+      TempoPattern("\uECA9\\s*\uECB7",           1.5/240.0,  TDuration::DurationType::V_16TH, 1),    // dotted 1/16
+      TempoPattern("\uECA9",                     1.0/240.0,  TDuration::DurationType::V_16TH),       // 1/16
+      TempoPattern("\uECAB\\s*\uECB7",           1.5/480.0,  TDuration::DurationType::V_32ND, 1),    // dotted 1/32
+      TempoPattern("\uECAB",                     1.0/480.0,  TDuration::DurationType::V_32ND),       // 1/32
+      TempoPattern("\uECA1",                     1.0/7.5,    TDuration::DurationType::V_BREVE),      // longa
+      TempoPattern("\uECA0",                     1.0/7.5,    TDuration::DurationType::V_BREVE),      // double whole
+      TempoPattern("\uECAD",                     1.0/960.0,  TDuration::DurationType::V_64TH),       // 1/64
+      TempoPattern("\uECAF",                     1.0/1920.0, TDuration::DurationType::V_128TH),      // 1/128
+      };
+
+//---------------------------------------------------------
+//   findTempoDuration
+//    find the duration part (note + dot) of a tempo text in string s
+//    return the match position or -1 if not found
+//    set len to the match length and dur to the duration value
+//---------------------------------------------------------
+
+int TempoText::findTempoDuration(const QString& s, int& len, TDuration& dur)
+      {
+      len = 0;
+      dur = TDuration();
+      for (const auto& i : tp) {
+            QRegExp re(i.pattern);
+            int pos = re.indexIn(s);
+            if (pos != -1) {
+                  len = re.matchedLength();
+                  dur = i.d;
+                  return pos;
+                  }
+            }
+      return -1;
+      }
+
+static const TempoPattern tpSym[] = {
       TempoPattern("<sym>metNoteQuarterUp</sym>\\s*<sym>metAugmentationDot</sym>\\s*<sym>metAugmentationDot</sym>",                         1.75/60.0, TDuration::DurationType::V_QUARTER, 2), // double dotted 1/4
       TempoPattern("<sym>metNoteQuarterUp</sym>\\s*<sym>metAugmentationDot</sym>",          1.5/60.0,  TDuration::DurationType::V_QUARTER, 1), // dotted 1/4
       TempoPattern("<sym>metNoteQuarterUp</sym>",                                           1.0/60.0,  TDuration::DurationType::V_QUARTER),  // 1/4
@@ -119,40 +156,16 @@ static const TempoPattern tp[] = {
       };
 
 //---------------------------------------------------------
-//   findTempoDuration
-//    find the duration part (note + dot) of a tempo text in string s
-//    return the match position or -1 if not found
-//    set len to the match length and dur to the duration value
-//---------------------------------------------------------
-
-int TempoText::findTempoDuration(const QString& s, int& len, TDuration& dur)
-      {
-      len = 0;
-      dur = TDuration();
-
-      for (const auto& i : tp) {
-            QRegExp re(i.pattern);
-            int pos = re.indexIn(s);
-            if (pos != -1) {
-                  len = re.matchedLength();
-                  dur = i.d;
-                  return pos;
-                  }
-            }
-      return -1;
-      }
-
-//---------------------------------------------------------
 //   duration2tempoTextString
 //    find the tempoText string representation for duration
 //---------------------------------------------------------
 
 QString TempoText::duration2tempoTextString(const TDuration dur)
       {
-      for (const TempoPattern& pa : tp) {
+      for (const TempoPattern& pa : tpSym) {
             if (pa.d == dur) {
                   QString res = pa.pattern;
-                  res.remove("\\s*");
+                  res.replace("\\s*", " ");
                   return res;
                   }
             }
@@ -162,6 +175,7 @@ QString TempoText::duration2tempoTextString(const TDuration dur)
 //---------------------------------------------------------
 // updateScore
 //---------------------------------------------------------
+
 void TempoText::updateScore()
       {
       if (segment())
@@ -173,6 +187,7 @@ void TempoText::updateScore()
 //---------------------------------------------------------
 // updateRelative
 //---------------------------------------------------------
+
 void TempoText::updateRelative()
       {
       qreal tempoBefore = score()->tempo(tick() - 1);
@@ -188,11 +203,19 @@ void TempoText::textChanged()
       {
       if (!_followText)
             return;
+      // cache regexp, they are costly to create
+      static QHash<QString, QRegExp> regexps;
+      static QHash<QString, QRegExp> regexps2;
       QString s = plainText();
       s.replace(",", ".");
       s.replace("<sym>space</sym>"," ");
       for (const TempoPattern& pa : tp) {
-            QRegExp re(QString(pa.pattern)+"\\s*=\\s*(\\d+[.]{0,1}\\d*)\\s*");
+            QRegExp re;
+            if (!regexps.contains(pa.pattern)) {
+                  re = QRegExp(QString("%1\\s*=\\s*(\\d+[.]{0,1}\\d*)\\s*").arg(pa.pattern));
+                  regexps[pa.pattern] = re;
+                  }
+            re = regexps.value(pa.pattern);
             if (re.indexIn(s) != -1) {
                   QStringList sl = re.capturedTexts();
                   if (sl.size() == 2) {
@@ -208,8 +231,14 @@ void TempoText::textChanged()
                   }
             else {
                  for (const TempoPattern& pa2 : tp) {
-                       QRegExp re(QString("%1\\s*=\\s*%2\\s*").arg(pa.pattern).arg(pa2.pattern));
-                       if (re.indexIn(s) != -1) {
+                       QString key = QString("%1_%2").arg(pa.pattern).arg(pa2.pattern);
+                       QRegExp re2;
+                       if (!regexps2.contains(key)) {
+                             re2 = QRegExp(QString("%1\\s*=\\s*%2\\s*").arg(pa.pattern).arg(pa2.pattern));
+                             regexps2[key] = re2;
+                             }
+                       re2 = regexps2.value(key);
+                       if (re2.indexIn(s) != -1) {
                              _relative = pa2.f / pa.f;
                              _isRelative = true;
                              updateRelative();
@@ -240,7 +269,7 @@ void TempoText::setTempo(qreal v)
 
 void TempoText::undoSetTempo(qreal v)
       {
-      undoChangeProperty(P_ID::TEMPO, v);
+      undoChangeProperty(Pid::TEMPO, v);
       }
 
 //---------------------------------------------------------
@@ -249,20 +278,22 @@ void TempoText::undoSetTempo(qreal v)
 
 void TempoText::undoSetFollowText(bool v)
       {
-      undoChangeProperty(P_ID::TEMPO_FOLLOW_TEXT, v);
+      undoChangeProperty(Pid::TEMPO_FOLLOW_TEXT, v);
       }
 
 //---------------------------------------------------------
 //   getProperty
 //---------------------------------------------------------
 
-QVariant TempoText::getProperty(P_ID propertyId) const
+QVariant TempoText::getProperty(Pid propertyId) const
       {
-      switch(propertyId) {
-            case P_ID::TEMPO:             return _tempo;
-            case P_ID::TEMPO_FOLLOW_TEXT: return _followText;
+      switch (propertyId) {
+            case Pid::TEMPO:
+                  return _tempo;
+            case Pid::TEMPO_FOLLOW_TEXT:
+                  return _followText;
             default:
-                  return Text::getProperty(propertyId);
+                  return TextBase::getProperty(propertyId);
             }
       }
 
@@ -270,19 +301,19 @@ QVariant TempoText::getProperty(P_ID propertyId) const
 //   setProperty
 //---------------------------------------------------------
 
-bool TempoText::setProperty(P_ID propertyId, const QVariant& v)
+bool TempoText::setProperty(Pid propertyId, const QVariant& v)
       {
       switch (propertyId) {
-            case P_ID::TEMPO:
+            case Pid::TEMPO:
                   setTempo(v.toDouble());
                   score()->setTempo(segment(), _tempo);
                   score()->fixTicks();
                   break;
-            case P_ID::TEMPO_FOLLOW_TEXT:
+            case Pid::TEMPO_FOLLOW_TEXT:
                   _followText = v.toBool();
                   break;
             default:
-                  if (!Text::setProperty(propertyId, v))
+                  if (!TextBase::setProperty(propertyId, v))
                         return false;
                   break;
             }
@@ -294,14 +325,17 @@ bool TempoText::setProperty(P_ID propertyId, const QVariant& v)
 //   propertyDefault
 //---------------------------------------------------------
 
-QVariant TempoText::propertyDefault(P_ID id) const
+QVariant TempoText::propertyDefault(Pid id) const
       {
       switch(id) {
-            case P_ID::TEMPO:             return 2.0;
-            case P_ID::TEMPO_FOLLOW_TEXT: return false;
-            case P_ID::PLACEMENT:         return int(Element::Placement::ABOVE);
+            case Pid::SUB_STYLE:
+                  return int(SubStyleId::TEMPO);
+            case Pid::TEMPO:
+                  return 2.0;
+            case Pid::TEMPO_FOLLOW_TEXT:
+                  return false;
             default:
-                  return Text::propertyDefault(id);
+                  return TextBase::propertyDefault(id);
             }
       }
 
@@ -312,16 +346,18 @@ QVariant TempoText::propertyDefault(P_ID id) const
 
 void TempoText::layout()
       {
-      if (autoplace())
-            setUserOff(QPointF());
-      setPos(textStyle().offset(spatium()));
-      Text::layout1();
+      qreal y = placeAbove() ? styleP(Sid::tempoPosAbove) : styleP(Sid::tempoPosBelow) + staff()->height();
+      setPos(QPointF(0.0, y));
+      TextBase::layout1();
+
+      Segment* s = segment();
+      if (!s)                       // for use in palette
+            return;
 
       // tempo text on first chordrest of measure should align over time sig if present
       //
-      Segment* s = segment();
-      if (s && !s->rtick()) {
-            Segment* p = segment()->prev(Segment::Type::TimeSig);
+      if (!s->rtick()) {
+            Segment* p = segment()->prev(SegmentType::TimeSig);
             if (p) {
                   rxpos() -= s->x() - p->x();
                   Element* e = p->element(staffIdx() * VOICES);
@@ -329,19 +365,7 @@ void TempoText::layout()
                         rxpos() += e->x();
                   }
             }
-
-      if (placement() == Element::Placement::BELOW)
-            rypos() = -rypos() + 4 * spatium();
-
-      if (s && autoplace()) {
-            Shape s1 = s->staffShape(staffIdx()).translated(s->pos());
-            Shape s2 = shape().translated(s->pos());
-            qreal d  = s2.minVerticalDistance(s1);
-            if (d > 0)
-                  setUserOff(QPointF(0.0, -d));
-            }
-      if (!autoplace())
-            adjustReadPos();
+      autoplaceSegmentElement(styleP(Sid::tempoMinDistance));
       }
 
 //---------------------------------------------------------
@@ -352,13 +376,13 @@ QString TempoText::duration2userName(const TDuration t)
       {
       QString dots;
       switch (t.dots()) {
-            case 1: dots = tr("Dotted %1").arg(t.durationTypeUserName());
+            case 1: dots = QObject::tr("Dotted %1").arg(t.durationTypeUserName());
                   break;
-            case 2: dots = tr("Double dotted %1").arg(t.durationTypeUserName());
+            case 2: dots = QObject::tr("Double dotted %1").arg(t.durationTypeUserName());
                   break;
-            case 3: dots = tr("Triple dotted %1").arg(t.durationTypeUserName());
+            case 3: dots = QObject::tr("Triple dotted %1").arg(t.durationTypeUserName());
                   break;
-            case 4: dots = tr("Quadruple dotted %1").arg(t.durationTypeUserName());
+            case 4: dots = QObject::tr("Quadruple dotted %1").arg(t.durationTypeUserName());
                   break;
             default:
                   dots = t.durationTypeUserName();
@@ -391,13 +415,13 @@ QString TempoText::accessibleInfo() const
             dots1 = duration2userName(t1);
             if (x2 != -1) {
                   dots2 = duration2userName(t2);
-                  return QString("%1: %2 %3 = %4 %5").arg(Element::accessibleInfo()).arg(dots1).arg(tr("note")).arg(dots2).arg(tr("note"));
+                  return QString("%1: %2 %3 = %4 %5").arg(Element::accessibleInfo()).arg(dots1).arg(QObject::tr("note")).arg(dots2).arg(QObject::tr("note"));
                   }
             else
-                  return QString("%1: %2 %3 = %4").arg(Element::accessibleInfo()).arg(dots1).arg(tr("note")).arg(secondPart);
+                  return QString("%1: %2 %3 = %4").arg(Element::accessibleInfo()).arg(dots1).arg(QObject::tr("note")).arg(secondPart);
             }
       else
-            return Text::accessibleInfo();
+            return TextBase::accessibleInfo();
       }
 
 }

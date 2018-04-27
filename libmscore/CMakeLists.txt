@@ -34,11 +34,12 @@ add_library (
       ${PROJECT_BINARY_DIR}/all.h
       ${INCS}
       ${LIB_SCRIPT_FILES}
+      types.h
       segmentlist.cpp fingering.cpp accidental.cpp arpeggio.cpp
-      articulation.cpp barline.cpp beam.cpp bend.cpp box.cpp
+      fermata.cpp articulation.cpp barline.cpp beam.cpp bend.cpp box.cpp
       bracket.cpp breath.cpp bsp.cpp chord.cpp chordline.cpp
       chordlist.cpp chordrest.cpp clef.cpp cleflist.cpp
-      drumset.cpp durationtype.cpp dynamic.cpp edit.cpp
+      drumset.cpp durationtype.cpp dynamic.cpp edit.cpp noteentry.cpp
       element.cpp elementlayout.cpp excerpt.cpp
       fifo.cpp fret.cpp glissando.cpp hairpin.cpp
       harmony.cpp hook.cpp image.cpp iname.cpp instrchange.cpp
@@ -46,11 +47,11 @@ add_library (
       key.cpp keyfinder.cpp keysig.cpp lasso.cpp
       layoutbreak.cpp layout.cpp line.cpp lyrics.cpp measurebase.cpp
       measure.cpp navigate.cpp note.cpp noteevent.cpp ottava.cpp
-      page.cpp part.cpp pedal.cpp pitch.cpp pitchspelling.cpp
+      page.cpp part.cpp pedal.cpp letring.cpp vibrato.cpp palmmute.cpp pitch.cpp pitchspelling.cpp
       rendermidi.cpp repeat.cpp repeatlist.cpp rest.cpp
       score.cpp segment.cpp select.cpp shadownote.cpp slur.cpp tie.cpp slurtie.cpp
       spacer.cpp spanner.cpp staff.cpp staffstate.cpp
-      stafftext.cpp stafftype.cpp stem.cpp style.cpp textstyle.cpp symbol.cpp
+      stafftext.cpp systemtext.cpp stafftype.cpp stem.cpp style.cpp symbol.cpp
       sym.cpp system.cpp stringdata.cpp tempotext.cpp text.cpp
       textframe.cpp textline.cpp textlinebase.cpp timesig.cpp
       tremolobar.cpp tremolo.cpp trill.cpp tuplet.cpp
@@ -66,14 +67,32 @@ add_library (
       synthesizerstate.cpp mcursor.cpp groups.cpp mscoreview.cpp
       noteline.cpp spannermap.cpp
       bagpembell.cpp ambitus.cpp keylist.cpp scoreElement.cpp
-      shape.cpp systemdivider.cpp midimapping.cpp
-      read114.cpp read206.cpp read300.cpp
+      shape.cpp systemdivider.cpp midimapping.cpp stafflines.cpp
+      read114.cpp
+      read206.cpp
+      read300.cpp stafftypelist.cpp stafftypechange.cpp
+      bracketItem.cpp
       )
+
+##
+## Code coverage. Only affects DEBUG builds.
+##
+
+set(COVERAGE_OPTIONS "")
+if (NOT APPLE AND NOT MINGW AND CMAKE_BUILD_TYPE MATCHES "DEBUG")
+   if (COVERAGE)
+      set(COVERAGE_OPTIONS "-O0 --coverage")
+      set(CMAKE_CXX_OUTPUT_EXTENSION_REPLACE 1)
+      target_link_libraries(libmscore gcov)
+   endif (COVERAGE)
+endif (NOT APPLE AND NOT MINGW AND CMAKE_BUILD_TYPE MATCHES "DEBUG")
+
+
 
 set_target_properties (
       libmscore
       PROPERTIES
-         COMPILE_FLAGS "-g ${PCH_INCLUDE} -Wall -Wextra -Winvalid-pch -Woverloaded-virtual"
+         COMPILE_FLAGS "-g ${PCH_INCLUDE} -Wall -Wextra -Winvalid-pch -Woverloaded-virtual ${COVERAGE_OPTIONS}"
       )
 
 xcode_pch(libmscore all)

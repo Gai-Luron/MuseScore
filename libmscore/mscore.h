@@ -14,6 +14,7 @@
 #define __MSCORE_H__
 
 #include "config.h"
+#include "style.h"
 
 namespace Ms {
 
@@ -62,14 +63,15 @@ static constexpr int MSCVERSION = 300;
 //    3.00  (Version 3.0 alpha)
 
 
-
-
 class MStyle;
 class Sequencer;
 
 enum class HairpinType : char;
 
-static constexpr int VOICES = 4;
+#ifndef VOICES
+#define VOICES 4
+#endif
+
 inline int staff2track(int staffIdx) { return staffIdx << 2; }
 inline int track2staff(int voice)    { return voice >> 2;    }
 inline int track2voice(int track)    { return track & 3;     }
@@ -98,78 +100,6 @@ static const int  STRING_NONE             = -1;       // no ordinal for a physic
 static const int  FRET_NONE               = -1;       // no ordinal for a fret
 
 //---------------------------------------------------------
-//   Enumeration wrapper macro allowing exposure of
-//   enum class to QML without manual code reproduction
-//
-//   In addition to using this Macro, you need to do one/all of the following:
-//   - In mscore.cpp - QQmlEngine* MScore::qml()
-//       qmlRegisterUncreatableType<MSQE_name>("MuseScore", 1, 0, "name", tr("You can't create an enumeration"))
-//     Allows usage of name.VALUE from within a plugin as value
-//   - At the bottom of the file where you use this Macro
-//       Q_DECLARE_METATYPE(Ms::MSQE_name::E);
-//     Allows declaring Q_PROPERTY of the type Ms::MSQE_name::E
-//      Only useful if the next point is also done
-//   - In mscore.cpp - void MScore::init()
-//       qRegisterMetaType<MSQE_name::E>("name");
-//     Allows using Ms::MSQE_name::E as return type for the READ function
-//      and parameter type for the WRITE function on a Q_PROPERTY of that type
-//      on the condition that you also declare Q_ENUMS(Ms::MSQE_name::E)
-//      for that same Q_OBJECT
-//
-//   Q_INVOKABLES can't use the QML-wrapped enum type, nor the enum class type as
-//    parameters. Those should be from the correct storageType and static_casts should
-//    be applied when necessary.
-//---------------------------------------------------------
-
-#define MS_QML_ENUM(name, storageType, ...)\
-      enum class name : storageType {\
-            __VA_ARGS__\
-      };\
-      class MSQE_##name {\
-            Q_GADGET\
-            Q_ENUMS(E)\
-      public:\
-            enum class E : storageType {\
-                  __VA_ARGS__\
-            };\
-      };
-
-//---------------------------------------------------------
-//   Direction
-//---------------------------------------------------------
-
-class Direction  {
-      Q_GADGET
-      Q_ENUMS(E)
-      int val;
-
-   public:
-      enum E { AUTO, UP, DOWN };
-
-      Direction()                                {}
-      constexpr Direction(const int v) : val(v)  {}
-      Direction(const Direction& v) : val(v.val) {}
-      Direction(const QString&);
-
-      // automatic conversions
-      operator QVariant() const                { return QVariant::fromValue(*this); }
-//      explicit constexpr operator int() const  { return val; }
-      constexpr operator int() const  { return val; }
-
-      bool operator==(const Direction d) const { return val == d.val; }
-      bool operator!=(const Direction d) const { return val != d.val; }
-      bool operator==(const E d) const         { return val == d; }
-      bool operator!=(const E d) const         { return val != d; }
-
-      const char* toString() const;
-      static void fillComboBox(QComboBox*);
-      };
-
-constexpr Direction Direction_AUTO(0);
-constexpr Direction Direction_UP(1);
-constexpr Direction Direction_DOWN(2);
-
-//---------------------------------------------------------
 //   BracketType
 //    System Brackets
 //---------------------------------------------------------
@@ -184,32 +114,6 @@ enum class BracketType : signed char {
 
 enum class PlaceText : char {
       AUTO, ABOVE, BELOW, LEFT
-      };
-
-//---------------------------------------------------------
-//   AlignmentFlags
-//---------------------------------------------------------
-
-enum class AlignmentFlags : char {
-      LEFT     = 0,
-      RIGHT    = 1,
-      HCENTER  = 2,
-      TOP      = 0,
-      BOTTOM   = 4,
-      VCENTER  = 8,
-      BASELINE = 16,
-      CENTER = AlignmentFlags::HCENTER | AlignmentFlags::VCENTER,
-      HMASK = AlignmentFlags::LEFT | AlignmentFlags::RIGHT | AlignmentFlags::HCENTER,
-      VMASK = AlignmentFlags::TOP | AlignmentFlags::BOTTOM | AlignmentFlags::VCENTER | AlignmentFlags::BASELINE
-      };
-
-//---------------------------------------------------------
-//   OffsetType
-//---------------------------------------------------------
-
-enum class OffsetType : char {
-      ABS,       ///< offset in point units
-      SPATIUM    ///< offset in staff space units
       };
 
 //---------------------------------------------------------
@@ -252,6 +156,7 @@ enum class NoteType : unsigned char {
       GRACE32_AFTER = 0x80,
       INVALID       = 0xFF
       };
+// Q_ENUM_NS(NoteType);
 
 constexpr NoteType operator| (NoteType t1, NoteType t2) {
       return static_cast<NoteType>(static_cast<int>(t1) | static_cast<int>(t2));
@@ -259,7 +164,6 @@ constexpr NoteType operator| (NoteType t1, NoteType t2) {
 constexpr bool operator& (NoteType t1, NoteType t2) {
       return static_cast<int>(t1) & static_cast<int>(t2);
       }
-
 
 //---------------------------------------------------------
 //    AccidentalVal
@@ -314,72 +218,18 @@ enum class NoteHeadScheme : char {
       };
 
 //---------------------------------------------------------
-//   Text Style Type
-//    Enumerate the list of built-in text styles.
-//    Must be in sync with list in setDefaultStyle().
-//---------------------------------------------------------
-
-MS_QML_ENUM(TextStyleType, signed char,\
-      DEFAULT = 0,\
-      TITLE,\
-      SUBTITLE,\
-      COMPOSER,\
-      POET,\
-      LYRIC1,\
-      LYRIC2,\
-      FINGERING,\
-      LH_GUITAR_FINGERING,\
-      RH_GUITAR_FINGERING,\
-      \
-      STRING_NUMBER,\
-      INSTRUMENT_LONG,\
-      INSTRUMENT_SHORT,\
-      INSTRUMENT_EXCERPT,\
-      DYNAMICS,\
-      EXPRESSION,\
-      TEMPO,\
-      METRONOME,\
-      MEASURE_NUMBER,\
-      TRANSLATOR,\
-      \
-      TUPLET,\
-      SYSTEM,\
-      STAFF,\
-      HARMONY,\
-      REHEARSAL_MARK,\
-      REPEAT_LEFT,       /* align to start of measure */\
-      REPEAT_RIGHT,      /* align to end of measure */\
-      VOLTA,\
-      FRAME,\
-      \
-      TEXTLINE,\
-      GLISSANDO,\
-      OTTAVA,\
-      PEDAL,\
-      HAIRPIN,\
-      BEND,\
-      HEADER,\
-      FOOTER,\
-      INSTRUMENT_CHANGE,\
-      FIGURED_BASS,\
-      \
-      TEXT_STYLES\
-      )
-
-//---------------------------------------------------------
 //   BarLineType
 //---------------------------------------------------------
 
-MS_QML_ENUM(BarLineType, int,\
-      NORMAL           = 1,\
-      DOUBLE           = 2,\
-      START_REPEAT     = 4,\
-      END_REPEAT       = 8,\
-      BROKEN           = 0x10,\
-      END              = 0x20,\
-      END_START_REPEAT = 0x40,\
-      DOTTED           = 0x80\
-      )
+enum class BarLineType {
+      NORMAL           = 1,
+      DOUBLE           = 2,
+      START_REPEAT     = 4,
+      END_REPEAT       = 8,
+      BROKEN           = 0x10,
+      END              = 0x20,
+      DOTTED           = 0x80
+      };
 
 constexpr BarLineType operator| (BarLineType t1, BarLineType t2) {
       return static_cast<BarLineType>(static_cast<int>(t1) | static_cast<int>(t2));
@@ -397,7 +247,7 @@ enum class IconType : signed char {
       SBEAM, MBEAM, NBEAM, BEAM32, BEAM64, AUTOBEAM,
       FBEAM1, FBEAM2,
       VFRAME, HFRAME, TFRAME, FFRAME, MEASURE,
-      BRACKETS
+      BRACKETS, PARENTHESES
       };
 
 //---------------------------------------------------------
@@ -406,10 +256,25 @@ enum class IconType : signed char {
 
 enum MsError {
       MS_NO_ERROR,
+      NO_NOTE_SELECTED,
       NO_CHORD_REST_SELECTED,
+      NO_LYRICS_SELECTED,
+      NO_NOTE_REST_SELECTED,
+      NO_NOTE_SLUR_SELECTED,
+      NO_STAFF_SELECTED,
+      NO_NOTE_FIGUREDBASS_SELECTED,
+      CANNOT_INSERT_TUPLET,
       CANNOT_SPLIT_TUPLET,
       CANNOT_SPLIT_MEASURE_FIRST_BEAT,
       CANNOT_SPLIT_MEASURE_TUPLET,
+      NO_DEST,
+      DEST_TUPLET,
+      TUPLET_CROSSES_BAR,
+      DEST_LOCAL_TIME_SIGNATURE,
+      DEST_TREMOLO,
+      NO_MIME,
+      DEST_NO_CR,
+      CANNOT_CHANGE_LOCAL_TIMESIG,
       };
 
 struct MScoreError {
@@ -439,12 +304,10 @@ class MPaintDevice : public QPaintDevice {
 //---------------------------------------------------------
 
 class MScore : public QObject {
-      Q_OBJECT
-
-      static MStyle* _defaultStyle;       // buildin modified by preferences
+      static MStyle _baseStyle;          // buildin initial style
+      static MStyle _defaultStyle;       // buildin modified by preferences
       static MStyle* _defaultStyleForParts;
 
-      static MStyle* _baseStyle;          // buildin initial style
       static QString _globalShare;
       static int _hRaster, _vRaster;
       static bool _verticalOrientation;
@@ -458,19 +321,18 @@ class MScore : public QObject {
    public:
       enum class DirectionH : char { AUTO, LEFT, RIGHT };
       enum class OrnamentStyle : char { DEFAULT, BAROQUE};
-      enum class GlissandoStyle : char { CHROMATIC, WHITE_KEYS, BLACK_KEYS, DIATONIC };
 
       static MsError _error;
       static std::vector<MScoreError> errorList;
 
-      Q_ENUMS(DirectionH OrnamentStyle GlissandoStyle)
-
       static void init();
 
-      static MStyle* defaultStyle();
-      static MStyle* defaultStyleForParts();
-      static MStyle* baseStyle();
-      static void setDefaultStyle(MStyle*);
+      static const MStyle& baseStyle()             { return _baseStyle;            }
+      static MStyle& defaultStyle()                { return _defaultStyle;         }
+      static const MStyle* defaultStyleForParts()  { return _defaultStyleForParts; }
+
+      static bool readDefaultStyle(QString file);
+      static void setDefaultStyle(const MStyle& s) { _defaultStyle = s; }
       static void defaultStyleForPartsHasChanged();
 
       static const QString& globalShare()   { return _globalShare; }
@@ -509,6 +371,7 @@ class MScore : public QObject {
       static bool showBoundingRect;
       static bool showCorruptedMeasures;
       static bool useFallbackFont;
+      static bool autoplaceSlurs;
 // #endif
       static bool debugMode;
       static bool testMode;
@@ -525,6 +388,7 @@ class MScore : public QObject {
       static bool noImages;
 
       static bool pdfPrinting;
+      static bool svgPrinting;
       static double pixelRatio;
 
       static qreal verticalPageGap;
@@ -564,9 +428,6 @@ inline static int limit(int val, int min, int max)
       return val;
       }
 
-Q_DECLARE_FLAGS(Align, AlignmentFlags);
-Q_DECLARE_OPERATORS_FOR_FLAGS(Align);
-
 //---------------------------------------------------------
 //   qml access to containers
 //
@@ -596,11 +457,11 @@ public:
 
 }     // namespace Ms
 
-Q_DECLARE_METATYPE(Ms::Direction);
-//Q_DECLARE_METATYPE(Ms::MSQE_Direction::E);
-Q_DECLARE_METATYPE(Ms::Direction::E);
+// Q_DECLARE_METATYPE(Ms::Direction);
+// Q_DECLARE_METATYPE(Ms::MSQE_Direction::E);
+// Q_DECLARE_METATYPE(Ms::Direction::E);
+
 Q_DECLARE_METATYPE(Ms::MScore::DirectionH);
-Q_DECLARE_METATYPE(Ms::TextStyleType);
 Q_DECLARE_METATYPE(Ms::BarLineType);
 
 #endif

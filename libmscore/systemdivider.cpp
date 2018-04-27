@@ -49,15 +49,10 @@ void SystemDivider::layout()
       SymId sid;
       ScoreFont* sf = score()->scoreFont();
 
-      switch (_dividerType) {
-            case SystemDivider::LEFT:
-                  sid = Sym::name2id(score()->styleSt(StyleIdx::dividerLeftSym));
-                  break;
-            case SystemDivider::RIGHT:
-            default:
-                  sid = Sym::name2id(score()->styleSt(StyleIdx::dividerRightSym));
-                  break;
-            }
+      if (_dividerType == SystemDivider::LEFT)
+            sid = Sym::name2id(score()->styleSt(Sid::dividerLeftSym));
+      else
+            sid = Sym::name2id(score()->styleSt(Sid::dividerRightSym));
       setSym(sid, sf);
       Symbol::layout();
       }
@@ -70,14 +65,12 @@ void SystemDivider::setDividerType(SystemDivider::Type v)
       {
       _dividerType = v;
       if (v == SystemDivider::LEFT) {
-            setXoff(score()->styleD(StyleIdx::dividerLeftX));
-            setYoff(score()->styleD(StyleIdx::dividerLeftY));
-            setAlign(AlignmentFlags::LEFT | AlignmentFlags::VCENTER);
+            setXoff(score()->styleD(Sid::dividerLeftX));
+            setYoff(score()->styleD(Sid::dividerLeftY));
             }
       else {
-            setXoff(score()->styleD(StyleIdx::dividerRightX));
-            setYoff(score()->styleD(StyleIdx::dividerRightY));
-            setAlign(AlignmentFlags::RIGHT | AlignmentFlags::VCENTER);
+            setXoff(score()->styleD(Sid::dividerRightX));
+            setYoff(score()->styleD(Sid::dividerRightY));
             }
       }
 
@@ -85,7 +78,7 @@ void SystemDivider::setDividerType(SystemDivider::Type v)
 //   drag
 //---------------------------------------------------------
 
-QRectF SystemDivider::drag(EditData* ed)
+QRectF SystemDivider::drag(EditData& ed)
       {
       setGenerated(false);
       return Symbol::drag(ed);
@@ -111,23 +104,20 @@ void SystemDivider::write(XmlWriter& xml) const
 
 void SystemDivider::read(XmlReader& e)
       {
-      Align a = align() & AlignmentFlags::VMASK;
       ScoreFont* sf = score()->scoreFont();
       if (e.attribute("type") == "left") {
             _dividerType = SystemDivider::Type::LEFT;
-            SymId sym = Sym::name2id(score()->styleSt(StyleIdx::dividerLeftSym));
+            SymId sym = Sym::name2id(score()->styleSt(Sid::dividerLeftSym));
             setSym(sym, sf);
-            setAlign(a | AlignmentFlags::LEFT);
-            setXoff(score()->styleB(StyleIdx::dividerLeftX));
-            setYoff(score()->styleB(StyleIdx::dividerLeftY));
+            setXoff(score()->styleD(Sid::dividerLeftX));
+            setYoff(score()->styleD(Sid::dividerLeftY));
             }
       else {
             _dividerType = SystemDivider::Type::RIGHT;
-            SymId sym = Sym::name2id(score()->styleSt(StyleIdx::dividerRightSym));
+            SymId sym = Sym::name2id(score()->styleSt(Sid::dividerRightSym));
             setSym(sym, sf);
-            setAlign(a | AlignmentFlags::RIGHT);
-            setXoff(score()->styleB(StyleIdx::dividerRightX));
-            setYoff(score()->styleB(StyleIdx::dividerRightY));
+            setXoff(score()->styleD(Sid::dividerRightX));
+            setYoff(score()->styleD(Sid::dividerRightY));
             }
       Symbol::read(e);
       }

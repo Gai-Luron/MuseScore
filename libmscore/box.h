@@ -19,7 +19,7 @@
 */
 
 #include "measurebase.h"
-class QPainter;
+#include "property.h"
 
 namespace Ms {
 
@@ -31,41 +31,39 @@ class MuseScoreView;
 //---------------------------------------------------------
 
 class Box : public MeasureBase {
-      Q_OBJECT
-
       Spatium _boxWidth             { Spatium(0) };  // only valid for HBox
       Spatium _boxHeight            { Spatium(0) };  // only valid for VBox
       qreal _topGap                 { 0.0   };       // distance from previous system (left border for hbox)
-                                                     // initialized with StyleIdx::systemFrameDistance
+                                                     // initialized with Sid::systemFrameDistance
       qreal _bottomGap              { 0.0   };       // distance to next system (right border for hbox)
-                                                     // initialized with StyleIdx::frameSystemDistance
+                                                     // initialized with Sid::frameSystemDistance
       qreal _leftMargin             { 0.0   };
       qreal _rightMargin            { 0.0   };       // inner margins in metric mm
       qreal _topMargin              { 0.0   };
       qreal _bottomMargin           { 0.0   };
       bool editMode                 { false };
-      PropertyStyle topGapStyle     { PropertyStyle::STYLED };
-      PropertyStyle bottomGapStyle  { PropertyStyle::STYLED };
       qreal dragX;                        // used during drag of hbox
 
    public:
       Box(Score*);
       virtual void draw(QPainter*) const override;
       virtual bool isEditable() const override { return true; }
-      virtual void startEdit(MuseScoreView*, const QPointF&) override;
-      virtual bool edit(MuseScoreView*, Grip grip, int key, Qt::KeyboardModifiers, const QString& s) override;
-      virtual void editDrag(const EditData&) override;
-      virtual void endEdit() override;
-      virtual void updateGrips(Grip*, QVector<QRectF>&) const override;
-      virtual int grips() const override { return 1; }
+
+      virtual void startEdit(EditData&) override;
+      virtual bool edit(EditData&) override;
+      virtual void startEditDrag(EditData&) override;
+      virtual void editDrag(EditData&) override;
+      virtual void endEdit(EditData&) override;
+
+      virtual void updateGrips(EditData&) const override;
       virtual void layout() override;
       virtual void write(XmlWriter&) const override;
-      virtual void write(XmlWriter& xml, int, bool) const override { write(xml); }
+      virtual void write(XmlWriter& xml, int, bool, bool) const override { write(xml); }
       virtual void writeProperties(XmlWriter&) const override;
       virtual bool readProperties(XmlReader&) override;
       virtual void read(XmlReader&) override;
-      virtual bool acceptDrop(const DropData&) const override;
-      virtual Element* drop(const DropData&) override;
+      virtual bool acceptDrop(EditData&) const override;
+      virtual Element* drop(EditData&) override;
       virtual void add(Element* e) override;
 
       Spatium boxWidth() const        { return _boxWidth;     }
@@ -86,13 +84,9 @@ class Box : public MeasureBase {
       void setBottomGap(qreal val)    { _bottomGap = val;     }
       void copyValues(Box* origin);
 
-      virtual QVariant getProperty(P_ID propertyId) const override;
-      virtual bool setProperty(P_ID propertyId, const QVariant&) override;
-      virtual QVariant propertyDefault(P_ID) const override;
-      virtual PropertyStyle propertyStyle(P_ID id) const override;
-      virtual void resetProperty(P_ID id) override;
-      virtual void styleChanged() override;
-      virtual StyleIdx getPropertyStyle(P_ID id) const override;
+      virtual QVariant getProperty(Pid propertyId) const override;
+      virtual bool setProperty(Pid propertyId, const QVariant&) override;
+      virtual QVariant propertyDefault(Pid) const override;
       };
 
 //---------------------------------------------------------
@@ -100,22 +94,29 @@ class Box : public MeasureBase {
 ///    horizontal frame
 //---------------------------------------------------------
 
-class HBox : public Box {
-      Q_OBJECT
+class HBox final : public Box {
+      bool _createSystemHeader { true };
 
    public:
       HBox(Score* score);
       virtual ~HBox() {}
       virtual HBox* clone() const override        { return new HBox(*this); }
-      virtual Element::Type type() const override { return Element::Type::HBOX;       }
+      virtual ElementType type() const override { return ElementType::HBOX;       }
 
       virtual void layout() override;
 
-      virtual QRectF drag(EditData*) override;
-      virtual void endEditDrag() override;
+      virtual QRectF drag(EditData&) override;
+      virtual void endEditDrag(EditData&) override;
       void layout2();
       virtual bool isMovable() const override;
       virtual void computeMinWidth();
+
+      bool createSystemHeader() const      { return _createSystemHeader; }
+      void setCreateSystemHeader(bool val) { _createSystemHeader = val;  }
+
+      virtual QVariant getProperty(Pid propertyId) const override;
+      virtual bool setProperty(Pid propertyId, const QVariant&) override;
+      virtual QVariant propertyDefault(Pid) const override;
       };
 
 //---------------------------------------------------------
@@ -124,18 +125,14 @@ class HBox : public Box {
 //---------------------------------------------------------
 
 class VBox : public Box {
-      Q_OBJECT
-
    public:
       VBox(Score* score);
       virtual ~VBox() {}
       virtual VBox* clone() const override        { return new VBox(*this);           }
-      virtual Element::Type type() const override { return Element::Type::VBOX;       }
+      virtual ElementType type() const override { return ElementType::VBOX;       }
 
       virtual void layout() override;
 
-      virtual QPointF getGrip(Grip) const override;
-      virtual void setGrip(Grip, const QPointF&) override;
       };
 
 //---------------------------------------------------------
@@ -144,13 +141,11 @@ class VBox : public Box {
 //---------------------------------------------------------
 
 class FBox : public VBox {
-      Q_OBJECT
-
    public:
       FBox(Score* score) : VBox(score) {}
       virtual ~FBox() {}
       virtual FBox* clone() const override        { return new FBox(*this); }
-      virtual Element::Type type() const override { return Element::Type::FBOX;       }
+      virtual ElementType type() const override { return ElementType::FBOX;       }
 
       virtual void layout() override;
       virtual void add(Element*) override;

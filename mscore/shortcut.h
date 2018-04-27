@@ -21,7 +21,7 @@ The Shortcut class describes the basic configurable shortcut element.
 'Real' data are contained in 2 static member variables:
 
 1) sc[], an array of Shortcut: contains the default, built-in data for each shortcut
-      except the key sequences; it is initialized at startup (code at the begining of
+      except the key sequences; it is initialized at startup (code at the beginning of
       mscore/actions.cpp)
 2) _shortcuts, a QMap using the shortcut xml tag name as hash value: is initialized from
       data in sc via a call to Shortcut::init() in program main() (mscore/musescore.cpp).
@@ -152,7 +152,7 @@ class Shortcut {
       Icons icon() const                       { return _icon;  }
       const QList<QKeySequence>& keys() const  { return _keys;  }
       QKeySequence::StandardKey standardKey() const { return _standardKey; }
-      void setStandardKey(QKeySequence::StandardKey k) {  _standardKey = k; }
+      void setStandardKey(QKeySequence::StandardKey k);
       void setKeys(const QList<QKeySequence>& ks);
 
       bool compareKeys(const Shortcut&) const;
@@ -165,7 +165,9 @@ class Shortcut {
       static void init();
       static void retranslate();
       static void load();
+      static void loadFromNewFile(QString fileLocation);
       static void save();
+      static void saveToNewFile(QString fileLocation);
       static void resetToDefault();
       static bool dirty;
       static Shortcut* getShortcut(const char* key);

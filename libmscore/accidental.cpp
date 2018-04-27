@@ -131,6 +131,19 @@ static Acc accList[] = {
       };
 
 //---------------------------------------------------------
+//   sym2accidentalVal
+//---------------------------------------------------------
+
+AccidentalVal sym2accidentalVal(SymId id)
+      {
+      for (const Acc& a : accList) {
+            if (a.sym == id)
+                  return a.offset;
+            }
+      return AccidentalVal::NATURAL;
+      }
+
+//---------------------------------------------------------
 //   Accidental
 //---------------------------------------------------------
 
@@ -138,10 +151,6 @@ Accidental::Accidental(Score* s)
    : Element(s)
       {
       setFlags(ElementFlag::MOVABLE | ElementFlag::SELECTABLE);
-      _hasBracket     = false;
-      _role           = AccidentalRole::AUTO;
-      _small          = false;
-      _accidentalType = AccidentalType::NONE;
       }
 
 //---------------------------------------------------------
@@ -154,8 +163,8 @@ void Accidental::read(XmlReader& e)
             const QStringRef& tag(e.name());
             if (tag == "bracket") {
                   int i = e.readInt();
-                  if (i == 0 || i == 1)
-                        _hasBracket = i;
+                  if (i == 0 || i == 1 || i == 2)
+                        _bracket = AccidentalBracket(i);
                   }
             else if (tag == "subtype")
                   setSubtype(e.readElementText());
@@ -180,9 +189,9 @@ void Accidental::read(XmlReader& e)
 void Accidental::write(XmlWriter& xml) const
       {
       xml.stag(name());
-      writeProperty(xml, P_ID::ACCIDENTAL_BRACKET);
-      writeProperty(xml, P_ID::ROLE);
-      writeProperty(xml, P_ID::SMALL);
+      writeProperty(xml, Pid::ACCIDENTAL_BRACKET);
+      writeProperty(xml, Pid::ROLE);
+      writeProperty(xml, Pid::SMALL);
       xml.tag("subtype", subtype2name(accidentalType()));
       Element::writeProperties(xml);
       xml.etag();
@@ -263,22 +272,25 @@ void Accidental::layout()
       el.clear();
 
       QRectF r;
+      // TODO: remove Accidental in layout()
       // don't show accidentals for tab or slash notation
-      if ((staff() && staff()->isTabStaff()) || (note() && note()->fixed())) {
+      if ((staff() && staff()->isTabStaff(tick())) || (note() && note()->fixed())) {
             setbbox(r);
             return;
             }
 
       qreal m = parent() ? parent()->mag() : 1.0;
       if (_small)
-            m *= score()->styleD(StyleIdx::smallNoteMag);
+            m *= score()->styleD(Sid::smallNoteMag);
       setMag(m);
 
       m = magS();
-      if (_hasBracket) {
-            SymElement e(SymId::accidentalParensLeft, 0.0);
+
+      if (_bracket != AccidentalBracket::NONE) {
+            SymId id = _bracket == AccidentalBracket::PARENTHESIS ? SymId::accidentalParensLeft : SymId::accidentalBracketLeft;
+            SymElement e(id, 0.0);
             el.append(e);
-            r |= symBbox(SymId::accidentalParensLeft);
+            r |= symBbox(id);
             }
 
       SymId s = symbol();
@@ -287,11 +299,12 @@ void Accidental::layout()
       el.append(e);
       r |= symBbox(s).translated(x, 0.0);
 
-      if (_hasBracket) {
+      if (_bracket != AccidentalBracket::NONE) {
+            SymId id = _bracket == AccidentalBracket::PARENTHESIS ? SymId::accidentalParensRight : SymId::accidentalBracketRight;
             x = r.x()+r.width();
-            SymElement e(SymId::accidentalParensRight, x);
+            SymElement e(id, x);
             el.append(e);
-            r |= symBbox(SymId::accidentalParensRight).translated(x, 0.0);
+            r |= symBbox(id).translated(x, 0.0);
             }
       setbbox(r);
       }
@@ -321,7 +334,7 @@ AccidentalType Accidental::value2subtype(AccidentalVal v)
 void Accidental::draw(QPainter* painter) const
       {
       // don't show accidentals for tab or slash notation
-      if ((staff() && staff()->isTabStaff()) || (note() && note()->fixed()))
+      if ((staff() && staff()->isTabStaff(tick())) || (note() && note()->fixed()))
             return;
       painter->setPen(curColor());
       for (const SymElement& e : el)
@@ -332,25 +345,33 @@ void Accidental::draw(QPainter* painter) const
 //   acceptDrop
 //---------------------------------------------------------
 
-bool Accidental::acceptDrop(const DropData& data) const
+bool Accidental::acceptDrop(EditData& data) const
       {
       Element* e = data.element;
-      return e->isIcon() && toIcon(e)->iconType() == IconType::BRACKETS;
+      return e->isIcon() && (toIcon(e)->iconType() == IconType::BRACKETS || toIcon(e)->iconType() == IconType::PARENTHESES);
       }
 
 //---------------------------------------------------------
 //   drop
 //---------------------------------------------------------
 
-Element* Accidental::drop(const DropData& data)
+Element* Accidental::drop(EditData& data)
       {
       Element* e = data.element;
       switch(e->type()) {
-            case Element::Type::ICON :
-                  if (toIcon(e)->iconType() == IconType::BRACKETS && !_hasBracket)
-                        undoSetHasBracket(true);
+            case ElementType::ICON :
+                  switch(toIcon(e)->iconType()) {
+                        case IconType::BRACKETS:
+                              undoChangeProperty(Pid::ACCIDENTAL_BRACKET, int(AccidentalBracket::BRACKET), PropertyFlags::NOSTYLE);
+                              break;
+                        case IconType::PARENTHESES:
+                              undoChangeProperty(Pid::ACCIDENTAL_BRACKET, int(AccidentalBracket::PARENTHESIS), PropertyFlags::NOSTYLE);
+                              break;
+                        default:
+                              qDebug("unknown icon type");
+                              break;
+                        }
                   break;
-
             default:
                   break;
             }
@@ -359,33 +380,24 @@ Element* Accidental::drop(const DropData& data)
       }
 
 //---------------------------------------------------------
-//   undoSetHasBracket
-//---------------------------------------------------------
-
-void Accidental::undoSetHasBracket(bool val)
-      {
-      undoChangeProperty(P_ID::ACCIDENTAL_BRACKET, val);
-      }
-
-//---------------------------------------------------------
 //   undoSetSmall
 //---------------------------------------------------------
 
 void Accidental::undoSetSmall(bool val)
       {
-      undoChangeProperty(P_ID::SMALL, val);
+      undoChangeProperty(Pid::SMALL, val);
       }
 
 //---------------------------------------------------------
 //   getProperty
 //---------------------------------------------------------
 
-QVariant Accidental::getProperty(P_ID propertyId) const
+QVariant Accidental::getProperty(Pid propertyId) const
       {
       switch (propertyId) {
-            case P_ID::SMALL:              return _small;
-            case P_ID::ACCIDENTAL_BRACKET: return _hasBracket;
-            case P_ID::ROLE:               return int(role());
+            case Pid::SMALL:              return _small;
+            case Pid::ACCIDENTAL_BRACKET: return int(bracket());
+            case Pid::ROLE:               return int(role());
             default:
                   return Element::getProperty(propertyId);
             }
@@ -395,12 +407,12 @@ QVariant Accidental::getProperty(P_ID propertyId) const
 //   propertyDefault
 //---------------------------------------------------------
 
-QVariant Accidental::propertyDefault(P_ID propertyId) const
+QVariant Accidental::propertyDefault(Pid propertyId) const
       {
       switch (propertyId) {
-            case P_ID::SMALL:              return false;
-            case P_ID::ACCIDENTAL_BRACKET: return false;
-            case P_ID::ROLE:               return int(AccidentalRole::AUTO);
+            case Pid::SMALL:              return false;
+            case Pid::ACCIDENTAL_BRACKET: return int(AccidentalBracket::NONE);
+            case Pid::ROLE:               return int(AccidentalRole::AUTO);
             default:
                   return Element::propertyDefault(propertyId);
             }
@@ -410,16 +422,16 @@ QVariant Accidental::propertyDefault(P_ID propertyId) const
 //   setProperty
 //---------------------------------------------------------
 
-bool Accidental::setProperty(P_ID propertyId, const QVariant& v)
+bool Accidental::setProperty(Pid propertyId, const QVariant& v)
       {
       switch (propertyId) {
-            case P_ID::SMALL:
+            case Pid::SMALL:
                   _small = v.toBool();
                   break;
-            case P_ID::ACCIDENTAL_BRACKET:
-                  _hasBracket = v.toBool();
+            case Pid::ACCIDENTAL_BRACKET:
+                  _bracket = AccidentalBracket(v.toInt());
                   break;
-            case P_ID::ROLE:
+            case Pid::ROLE:
                   _role = v.value<AccidentalRole>();
                   break;
             default:

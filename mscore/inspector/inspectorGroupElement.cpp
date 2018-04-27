@@ -77,13 +77,13 @@ InspectorGroupElement::InspectorGroupElement(QWidget* parent)
 
 void InspectorGroupElement::setColor()
       {
-      if (inspector->el().isEmpty())
+      if (inspector->el()->isEmpty())
             return;
-      Score* score = inspector->el().front()->score();
+      Score* score = inspector->el()->front()->score();
       score->startCmd();
-      for (Element* e : inspector->el()) {
-            if (e->getProperty(P_ID::COLOR) != QVariant(ge.color->color()))
-                  e->undoChangeProperty(P_ID::COLOR, ge.color->color());
+      for (Element* e : *inspector->el()) {
+            if (e->getProperty(Pid::COLOR) != QVariant(ge.color->color()))
+                  e->undoChangeProperty(Pid::COLOR, ge.color->color());
             }
       score->endCmd();
       }
@@ -94,13 +94,13 @@ void InspectorGroupElement::setColor()
 
 void InspectorGroupElement::setVisible()
       {
-      if (inspector->el().isEmpty())
+      if (inspector->el()->isEmpty())
             return;
-      Score* score = inspector->el().front()->score();
+      Score* score = inspector->el()->front()->score();
       score->startCmd();
-      for (Element* e : inspector->el()) {
-            if (!e->getProperty(P_ID::VISIBLE).toBool())
-                  e->undoChangeProperty(P_ID::VISIBLE, true);
+      for (Element* e : *inspector->el()) {
+            if (!e->getProperty(Pid::VISIBLE).toBool())
+                  e->undoChangeProperty(Pid::VISIBLE, true);
             }
       score->endCmd();
       }
@@ -111,13 +111,13 @@ void InspectorGroupElement::setVisible()
 
 void InspectorGroupElement::setInvisible()
       {
-      if (inspector->el().isEmpty())
+      if (inspector->el()->isEmpty())
             return;
-      Score* score = inspector->el().front()->score();
+      Score* score = inspector->el()->front()->score();
       score->startCmd();
-      for (Element* e : inspector->el()) {
-            if (e->getProperty(P_ID::VISIBLE).toBool())
-                  e->undoChangeProperty(P_ID::VISIBLE, false);
+      for (Element* e : *inspector->el()) {
+            if (e->getProperty(Pid::VISIBLE).toBool())
+                  e->undoChangeProperty(Pid::VISIBLE, false);
             }
       score->endCmd();
       }
@@ -128,7 +128,7 @@ void InspectorGroupElement::setInvisible()
 
 void InspectorGroupElement::notesClicked()
       {
-      Score* score = inspector->el().front()->score();
+      Score* score = inspector->el()->front()->score();
       QList<Element*> el = score->selection().elements();
       QList<Element*> nel;
       score->deselectAll();
@@ -142,8 +142,8 @@ void InspectorGroupElement::notesClicked()
                         }
                   }
             }
-      inspector->setElements(nel);
       score->update();
+      inspector->update();
       }
 
 //---------------------------------------------------------
@@ -152,7 +152,7 @@ void InspectorGroupElement::notesClicked()
 
 void InspectorGroupElement::graceNotesClicked()
       {
-      Score* score = inspector->el().front()->score();
+      Score* score = inspector->el()->front()->score();
       QList<Element*> el = score->selection().elements();
       QList<Element*> nel;
       score->deselectAll();
@@ -166,8 +166,8 @@ void InspectorGroupElement::graceNotesClicked()
                         }
                   }
             }
-      inspector->setElements(nel);
       score->update();
+      inspector->update();
       }
 
 //---------------------------------------------------------
@@ -176,7 +176,7 @@ void InspectorGroupElement::graceNotesClicked()
 
 void InspectorGroupElement::restsClicked()
       {
-      Score* score = inspector->el().front()->score();
+      Score* score = inspector->el()->front()->score();
       QList<Element*> el = score->selection().elements();
       QList<Element*> nel;
       score->deselectAll();
@@ -186,8 +186,8 @@ void InspectorGroupElement::restsClicked()
                   score->selection().add(e);
                   }
             }
-      inspector->setElements(nel);
       score->update();
+      inspector->update();
       }
 
 }

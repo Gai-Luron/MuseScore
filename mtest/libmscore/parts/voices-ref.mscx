@@ -6,22 +6,6 @@
     <Division>480</Division>
     <Style>
       <lastSystemFillLimit>0</lastSystemFillLimit>
-      <page-layout>
-        <page-height>1683.78</page-height>
-        <page-width>1190.55</page-width>
-        <page-margins type="even">
-          <left-margin>56.6929</left-margin>
-          <right-margin>56.6929</right-margin>
-          <top-margin>56.6929</top-margin>
-          <bottom-margin>113.386</bottom-margin>
-          </page-margins>
-        <page-margins type="odd">
-          <left-margin>56.6929</left-margin>
-          <right-margin>56.6929</right-margin>
-          <top-margin>56.6929</top-margin>
-          <bottom-margin>113.386</bottom-margin>
-          </page-margins>
-        </page-layout>
       <Spatium>1.76389</Spatium>
       </Style>
     <showInvisible>1</showInvisible>
@@ -39,29 +23,19 @@
     <metaTag name="translator"></metaTag>
     <metaTag name="workNumber"></metaTag>
     <metaTag name="workTitle">voices</metaTag>
-    <PageList>
-      <Page>
-        <System>
-          </System>
-        <System>
-          </System>
-        </Page>
-      </PageList>
     <Part>
       <Staff id="1">
         <StaffType group="pitched">
           <name>stdNormal</name>
           </StaffType>
-        <bracket type="1" span="2"/>
-        <barLineSpan>2</barLineSpan>
+        <bracket type="1" span="2" col="0"/>
+        <barLineSpan>1</barLineSpan>
         </Staff>
       <Staff id="2">
         <StaffType group="pitched">
           <name>stdNormal</name>
           </StaffType>
         <defaultClef>F</defaultClef>
-        <bracket type="-1" span="0"/>
-        <barLineSpan>0</barLineSpan>
         </Staff>
       <trackName>Piano</trackName>
       <Instrument>
@@ -115,7 +89,6 @@
           <name>stdNormal</name>
           </StaffType>
         <defaultClef>F</defaultClef>
-        <bracket type="-1" span="0"/>
         </Staff>
       <trackName>Trombone</trackName>
       <Instrument>
@@ -182,7 +155,6 @@
           <lid>3</lid>
           <sigN>4</sigN>
           <sigD>4</sigD>
-          <showCourtesySig>1</showCourtesySig>
           </TimeSig>
         <Dynamic>
           <subtype>pp</subtype>
@@ -281,13 +253,9 @@
         <HairPin id="2">
           <subtype>0</subtype>
           <veloChange>10</veloChange>
+          <beginText>cresc.</beginText>
+          <continueText>(cresc.)</continueText>
           <lid>81</lid>
-          <beginText>
-            <text>cresc.</text>
-            </beginText>
-          <continueText>
-            <text>(cresc.)</text>
-            </continueText>
           </HairPin>
         <Rest>
           <durationType>measure</durationType>
@@ -336,16 +304,16 @@
             </Note>
           </Chord>
         <Chord>
-          <lid>30</lid>
+          <lid>29</lid>
           <track>1</track>
           <durationType>quarter</durationType>
           <Articulation>
-            <subtype>articAccentBelow</subtype>
-            <lid>29</lid>
+            <subtype>articAccentAbove</subtype>
+            <lid>31</lid>
             <track>1</track>
             </Articulation>
           <Note>
-            <lid>31</lid>
+            <lid>30</lid>
             <track>1</track>
             <pitch>63</pitch>
             <tpc>11</tpc>
@@ -588,7 +556,6 @@
           <lid>19</lid>
           <sigN>4</sigN>
           <sigD>4</sigD>
-          <showCourtesySig>1</showCourtesySig>
           </TimeSig>
         <Rest>
           <lid>20</lid>
@@ -657,7 +624,6 @@
           <lid>83</lid>
           <sigN>4</sigN>
           <sigD>4</sigD>
-          <showCourtesySig>1</showCourtesySig>
           </TimeSig>
         <Rest>
           <durationType>measure</durationType>
@@ -749,16 +715,16 @@
             </Note>
           </Chord>
         <Chord>
-          <lid>99</lid>
+          <lid>98</lid>
           <track>11</track>
           <durationType>quarter</durationType>
           <Articulation>
-            <subtype>articAccentBelow</subtype>
-            <lid>98</lid>
+            <subtype>articAccentAbove</subtype>
+            <lid>100</lid>
             <track>11</track>
             </Articulation>
           <Note>
-            <lid>100</lid>
+            <lid>99</lid>
             <track>11</track>
             <pitch>43</pitch>
             <tpc>15</tpc>
@@ -934,22 +900,6 @@
       <Style>
         <lastSystemFillLimit>0</lastSystemFillLimit>
         <createMultiMeasureRests>1</createMultiMeasureRests>
-        <page-layout>
-          <page-height>1683.78</page-height>
-          <page-width>1190.55</page-width>
-          <page-margins type="even">
-            <left-margin>56.6929</left-margin>
-            <right-margin>56.6929</right-margin>
-            <top-margin>56.6929</top-margin>
-            <bottom-margin>113.386</bottom-margin>
-            </page-margins>
-          <page-margins type="odd">
-            <left-margin>56.6929</left-margin>
-            <right-margin>56.6929</right-margin>
-            <top-margin>56.6929</top-margin>
-            <bottom-margin>113.386</bottom-margin>
-            </page-margins>
-          </page-layout>
         <Spatium>1.76389</Spatium>
         </Style>
       <showInvisible>1</showInvisible>
@@ -957,22 +907,14 @@
       <showFrames>1</showFrames>
       <showMargins>0</showMargins>
       <metaTag name="partName">Piano</metaTag>
-      <PageList>
-        <Page>
-          <System>
-            </System>
-          <System>
-            </System>
-          </Page>
-        </PageList>
       <Part>
         <Staff id="1">
           <linkedTo>1</linkedTo>
           <StaffType group="pitched">
             <name>stdNormal</name>
             </StaffType>
-          <bracket type="1" span="2"/>
-          <barLineSpan>2</barLineSpan>
+          <bracket type="1" span="2" col="0"/>
+          <barLineSpan>1</barLineSpan>
           </Staff>
         <Staff id="2">
           <linkedTo>2</linkedTo>
@@ -980,8 +922,6 @@
             <name>stdNormal</name>
             </StaffType>
           <defaultClef>F</defaultClef>
-          <bracket type="-1" span="0"/>
-          <barLineSpan>0</barLineSpan>
           </Staff>
         <trackName>Piano</trackName>
         <Instrument>
@@ -1050,7 +990,6 @@
             <lid>3</lid>
             <sigN>4</sigN>
             <sigD>4</sigD>
-            <showCourtesySig>1</showCourtesySig>
             </TimeSig>
           <Chord>
             <lid>4</lid>
@@ -1133,13 +1072,9 @@
           <HairPin id="7">
             <subtype>0</subtype>
             <veloChange>10</veloChange>
+            <beginText>cresc.</beginText>
+            <continueText>(cresc.)</continueText>
             <lid>81</lid>
-            <beginText>
-              <text>cresc.</text>
-              </beginText>
-            <continueText>
-              <text>(cresc.)</text>
-              </continueText>
             </HairPin>
           <Chord>
             <lid>22</lid>
@@ -1175,14 +1110,14 @@
               </Note>
             </Chord>
           <Chord>
-            <lid>30</lid>
+            <lid>29</lid>
             <durationType>quarter</durationType>
             <Articulation>
-              <subtype>articAccentAbove</subtype>
-              <lid>29</lid>
+              <subtype>articAccentBelow</subtype>
+              <lid>31</lid>
               </Articulation>
             <Note>
-              <lid>31</lid>
+              <lid>30</lid>
               <pitch>63</pitch>
               <tpc>11</tpc>
               </Note>
@@ -1380,7 +1315,6 @@
             <lid>19</lid>
             <sigN>4</sigN>
             <sigD>4</sigD>
-            <showCourtesySig>1</showCourtesySig>
             </TimeSig>
           <Rest>
             <lid>20</lid>
@@ -1453,22 +1387,6 @@
       <Style>
         <lastSystemFillLimit>0</lastSystemFillLimit>
         <createMultiMeasureRests>1</createMultiMeasureRests>
-        <page-layout>
-          <page-height>1683.78</page-height>
-          <page-width>1190.55</page-width>
-          <page-margins type="even">
-            <left-margin>56.6929</left-margin>
-            <right-margin>56.6929</right-margin>
-            <top-margin>56.6929</top-margin>
-            <bottom-margin>113.386</bottom-margin>
-            </page-margins>
-          <page-margins type="odd">
-            <left-margin>56.6929</left-margin>
-            <right-margin>56.6929</right-margin>
-            <top-margin>56.6929</top-margin>
-            <bottom-margin>113.386</bottom-margin>
-            </page-margins>
-          </page-layout>
         <Spatium>1.76389</Spatium>
         </Style>
       <showInvisible>1</showInvisible>
@@ -1476,14 +1394,6 @@
       <showFrames>1</showFrames>
       <showMargins>0</showMargins>
       <metaTag name="partName">Trombone</metaTag>
-      <PageList>
-        <Page>
-          <System>
-            </System>
-          <System>
-            </System>
-          </Page>
-        </PageList>
       <Part>
         <Staff id="1">
           <linkedTo>3</linkedTo>
@@ -1491,7 +1401,6 @@
             <name>stdNormal</name>
             </StaffType>
           <defaultClef>F</defaultClef>
-          <bracket type="-1" span="0"/>
           </Staff>
         <trackName>Trombone</trackName>
         <Instrument>
@@ -1556,7 +1465,6 @@
             <lid>83</lid>
             <sigN>4</sigN>
             <sigD>4</sigD>
-            <showCourtesySig>1</showCourtesySig>
             </TimeSig>
           <Chord>
             <lid>84</lid>
@@ -1624,14 +1532,14 @@
               </Note>
             </Chord>
           <Chord>
-            <lid>99</lid>
+            <lid>98</lid>
             <durationType>quarter</durationType>
             <Articulation>
               <subtype>articAccentBelow</subtype>
-              <lid>98</lid>
+              <lid>100</lid>
               </Articulation>
             <Note>
-              <lid>100</lid>
+              <lid>99</lid>
               <pitch>43</pitch>
               <tpc>15</tpc>
               </Note>
